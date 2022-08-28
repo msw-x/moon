@@ -1,0 +1,5 @@
+package moon
+
+func Moon() {
+
+}
