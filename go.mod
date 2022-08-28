@@ -1,4 +1,4 @@
-module moon
+module github.com/msw-x/moon
 
 go 1.18
 
