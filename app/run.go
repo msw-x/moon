@@ -1,8 +1,8 @@
 package app
 
 import (
-	"moon"
-	"moon/ulog"
+	"github.com/msw-x/moon"
+	"github.com/msw-x/moon/ulog"
 	"os"
 )
 

@@ -2,8 +2,8 @@ package app
 
 import (
 	"flag"
-	"moon/fs"
-	"moon/ufmt"
+	"github.com/msw-x/moon/fs"
+	"github.com/msw-x/moon/ufmt"
 )
 
 func ParseCmdLine(version string) (confFile string, ok bool) {

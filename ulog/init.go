@@ -2,7 +2,7 @@ package ulog
 
 import (
 	"fmt"
-	"moon/fs"
+	"github.com/msw-x/moon/fs"
 	"os"
 	"path"
 	"path/filepath"

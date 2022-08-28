@@ -1,6 +1,6 @@
 package ulog
 
-import "moon"
+import "github.com/msw-x/moon"
 
 type Level int
 

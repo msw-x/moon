@@ -2,8 +2,8 @@ package app
 
 import (
 	"fmt"
-	"moon"
-	"moon/fs"
+	"github.com/msw-x/moon"
+	"github.com/msw-x/moon/fs"
 	"os"
 	"path"
 	"path/filepath"

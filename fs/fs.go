@@ -1,7 +1,7 @@
 package fs
 
 import (
-	"moon"
+	"github.com/msw-x/moon"
 	"os"
 	"path/filepath"
 	"time"

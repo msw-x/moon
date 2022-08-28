@@ -1,8 +1,8 @@
 package ulog
 
 import (
-	"moon"
-	"moon/parse"
+	"github.com/msw-x/moon"
+	"github.com/msw-x/moon/parse"
 	"reflect"
 )
 

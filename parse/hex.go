@@ -2,7 +2,7 @@ package parse
 
 import (
 	"encoding/hex"
-	"moon"
+	"github.com/msw-x/moon"
 )
 
 func Hex(s string) []byte {

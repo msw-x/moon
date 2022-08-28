@@ -2,7 +2,7 @@ package moon
 
 import (
 	"fmt"
-	"moon/ufmt"
+	"github.com/msw-x/moon/ufmt"
 )
 
 func Panic(v ...any) {

@@ -2,7 +2,7 @@ package fs
 
 import (
 	"io/ioutil"
-	"moon"
+	"github.com/msw-x/moon"
 	"os"
 	"path"
 )

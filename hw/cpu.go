@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
-	"moon/fs"
+	"github.com/msw-x/moon/fs"
 	"strconv"
 	"strings"
 )

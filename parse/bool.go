@@ -1,7 +1,7 @@
 package parse
 
 import (
-	"moon"
+	"github.com/msw-x/moon"
 	"strings"
 )
 
