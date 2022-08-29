@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -44,4 +45,22 @@ func CpuTemp() int {
 		}
 	}
 	return -273
+}
+
+func CpuID() (id string) {
+	find := func(s string, exp string) {
+		if id == "" {
+			re := regexp.MustCompile(`ID: (.*)`)
+			sm := re.FindStringSubmatch(s)
+			if len(sm) == 2 {
+				id = sm[1]
+			}
+		}
+	}
+	find(fs.ReadString("/proc/cpuinfo"), `Serial\t*: (.*)`)
+	find(fs.ReadStdout("dmidecode", "--type", "processor"), `ID: (.*)`)
+	find(fs.ReadStdout("lshw"), `serial: (.*)`)
+	id = strings.ReplaceAll(id, " ", "")
+	id = strings.ToLower(id)
+	return
 }
