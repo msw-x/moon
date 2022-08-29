@@ -1,6 +1,10 @@
 package app
 
 import (
+	"path"
+	"reflect"
+	"strings"
+
 	"github.com/msw-x/moon"
 	"github.com/msw-x/moon/ulog"
 
@@ -11,6 +15,24 @@ func LoadConf[Conf any](filename string) Conf {
 	var conf Conf
 	_, err := toml.DecodeFile(filename, &conf)
 	moon.Check(err, "load conf")
+	rv := reflect.ValueOf(&conf).Elem()
+	for i := 0; i < rv.NumField(); i++ {
+		name := rv.Type().Field(i).Name
+		if strings.HasSuffix(name, "Dir") || strings.HasSuffix(name, "File") {
+			val := rv.Field(i)
+			if val.Kind() == reflect.String {
+				ulog.Debug("name:", name)
+				s := val.String()
+				s = path.Clean(s)
+				if !path.IsAbs(s) {
+					s = path.Join(Dir(), s)
+				}
+				if val.CanSet() {
+					val.SetString(s)
+				}
+			}
+		}
+	}
 	return conf
 }
 
