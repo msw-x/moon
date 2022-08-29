@@ -2,9 +2,10 @@ package fs
 
 import (
 	"io/ioutil"
-	"github.com/msw-x/moon"
 	"os"
 	"path"
+
+	"github.com/msw-x/moon"
 )
 
 func ReadDir(dir string, ignorAccessDenied bool) []os.FileInfo {

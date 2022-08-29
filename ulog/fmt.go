@@ -2,10 +2,11 @@ package ulog
 
 import (
 	"fmt"
-	"github.com/msw-x/moon/rt"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/msw-x/moon/rt"
 )
 
 func Format(level Level, v ...any) string {

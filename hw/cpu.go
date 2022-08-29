@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
-	"github.com/msw-x/moon/fs"
 	"strconv"
 	"strings"
+
+	"github.com/msw-x/moon/fs"
 )
 
 func ThermalZoneFile(zone int) string {

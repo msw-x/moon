@@ -1,8 +1,9 @@
 package parse
 
 import (
-	"github.com/msw-x/moon"
 	"strconv"
+
+	"github.com/msw-x/moon"
 )
 
 func Int(s string) int {

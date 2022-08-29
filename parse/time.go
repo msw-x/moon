@@ -1,8 +1,9 @@
 package parse
 
 import (
-	"github.com/msw-x/moon"
 	"time"
+
+	"github.com/msw-x/moon"
 )
 
 func Time(format string, s string) time.Time {

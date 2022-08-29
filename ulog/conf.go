@@ -1,9 +1,10 @@
 package ulog
 
 import (
+	"reflect"
+
 	"github.com/msw-x/moon"
 	"github.com/msw-x/moon/parse"
-	"reflect"
 )
 
 type Conf struct {

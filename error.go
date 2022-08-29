@@ -2,6 +2,7 @@ package moon
 
 import (
 	"fmt"
+
 	"github.com/msw-x/moon/ufmt"
 )
 

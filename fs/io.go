@@ -5,9 +5,10 @@ import (
 	"encoding/csv"
 	"io"
 	"io/ioutil"
-	"github.com/msw-x/moon"
 	"path/filepath"
 	"strings"
+
+	"github.com/msw-x/moon"
 )
 
 func Read(path string) []byte {

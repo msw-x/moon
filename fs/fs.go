@@ -1,10 +1,11 @@
 package fs
 
 import (
-	"github.com/msw-x/moon"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/msw-x/moon"
 )
 
 func Exist(path string) bool {

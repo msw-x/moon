@@ -1,9 +1,10 @@
 package app
 
 import (
+	"os"
+
 	"github.com/msw-x/moon"
 	"github.com/msw-x/moon/ulog"
-	"os"
 )
 
 func Run[UserConf any](version string, run func(UserConf)) {

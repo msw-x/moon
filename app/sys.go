@@ -2,12 +2,13 @@ package app
 
 import (
 	"fmt"
-	"github.com/msw-x/moon"
-	"github.com/msw-x/moon/fs"
 	"os"
 	"path"
 	"path/filepath"
 	"runtime"
+
+	"github.com/msw-x/moon"
+	"github.com/msw-x/moon/fs"
 )
 
 func Executable() string {

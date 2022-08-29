@@ -2,11 +2,12 @@ package ulog
 
 import (
 	"fmt"
-	"github.com/msw-x/moon/fs"
 	"os"
 	"path"
 	"path/filepath"
 	"time"
+
+	"github.com/msw-x/moon/fs"
 )
 
 func Init(conf Conf) {

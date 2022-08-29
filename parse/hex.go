@@ -2,6 +2,7 @@ package parse
 
 import (
 	"encoding/hex"
+
 	"github.com/msw-x/moon"
 )
 

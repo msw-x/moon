@@ -1,8 +1,9 @@
 package parse
 
 import (
-	"github.com/msw-x/moon"
 	"strings"
+
+	"github.com/msw-x/moon"
 )
 
 func Bool(s string) bool {
