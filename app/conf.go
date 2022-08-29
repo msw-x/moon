@@ -23,12 +23,14 @@ func LoadConf[Conf any](filename string) Conf {
 			if val.Kind() == reflect.String {
 				ulog.Debug("name:", name)
 				s := val.String()
-				s = path.Clean(s)
-				if !path.IsAbs(s) {
-					s = path.Join(Dir(), s)
-				}
-				if val.CanSet() {
-					val.SetString(s)
+				if s != "" {
+					s = path.Clean(s)
+					if !path.IsAbs(s) {
+						s = path.Join(Dir(), s)
+					}
+					if val.CanSet() {
+						val.SetString(s)
+					}
 				}
 			}
 		}
