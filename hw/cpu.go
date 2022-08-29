@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/msw-x/moon/fs"
+	"github.com/msw-x/moon/proc"
 )
 
 func ThermalZoneFile(zone int) string {
@@ -58,8 +59,8 @@ func CpuID() (id string) {
 		}
 	}
 	find(fs.ReadString("/proc/cpuinfo"), `Serial\t*: (.*)`)
-	find(fs.ReadStdout("dmidecode", "--type", "processor"), `ID: (.*)`)
-	find(fs.ReadStdout("lshw"), `serial: (.*)`)
+	find(proc.ReadStdout("dmidecode", "--type", "processor"), `ID: (.*)`)
+	find(proc.ReadStdout("lshw"), `serial: (.*)`)
 	id = strings.ReplaceAll(id, " ", "")
 	id = strings.ToLower(id)
 	return

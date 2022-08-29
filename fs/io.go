@@ -5,7 +5,6 @@ import (
 	"encoding/csv"
 	"io"
 	"io/ioutil"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -55,22 +54,4 @@ func WriteCVS(path string, records [][]string) {
 	w.WriteAll(records)
 	moon.Check(w.Error(), "write cvs")
 	Write(path, buf.Bytes())
-}
-
-func Start(name string, arg ...string) {
-	err := exec.Command(name, arg...).Start()
-	moon.Check(err, "exec:", name)
-}
-
-func Run(name string, arg ...string) {
-	err := exec.Command(name, arg...).Run()
-	moon.Check(err, "exec:", name)
-}
-
-func ReadStdout(name string, arg ...string) string {
-	out, err := exec.Command(name, arg...).Output()
-	moon.Check(err, "exec:", name)
-	s := string(out)
-	s = strings.TrimSuffix(s, "\n")
-	return s
 }
