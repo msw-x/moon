@@ -1,5 +1,0 @@
-package moon
-
-func Moon() {
-
-}

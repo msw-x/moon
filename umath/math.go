@@ -1,4 +1,4 @@
-package moon
+package umath
 
 import "math/rand"
 
