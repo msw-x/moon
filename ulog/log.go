@@ -7,7 +7,7 @@ type Log struct {
 	lifetimeLevel *Level
 }
 
-func NewLog(prefix string) *Log {
+func New(prefix string) *Log {
 	return &Log{
 		prefix: prefix,
 	}

@@ -13,7 +13,7 @@ func Run[UserConf any](version string, run func(UserConf)) {
 	if confFile, ok := ParseCmdLine(version); ok {
 		conf := LoadConf[Conf](confFile)
 		ulog.Init(conf.Log())
-		log := ulog.NewLog("app")
+		log := ulog.New("app")
 		defer log.Close()
 		log.Info("startup")
 		log.Info("version:", version)
