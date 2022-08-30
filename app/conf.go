@@ -21,7 +21,6 @@ func LoadConf[Conf any](filename string) Conf {
 		if strings.HasSuffix(name, "Dir") || strings.HasSuffix(name, "File") {
 			val := rv.Field(i)
 			if val.Kind() == reflect.String {
-				ulog.Debug("name:", name)
 				s := val.String()
 				if s != "" {
 					s = path.Clean(s)
