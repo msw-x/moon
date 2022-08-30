@@ -25,6 +25,7 @@ func Run[UserConf any](version string, run func(UserConf)) {
 		log.Info("conf:", confFile)
 		userConf := LoadConf[UserConf](confFile)
 		run(userConf)
+		log.Info(ulog.Stat())
 		log.Info("shutdown")
 	}
 }
