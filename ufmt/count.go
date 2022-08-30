@@ -30,20 +30,24 @@ type IntCtx struct {
 func (this *IntCtx) init() {
 	if this.Base == nil {
 		this.base = 1000
+	} else {
+		this.base = this.Base.(int)
 	}
-	this.base = this.Base.(int)
 	if this.Precision == nil {
 		this.precision = 1
+	} else {
+		this.precision = this.Precision.(int)
 	}
-	this.precision = this.Precision.(int)
 	if this.MinLevel == nil {
 		this.minLevel = 0
+	} else {
+		this.minLevel = this.MinLevel.(int)
 	}
-	this.minLevel = this.MinLevel.(int)
 	if this.MaxLevel == nil {
 		this.maxLevel = len(IntPrefix)
+	} else {
+		this.maxLevel = this.MaxLevel.(int)
 	}
-	this.maxLevel = this.MaxLevel.(int)
 }
 
 func Int[V umath.AnyInt](v V, ctx IntCtx) string {
