@@ -13,12 +13,21 @@ import (
 	"math/big"
 	"net"
 	"os"
+	"path"
 	"strings"
 	"time"
 
 	"github.com/msw-x/moon"
 	"github.com/msw-x/moon/fs"
 )
+
+func Ensure(certPath string, keyPath string) {
+	Gen{}.Ensure(certPath, keyPath)
+}
+
+func EnsureDir(dir string) {
+	Gen{}.Ensure(path.Join(dir, "cert.pem"), path.Join(dir, "key.pem"))
+}
 
 type Gen struct {
 	Host         string
@@ -134,10 +143,6 @@ func (this Gen) Ensure(certPath string, keyPath string) {
 		err := this.Generate(certPath, keyPath)
 		moon.Check(err, "certificate generation")
 	}
-}
-
-func Ensure(certPath string, keyPath string) {
-	Gen{}.Ensure(certPath, keyPath)
 }
 
 func publicKey(priv any) any {
