@@ -18,7 +18,7 @@ func ReadDir(dir string, ignorAccessDenied bool) []os.FileInfo {
 	return files
 }
 
-type ListCtx struct {
+type List struct {
 	Files             bool
 	Folders           bool
 	Extension         string
@@ -30,18 +30,18 @@ type ListCtx struct {
 	level int
 }
 
-func List(dir string, ctx ListCtx) []string {
-	content := ReadDir(dir, ctx.IgnorAccessDenied)
+func (this List) Get(dir string) []string {
+	content := ReadDir(dir, this.IgnorAccessDenied)
 	filter := func(c os.FileInfo) bool {
-		if ctx.Folders {
+		if this.Folders {
 			return c.IsDir()
-		} else if ctx.Files {
+		} else if this.Files {
 			if c.Mode().IsRegular() {
-				if ctx.Extension == "" {
-					if len(ctx.ExtensionList) == 0 {
+				if this.Extension == "" {
+					if len(this.ExtensionList) == 0 {
 						return true
 					} else {
-						for _, ext := range ctx.ExtensionList {
+						for _, ext := range this.ExtensionList {
 							if EqualExt(Ext(c.Name()), ext) {
 								return true
 							}
@@ -49,7 +49,7 @@ func List(dir string, ctx ListCtx) []string {
 						return false
 					}
 				} else {
-					return EqualExt(Ext(c.Name()), ctx.Extension)
+					return EqualExt(Ext(c.Name()), this.Extension)
 				}
 			}
 		}
@@ -60,20 +60,23 @@ func List(dir string, ctx ListCtx) []string {
 		if filter(c) {
 			result = append(result, c.Name())
 		}
-		if ctx.Recursive && c.IsDir() {
-			nextCtx := ctx
-			nextCtx.level++
-			subResult := List(path.Join(dir, c.Name()), nextCtx)
+		if this.Recursive && c.IsDir() {
+			subResult := this.sub().Get(path.Join(dir, c.Name()))
 			for n, sub := range subResult {
 				subResult[n] = path.Join(c.Name(), sub)
 			}
 			result = append(result, subResult...)
 		}
 	}
-	if !ctx.RelativePath && ctx.level == 0 {
+	if !this.RelativePath && this.level == 0 {
 		for n, i := range result {
 			result[n] = path.Join(dir, i)
 		}
 	}
 	return result
+}
+
+func (this List) sub() List {
+	this.level++
+	return this
 }
