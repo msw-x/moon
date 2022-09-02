@@ -19,6 +19,11 @@ func (this *Log) Close() {
 	}
 }
 
+func (this *Log) WithID(id any) *Log {
+	this.prefix = fmt.Sprintf("%s[%v]", this.prefix, id)
+	return this
+}
+
 func (this *Log) WithLifetime() *Log {
 	l := LevelInfo
 	this.Print(l, "+")
