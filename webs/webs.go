@@ -49,11 +49,13 @@ func (this *Server) Run(addr string, handler http.Handler) {
 	name := "http"
 	if this.IsTls() {
 		name = "https"
-		this.log.Info("cert:", this.certFile)
-		this.log.Info("key:", this.keyFile)
 		secret.Ensure(this.certFile, this.keyFile)
 	}
 	this.log = ulog.New(name).WithID(addr)
+	if this.IsTls() {
+		this.log.Info("cert:", this.certFile)
+		this.log.Info("key:", this.keyFile)
+	}
 	this.s = &http.Server{
 		Addr:         addr,
 		Handler:      handler,
@@ -74,7 +76,7 @@ func (this *Server) Run(addr string, handler http.Handler) {
 		} else {
 			err = this.s.ListenAndServe()
 		}
-		if this.do.Do() && err != nil {
+		if this.s != nil && err != nil {
 			this.log.Error(err)
 		}
 	})
@@ -85,7 +87,9 @@ func (this *Server) Shutdown() {
 		ctx, cancel := context.WithTimeout(context.Background(), this.timeout.close)
 		defer cancel()
 		this.log.Info("shutdown")
-		this.s.Shutdown(ctx)
+		s := this.s
+		this.s = nil
+		s.Shutdown(ctx)
 		this.do.Stop()
 		this.log.Info("shutdown completed")
 	}
