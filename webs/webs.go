@@ -48,9 +48,9 @@ func (this *Server) Run(addr string, handler http.Handler) {
 	}
 	name := "http"
 	if this.IsTls() {
-		name := "https"
+		name = "https"
 		this.log.Info("cert:", this.certFile)
-		this.log.Info("key:", this.certKey)
+		this.log.Info("key:", this.keyFile)
 		secret.Ensure(this.certFile, this.keyFile)
 	}
 	this.log = ulog.New(name).WithID(addr)
@@ -68,7 +68,7 @@ func (this *Server) Run(addr string, handler http.Handler) {
 			this.do.Notify()
 		}()
 		this.log.Info("listen")
-		var log error
+		var err error
 		if this.IsTls() {
 			err = this.s.ListenAndServeTLS(this.certFile, this.keyFile)
 		} else {

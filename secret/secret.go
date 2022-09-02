@@ -49,18 +49,18 @@ func (this *Gen) init() {
 	if this.Organization == "" {
 		this.Organization = "Goodlife"
 	}
-	if this.ValidFrom == 0 {
+	if this.ValidFrom.IsZero() {
 		this.ValidFrom = time.Now()
 	}
 	if this.ValidFor == 0 {
 		this.ValidFor = 365 * 24 * time.Hour
 	}
-	if IsCA == nil {
+	if this.IsCA == nil {
 		this.isCA = true
 	} else {
-		this.isCA = IsCA.(bool)
+		this.isCA = this.IsCA.(bool)
 	}
-	if RsaBits == 0 {
+	if this.RsaBits == 0 {
 		this.RsaBits = 2048
 	}
 }
@@ -70,7 +70,7 @@ func (this Gen) Generate(certPath string, keyPath string) error {
 	var err error
 	switch this.EcdsaCurve {
 	case "":
-		priv, err = rsa.GenerateKey(rand.Reader, rsaBits)
+		priv, err = rsa.GenerateKey(rand.Reader, this.RsaBits)
 	case "P224":
 		priv, err = ecdsa.GenerateKey(elliptic.P224(), rand.Reader)
 	case "P256":
@@ -107,7 +107,7 @@ func (this Gen) Generate(certPath string, keyPath string) error {
 		BasicConstraintsValid: true,
 	}
 
-	hosts := strings.Split(host, ",")
+	hosts := strings.Split(this.Host, ",")
 	for _, h := range hosts {
 		if ip := net.ParseIP(h); ip != nil {
 			template.IPAddresses = append(template.IPAddresses, ip)
@@ -157,6 +157,22 @@ func publicKey(priv any) any {
 		return &k.PublicKey
 	case ed25519.PrivateKey:
 		return k.Public().(ed25519.PublicKey)
+	default:
+		return nil
+	}
+}
+
+func pemBlockForKey(priv any) *pem.Block {
+	switch k := priv.(type) {
+	case *rsa.PrivateKey:
+		return &pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(k)}
+	case *ecdsa.PrivateKey:
+		b, err := x509.MarshalECPrivateKey(k)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Unable to marshal ECDSA private key: %v", err)
+			os.Exit(2)
+		}
+		return &pem.Block{Type: "EC PRIVATE KEY", Bytes: b}
 	default:
 		return nil
 	}

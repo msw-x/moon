@@ -15,17 +15,17 @@ func NewDual() *DualServer {
 }
 
 func (this *DualServer) WithSecret(certFile, keyFile string) *DualServer {
-	tls.WithTls(certFile, keyFile)
+	this.tls.WithTls(certFile, keyFile)
 	return this
 }
 
-func (this *DualServer) WithSecretDir(certFile, keyFile string) *DualServer {
-	tls.WithTls(certFile, keyFile)
+func (this *DualServer) WithSecretDir(dir string) *DualServer {
+	this.tls.WithTlsDir(dir)
 	return this
 }
 
 func (this *DualServer) Run(addr string, addrTls string, handler http.Handler) {
-	if !tls.IsTls() {
+	if !this.tls.IsTls() {
 		panic("dual-server: tls secret not defined")
 	}
 	this.s.Run(addr, handler)
