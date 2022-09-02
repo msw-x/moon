@@ -26,7 +26,11 @@ func Ensure(certPath string, keyPath string) {
 }
 
 func EnsureDir(dir string) {
-	Gen{}.Ensure(path.Join(dir, "cert.pem"), path.Join(dir, "key.pem"))
+	Gen{}.Ensure(FileNames(dir))
+}
+
+func FileNames(dir string) (string, string) {
+	return path.Join(dir, "cert.pem"), path.Join(dir, "key.pem")
 }
 
 type Gen struct {
