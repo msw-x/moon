@@ -21,7 +21,10 @@ func (this *Log) Close() {
 
 func (this *Log) WithID(id any) *Log {
 	if id != nil {
-		this.prefix = fmt.Sprintf("%s[%v]", this.prefix, id)
+		i := fmt.Sprint(id)
+		if i != "" {
+			this.prefix = fmt.Sprintf("%s[%s]", this.prefix, i)
+		}
 	}
 	return this
 }
