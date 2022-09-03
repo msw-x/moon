@@ -97,6 +97,7 @@ func (this *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 }
 
 func (this *Router) Log() *ulog.Log {
+	this.init()
 	return this.log
 }
 
