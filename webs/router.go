@@ -23,19 +23,17 @@ type OnRequest func(http.ResponseWriter, *http.Request)
 type OnWebsocket func(*websocket.Conn)
 
 func NewRouter() (ret *Router) {
-	ret = &Router{
+	return Router{
 		router: mux.NewRouter(),
-	}
-	ret.WithUrl("")
-	return
+	}.Branch("")
 }
 
-func (this *Router) WithUrl(path string) *Router {
+func (this Router) Branch(path string) *Router {
 	this.path = path
 	if !strings.HasSuffix(this.path, "/") {
 		this.path += "/"
 	}
-	return this
+	return &this
 }
 
 func (this *Router) WithID(id any) *Router {
