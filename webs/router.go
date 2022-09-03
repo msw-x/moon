@@ -42,13 +42,18 @@ func (this *Router) WithID(id any) *Router {
 }
 
 func (this *Router) Handle(method string, path string, onRequest OnRequest) {
+	if onRequest == nil {
+		panic("router on-request func is nil")
+	}
 	this.init()
 	path = this.path + path
 	name := RouteName(method, path)
-	this.log.Info(name)
+	this.log.Debug(name)
 	this.router.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		defer moon.Recover(func(err string) {
 			this.log.Error(name, err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err))
 		})
 		onRequest(w, r)
 	}).Methods(method)
@@ -80,7 +85,7 @@ func (this *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 		WriteBufferSize: 0,
 	}
 	name := RouteName("ws", path)
-	this.log.Info(name)
+	this.log.Debug(name)
 	this.Get(path, func(w http.ResponseWriter, r *http.Request) {
 		defer moon.Recover(func(err string) {
 			this.log.Error(name, err)
@@ -93,6 +98,10 @@ func (this *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 
 func (this *Router) Log() *ulog.Log {
 	return this.log
+}
+
+func (this *Router) Router() *mux.Router {
+	return this.router
 }
 
 func (this *Router) init() {
