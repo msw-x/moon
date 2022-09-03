@@ -20,7 +20,9 @@ func (this *Log) Close() {
 }
 
 func (this *Log) WithID(id any) *Log {
-	this.prefix = fmt.Sprintf("%s[%v]", this.prefix, id)
+	if id != nil {
+		this.prefix = fmt.Sprintf("%s[%v]", this.prefix, id)
+	}
 	return this
 }
 
