@@ -44,9 +44,11 @@ func (this *Router) WithID(id any) *Router {
 func (this *Router) Handle(method string, path string, onRequest OnRequest) {
 	this.init()
 	path = this.path + path
+	name := RouteName(method, path)
+	this.log.Info(name)
 	this.router.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		defer moon.Recover(func(err string) {
-			this.log.Errorf("%s:%s %s", method, path, err)
+			this.log.Error(name, err)
 		})
 		onRequest(w, r)
 	}).Methods(method)
@@ -77,9 +79,11 @@ func (this *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 		ReadBufferSize:  0,
 		WriteBufferSize: 0,
 	}
+	name := RouteName("ws", path)
+	this.log.Info(name)
 	this.Get(path, func(w http.ResponseWriter, r *http.Request) {
 		defer moon.Recover(func(err string) {
-			this.log.Errorf("ws:%s %s", path, err)
+			this.log.Error(name, err)
 		})
 		conn, err := up.Upgrade(w, r, nil)
 		moon.Check(err, "upgrade")
@@ -87,8 +91,16 @@ func (this *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 	})
 }
 
+func (this *Router) Log() *ulog.Log {
+	return this.log
+}
+
 func (this *Router) init() {
 	if this.log == nil {
 		this.log = ulog.New("router").WithID(this.id)
 	}
+}
+
+func RouteName(method, path string) string {
+	return fmt.Sprintf("%s:%s", strings.ToLower(method), path)
 }
