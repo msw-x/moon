@@ -46,7 +46,7 @@ func (this *Router) Handle(method string, path string, onRequest OnRequest) {
 		panic("router on-request func is nil")
 	}
 	this.init()
-	path = this.path + path
+	path = this.fullpath(path)
 	name := RouteName(method, path)
 	this.log.Debug(name)
 	this.router.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +84,7 @@ func (this *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 		ReadBufferSize:  0,
 		WriteBufferSize: 0,
 	}
-	name := RouteName("ws", path)
+	name := RouteName("ws", this.fullpath(path))
 	this.log.Debug(name)
 	this.Get(path, func(w http.ResponseWriter, r *http.Request) {
 		defer moon.Recover(func(err string) {
@@ -109,6 +109,10 @@ func (this *Router) init() {
 	if this.log == nil {
 		this.log = ulog.New("router").WithID(this.id)
 	}
+}
+
+func (this *Router) fullpath(path string) string {
+	return this.path + path
 }
 
 func RouteName(method, path string) string {
