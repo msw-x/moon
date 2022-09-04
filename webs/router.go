@@ -54,7 +54,9 @@ func (this *Router) Handle(method string, path string, onRequest OnRequest) {
 	}
 	this.init()
 	uri := this.uri(path)
-	this.log.Debug(RouteName(method, uri))
+	if this.logRequest {
+		this.log.Debug(RouteName(method, uri))
+	}
 	this.router.HandleFunc(uri, func(w http.ResponseWriter, r *http.Request) {
 		name := RequestName(r)
 		defer moon.Recover(func(err string) {
