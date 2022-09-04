@@ -9,14 +9,16 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/msw-x/moon"
+	"github.com/msw-x/moon/ufmt"
 	"github.com/msw-x/moon/ulog"
 )
 
 type Router struct {
-	log    *ulog.Log
-	id     string
-	path   string
-	router *mux.Router
+	log        *ulog.Log
+	id         string
+	path       string
+	router     *mux.Router
+	logRequest bool
 }
 
 type OnRequest func(http.ResponseWriter, *http.Request)
@@ -41,20 +43,33 @@ func (this *Router) WithID(id any) *Router {
 	return this
 }
 
+func (this *Router) WithLogRequest(logRequest bool) *Router {
+	this.logRequest = logRequest
+	return this
+}
+
 func (this *Router) Handle(method string, path string, onRequest OnRequest) {
 	if onRequest == nil {
 		panic("router on-request func is nil")
 	}
 	this.init()
-	path = this.fullpath(path)
-	name := RouteName(method, path)
-	this.log.Debug(name)
-	this.router.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+	uri := this.uri(path)
+	this.log.Debug(RouteName(method, uri))
+	this.router.HandleFunc(uri, func(w http.ResponseWriter, r *http.Request) {
+		name := RequestName(r)
 		defer moon.Recover(func(err string) {
 			this.log.Error(name, err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err))
 		})
+		r.ParseForm()
+		if this.logRequest {
+			if r.ContentLength > 0 {
+				this.log.Debug(name, ufmt.ByteSize(r.ContentLength))
+			} else {
+				this.log.Debug(name)
+			}
+		}
 		onRequest(w, r)
 	}).Methods(method)
 }
@@ -84,11 +99,11 @@ func (this *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 		ReadBufferSize:  0,
 		WriteBufferSize: 0,
 	}
-	name := RouteName("ws", this.fullpath(path))
-	this.log.Debug(name)
-	this.Get(path, func(w http.ResponseWriter, r *http.Request) {
+	method := http.MethodGet
+	this.log.Debug(WebSocketName(RouteName(method, this.uri(path))))
+	this.Handle(method, path, func(w http.ResponseWriter, r *http.Request) {
 		defer moon.Recover(func(err string) {
-			this.log.Error(name, err)
+			this.log.Error(WebSocketName(RequestName(r)), err)
 		})
 		conn, err := up.Upgrade(w, r, nil)
 		moon.Check(err, "upgrade")
@@ -111,10 +126,21 @@ func (this *Router) init() {
 	}
 }
 
-func (this *Router) fullpath(path string) string {
+func (this *Router) uri(path string) string {
 	return this.path + path
 }
 
-func RouteName(method, path string) string {
-	return fmt.Sprintf("%s:%s", strings.ToLower(method), path)
+func RouteName(method, uri string) string {
+	return ufmt.JoinWith(":", strings.ToUpper(method), uri)
+}
+
+func RequestName(r *http.Request) string {
+	if r == nil {
+		return "?"
+	}
+	return ufmt.JoinWith("?", r.RemoteAddr, RouteName(r.Method, r.RequestURI))
+}
+
+func WebSocketName(name string) string {
+	return ufmt.JoinWith("@", name, "ws")
 }
