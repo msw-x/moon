@@ -64,7 +64,6 @@ func (this *Router) Handle(method string, path string, onRequest OnRequest) {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err))
 		})
-		r.ParseForm()
 		if this.logRequest {
 			if r.ContentLength > 0 {
 				this.log.Debug(name, ufmt.ByteSize(r.ContentLength))
