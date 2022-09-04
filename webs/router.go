@@ -29,7 +29,7 @@ func NewRouter() (ret *Router) {
 }
 
 func (this Router) Branch(path string) *Router {
-	this.path = path
+	this.path += path
 	if !strings.HasSuffix(this.path, "/") {
 		this.path += "/"
 	}
