@@ -91,6 +91,10 @@ func (this *Router) Delete(path string, onRequest OnRequest) {
 	this.Handle(http.MethodDelete, path, onRequest)
 }
 
+func (this *Router) Options(path string, onRequest OnRequest) {
+	this.Handle(http.MethodOptions, path, onRequest)
+}
+
 func (this *Router) Files(files fs.FS) {
 	this.router.PathPrefix(this.path).Handler(http.FileServer(http.FS(files)))
 }
