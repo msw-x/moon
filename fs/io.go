@@ -51,6 +51,7 @@ func WriteCSV(path string, records [][]string) {
 	var buf bytes.Buffer
 	bw := io.Writer(&buf)
 	w := csv.NewWriter(bw)
+	w.Comma = ';'
 	w.WriteAll(records)
 	moon.Check(w.Error(), "write cvs")
 	Write(path, buf.Bytes())
