@@ -101,7 +101,7 @@ func (this *Router) Options(path string, onRequest OnRequest) {
 
 func (this *Router) Files(files fs.FS) {
 	if this.logRequest {
-		this.log.Debug(RouteName(http.MethodGet, this.path))
+		this.log.Debugf("%s[files]", RouteName(http.MethodGet, this.path))
 	}
 	if this.IsRoot() {
 		this.router.PathPrefix(this.path).Handler(http.FileServer(http.FS(files)))
