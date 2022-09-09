@@ -37,7 +37,7 @@ func ReadLines(path string) []string {
 	return strings.Split(s, "\n")
 }
 
-func ReadCVS(path string) [][]string {
+func ReadCSV(path string) [][]string {
 	in := ReadString(path)
 	r := csv.NewReader(strings.NewReader(in))
 	r.Comma = ';'
@@ -47,7 +47,7 @@ func ReadCVS(path string) [][]string {
 	return records
 }
 
-func WriteCVS(path string, records [][]string) {
+func WriteCSV(path string, records [][]string) {
 	var buf bytes.Buffer
 	bw := io.Writer(&buf)
 	w := csv.NewWriter(bw)
