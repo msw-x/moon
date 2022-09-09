@@ -48,6 +48,10 @@ func (this *Router) WithLogRequest(logRequest bool) *Router {
 	return this
 }
 
+func (this *Router) IsRoot() bool {
+	return this.path == "/"
+}
+
 func (this *Router) Handle(method string, path string, onRequest OnRequest) {
 	if onRequest == nil {
 		panic("router on-request func is nil")
@@ -96,7 +100,14 @@ func (this *Router) Options(path string, onRequest OnRequest) {
 }
 
 func (this *Router) Files(files fs.FS) {
-	this.router.PathPrefix(this.path).Handler(http.FileServer(http.FS(files)))
+	if this.logRequest {
+		this.log.Debug(RouteName(http.MethodGet, this.path))
+	}
+	if this.IsRoot() {
+		this.router.PathPrefix(this.path).Handler(http.FileServer(http.FS(files)))
+	} else {
+		this.router.PathPrefix(this.path).Handler(http.StripPrefix(strings.TrimSuffix(this.path, "/"), http.FileServer(http.FS(files))))
+	}
 }
 
 func (this *Router) WebSocket(path string, onWebsocket OnWebsocket) {
