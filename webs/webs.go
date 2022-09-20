@@ -9,6 +9,7 @@ import (
 	"github.com/msw-x/moon/secret"
 	"github.com/msw-x/moon/syn"
 	"github.com/msw-x/moon/ulog"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 type Server struct {
@@ -18,6 +19,7 @@ type Server struct {
 	timeout  timeout
 	certFile string
 	keyFile  string
+	manager  *autocert.Manager
 }
 
 func New() *Server {
@@ -42,6 +44,15 @@ func (this *Server) WithTlsDir(dir string) *Server {
 	return this
 }
 
+func (this *Server) WithAutoCert(dir string, domains ...string) *Server {
+	this.manager = &autocert.Manager{
+		Cache:      autocert.DirCache(dir),
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: autocert.HostWhitelist(domains...),
+	}
+	return this
+}
+
 func (this *Server) Run(addr string, handler http.Handler) {
 	if addr == "" {
 		return
@@ -62,6 +73,9 @@ func (this *Server) Run(addr string, handler http.Handler) {
 		WriteTimeout: this.timeout.write,
 		ReadTimeout:  this.timeout.read,
 		IdleTimeout:  this.timeout.idle,
+	}
+	if this.manager != nil {
+		this.s.TLSConfig = this.manager.TLSConfig()
 	}
 	this.do = syn.NewDo()
 	app.Go(func() {
