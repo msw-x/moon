@@ -24,6 +24,11 @@ func (this *DualServer) WithSecretDir(dir string) *DualServer {
 	return this
 }
 
+func (this *DualServer) WithAutoCert(dir string, domains ...string) *DualServer {
+	this.tls.WithAutoCert(dir, domains...)
+	return this
+}
+
 func (this *DualServer) Run(addr string, addrTls string, handler http.Handler) {
 	if !this.tls.IsTls() {
 		panic("dual-server: tls secret not defined")
