@@ -19,7 +19,7 @@ type Server struct {
 	timeout  timeout
 	certFile string
 	keyFile  string
-	manager  *autocert.Manager
+	tlsman   *autocert.Manager
 }
 
 func New() *Server {
@@ -45,7 +45,9 @@ func (this *Server) WithTlsDir(dir string) *Server {
 }
 
 func (this *Server) WithAutoCert(dir string, domains ...string) *Server {
-	this.manager = &autocert.Manager{
+	this.certFile = ""
+	this.keyFile = ""
+	this.tlsman = &autocert.Manager{
 		Cache:      autocert.DirCache(dir),
 		Prompt:     autocert.AcceptTOS,
 		HostPolicy: autocert.HostWhitelist(domains...),
@@ -60,12 +62,16 @@ func (this *Server) Run(addr string, handler http.Handler) {
 	name := "http"
 	if this.IsTls() {
 		name = "https"
-		secret.Ensure(this.certFile, this.keyFile)
+		if this.tlsman == nil {
+			secret.Ensure(this.certFile, this.keyFile)
+		}
 	}
 	this.log = ulog.New(name).WithID(addr)
 	if this.IsTls() {
-		this.log.Info("cert:", this.certFile)
-		this.log.Info("key:", this.keyFile)
+		if this.tlsman == nil {
+			this.log.Info("cert:", this.certFile)
+			this.log.Info("key:", this.keyFile)
+		}
 	}
 	this.s = &http.Server{
 		Addr:         addr,
@@ -74,8 +80,8 @@ func (this *Server) Run(addr string, handler http.Handler) {
 		ReadTimeout:  this.timeout.read,
 		IdleTimeout:  this.timeout.idle,
 	}
-	if this.manager != nil {
-		this.s.TLSConfig = this.manager.TLSConfig()
+	if this.tlsman != nil {
+		this.s.TLSConfig = this.tlsman.TLSConfig()
 	}
 	this.do = syn.NewDo()
 	app.Go(func() {
@@ -110,7 +116,7 @@ func (this *Server) Shutdown() {
 }
 
 func (this *Server) IsTls() bool {
-	return this.certFile != "" && this.keyFile != ""
+	return this.certFile != "" && this.keyFile != "" || this.tlsman != nil
 }
 
 type timeout struct {
