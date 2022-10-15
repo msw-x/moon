@@ -42,11 +42,14 @@ func NewMessage(level Level, v ...any) *Message {
 
 func (this *Message) Format() string {
 	if this.message == "" {
+		l := this.Level
+		if ctx.conf.GoID {
+			l = fmt.Sprintf("%s|%s", this.GoID, this.Level)
+		}
 		this.message = fmt.Sprintf(
-			"%s [%s|%s] %s\n",
+			"%s [%s] %s\n",
 			this.Time,
-			this.GoID,
-			this.Level,
+			l,
 			this.Text,
 		)
 	}
@@ -60,6 +63,9 @@ func fmtTime() string {
 }
 
 func fmtGoroutineID() string {
+	if !ctx.conf.GoID {
+		return ""
+	}
 	id := rt.GoroutineID()
 	sid := strconv.Itoa(id)
 	if len(sid) > ctx.maxid {

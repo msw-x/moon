@@ -13,6 +13,7 @@ type Conf struct {
 	File      string
 	Dir       string
 	Append    bool
+	GoID      bool
 	SplitArgs any
 
 	level     Level
