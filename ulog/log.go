@@ -3,12 +3,15 @@ package ulog
 import "fmt"
 
 type Log struct {
+	enable        bool
+	level         Level
 	prefix        string
 	lifetimeLevel *Level
 }
 
 func New(prefix string) *Log {
 	return &Log{
+		enable: true,
 		prefix: prefix,
 	}
 }
@@ -43,13 +46,25 @@ func (this *Log) WithLifetimeDebug() *Log {
 	return this
 }
 
+func (this *Log) WithLevel(level Level) *Log {
+	this.level = level
+	return this
+}
+
+func (this *Log) Enable(enable bool) *Log {
+	this.enable = enable
+	return this
+}
+
 func (this *Log) Print(level Level, v ...any) {
-	space := ""
-	if !ctx.conf.splitArgs {
-		space = " "
+	if this.enable && level >= this.level {
+		space := ""
+		if !ctx.conf.splitArgs {
+			space = " "
+		}
+		v = append([]any{fmt.Sprintf("<%s>%s", this.prefix, space)}, v...)
+		Print(level, v...)
 	}
-	v = append([]any{fmt.Sprintf("<%s>%s", this.prefix, space)}, v...)
-	Print(level, v...)
 }
 
 func (this *Log) Printf(level Level, format string, v ...any) {
