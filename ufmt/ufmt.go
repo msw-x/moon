@@ -32,6 +32,10 @@ func EnableDisable(v bool) string {
 	return Bool(v, "enable", "disable")
 }
 
+func SuccessFailure(v bool) string {
+	return Bool(v, "success", "failure")
+}
+
 func Hex(buf []byte) string {
 	return hex.EncodeToString(buf)
 }
