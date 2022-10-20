@@ -15,17 +15,17 @@ func NewDual() *DualServer {
 }
 
 func (this *DualServer) WithSecret(certFile, keyFile string) *DualServer {
-	this.tls.WithTls(certFile, keyFile)
+	this.tls.WithSecret(certFile, keyFile)
 	return this
 }
 
 func (this *DualServer) WithSecretDir(dir string) *DualServer {
-	this.tls.WithTlsDir(dir)
+	this.tls.WithSecretDir(dir)
 	return this
 }
 
-func (this *DualServer) WithAutoCert(dir string, domains ...string) *DualServer {
-	this.tls.WithAutoCert(dir, domains...)
+func (this *DualServer) WithAutoSecret(dir string, domains ...string) *DualServer {
+	this.tls.WithAutoSecret(dir, domains...)
 	return this
 }
 

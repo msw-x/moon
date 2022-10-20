@@ -33,18 +33,18 @@ func New() *Server {
 	}
 }
 
-func (this *Server) WithTls(certFile, keyFile string) *Server {
+func (this *Server) WithSecret(certFile, keyFile string) *Server {
 	this.certFile = certFile
 	this.keyFile = keyFile
 	return this
 }
 
-func (this *Server) WithTlsDir(dir string) *Server {
+func (this *Server) WithSecretDir(dir string) *Server {
 	this.certFile, this.keyFile = secret.FileNames(dir)
 	return this
 }
 
-func (this *Server) WithAutoCert(dir string, domains ...string) *Server {
+func (this *Server) WithAutoSecret(dir string, domains ...string) *Server {
 	this.certFile = ""
 	this.keyFile = ""
 	this.tlsman = &autocert.Manager{
