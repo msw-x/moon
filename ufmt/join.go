@@ -24,3 +24,26 @@ func JoinSliceWith[T any](splitter string, v []T) string {
 	}
 	return strings.Join(s, splitter)
 }
+
+func NotableJoin(v ...any) string {
+	return NotableJoinWith(" ", v...)
+}
+
+func NotableJoinWith(splitter string, v ...any) string {
+	return NotableJoinSliceWith(splitter, v[:])
+}
+
+func NotableJoinSlice[T any](v []T) string {
+	return NotableJoinSliceWith(" ", v)
+}
+
+func NotableJoinSliceWith[T any](splitter string, v []T) string {
+	s := []string{}
+	for _, a := range v {
+		i := fmt.Sprint(a)
+		if i != "" {
+			s = append(s, i)
+		}
+	}
+	return strings.Join(s, splitter)
+}
