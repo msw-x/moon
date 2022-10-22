@@ -7,15 +7,15 @@ import (
 
 	"github.com/msw-x/moon/app"
 	"github.com/msw-x/moon/secret"
-	"github.com/msw-x/moon/syn"
 	"github.com/msw-x/moon/ulog"
+	"github.com/msw-x/moon/usync"
 	"golang.org/x/crypto/acme/autocert"
 )
 
 type Server struct {
 	log      *ulog.Log
 	s        *http.Server
-	do       *syn.Do
+	do       *usync.Do
 	timeout  timeout
 	certFile string
 	keyFile  string
@@ -83,7 +83,7 @@ func (this *Server) Run(addr string, handler http.Handler) {
 	if this.tlsman != nil {
 		this.s.TLSConfig = this.tlsman.TLSConfig()
 	}
-	this.do = syn.NewDo()
+	this.do = usync.NewDo()
 	app.Go(func() {
 		defer func() {
 			this.log.Info("stopped")

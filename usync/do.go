@@ -1,4 +1,4 @@
-package syn
+package usync
 
 import (
 	"time"

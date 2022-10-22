@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/msw-x/moon/str"
 	"github.com/msw-x/moon/umath"
+	"github.com/msw-x/moon/ustring"
 )
 
 const IntPrefix = "KMGTPE"
@@ -72,7 +72,7 @@ func Int[V umath.AnyInt](v V, ctx IntCtx) string {
 	if ctx.precision > 0 {
 		div := V(math.Pow(float64(base), float64(level)))
 		f := float64(v) / float64(div)
-		_, fractionalPart := str.SplitPair(fmt.Sprintf("%."+strconv.Itoa(ctx.precision)+"f", f), ".")
+		_, fractionalPart := ustring.SplitPair(fmt.Sprintf("%."+strconv.Itoa(ctx.precision)+"f", f), ".")
 		if !ctx.FixFractional {
 			for strings.HasSuffix(fractionalPart, "0") {
 				fractionalPart = strings.TrimSuffix(fractionalPart, "0")
