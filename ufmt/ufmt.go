@@ -36,6 +36,10 @@ func SuccessFailure(v bool) string {
 	return Bool(v, "success", "failure")
 }
 
+func UpDown(v bool) string {
+	return Bool(v, "up", "down")
+}
+
 func Hex(buf []byte) string {
 	return hex.EncodeToString(buf)
 }
