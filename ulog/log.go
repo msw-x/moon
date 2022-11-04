@@ -56,6 +56,10 @@ func (this *Log) Enable(enable bool) *Log {
 	return this
 }
 
+func (this *Log) Branch(prefix string) *Log {
+	return New(this.prefix + "." + prefix)
+}
+
 func (this *Log) Print(level Level, v ...any) {
 	if this.enable && level >= this.level {
 		space := ""
