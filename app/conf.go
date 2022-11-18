@@ -14,7 +14,7 @@ import (
 func LoadConf[Conf any](filename string) Conf {
 	var conf Conf
 	_, err := toml.DecodeFile(filename, &conf)
-	moon.Check(err, "load conf")
+	moon.Strict(err, "load conf")
 	rv := reflect.ValueOf(&conf).Elem()
 	for i := 0; i < rv.NumField(); i++ {
 		name := rv.Type().Field(i).Name

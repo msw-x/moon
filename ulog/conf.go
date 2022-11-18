@@ -45,7 +45,7 @@ func initSplitArgs(a any) bool {
 	case bool:
 		return v
 	case string:
-		return parse.Bool(v)
+		return parse.BoolStrict(v)
 	}
 	moon.Panic("invalid ulog level type:", reflect.TypeOf(a))
 	return false

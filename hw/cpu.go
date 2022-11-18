@@ -58,9 +58,9 @@ func CpuID() (id string) {
 			}
 		}
 	}
-	find(fs.ReadString("/proc/cpuinfo"), `Serial\t*: (.*)`)
-	find(proc.ReadStdout("dmidecode", "--type", "processor"), `ID: (.*)`)
-	find(proc.ReadStdout("lshw"), `serial: (.*)`)
+	find(fs.ReadStringStrict("/proc/cpuinfo"), `Serial\t*: (.*)`)
+	find(proc.ReadStdoutStrict("dmidecode", "--type", "processor"), `ID: (.*)`)
+	find(proc.ReadStdoutStrict("lshw"), `serial: (.*)`)
 	id = strings.ReplaceAll(id, " ", "")
 	id = strings.ToLower(id)
 	return

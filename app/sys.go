@@ -13,7 +13,7 @@ import (
 
 func Executable() string {
 	p, err := os.Executable()
-	moon.Check(err, "executable")
+	moon.Strict(err, "app executable")
 	return path.Clean(p)
 }
 

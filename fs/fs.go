@@ -4,8 +4,6 @@ import (
 	"os"
 	"path/filepath"
 	"time"
-
-	"github.com/msw-x/moon"
 )
 
 func Exist(path string) bool {
@@ -13,61 +11,52 @@ func Exist(path string) bool {
 	return !os.IsNotExist(err)
 }
 
-func Remove(path string) {
-	moon.Check(os.RemoveAll(path), "fs remove")
+func Remove(path string) error {
+	return os.RemoveAll(path)
 }
 
-func Rename(path, newName string) {
-	err := os.Rename(path, newName)
-	moon.Check(err, "fs rename")
+func Rename(path, newName string) error {
+	return os.Rename(path, newName)
 }
 
-func IsDir(path string) bool {
+func IsDir(path string) (bool, error) {
 	fi, err := os.Stat(path)
-	moon.Check(err)
-	return fi.Mode().IsDir()
+	return fi.Mode().IsDir(), err
 }
 
-func MakeDir(dir string) {
-	moon.Check(os.MkdirAll(dir, os.ModePerm), "make dir")
+func MakeDir(dir string) error {
+	return os.MkdirAll(dir, os.ModePerm)
 }
 
-func FileSize(path string) int64 {
+func FileSize(path string) (int64, error) {
 	fi, err := os.Stat(path)
-	moon.Check(err, "file size")
-	return fi.Size()
+	return fi.Size(), err
 }
 
-func FileModTime(path string) time.Time {
+func FileModifyTime(path string) (time.Time, error) {
 	fi, err := os.Stat(path)
-	moon.Check(err, "file modify time")
-	return fi.ModTime()
+	return fi.ModTime(), err
 }
 
-func DirSize(path string) int64 {
-	var size int64
-	err := filepath.Walk(path,
+func DirSize(path string) (size int64, err error) {
+	err = filepath.Walk(path,
 		func(_ string, info os.FileInfo, err error) error {
 			if !info.IsDir() {
 				size += info.Size()
 			}
 			return err
 		})
-	moon.Check(err, "dir size")
-	return size
+	return
 }
 
-func CreateOpt(filename string) (*os.File, error) {
-	MakeDir(filepath.Dir(filename))
-	return os.Create(filename)
+func Create(filename string) (f *os.File, err error) {
+	err = MakeDir(filepath.Dir(filename))
+	if err == nil {
+		f, err = os.Create(filename)
+	}
+	return
 }
 
-func Create(filename string) *os.File {
-	f, err := CreateOpt(filename)
-	moon.Check(err, "fs create")
-	return f
-}
-
-func Chmod(name string, mode os.FileMode) {
-	moon.Check(os.Chmod(name, mode), "chmod")
+func Chmod(name string, mode os.FileMode) error {
+	return os.Chmod(name, mode)
 }

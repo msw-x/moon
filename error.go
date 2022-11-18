@@ -14,7 +14,7 @@ func Panicf(format string, v ...any) {
 	panic(fmt.Errorf(format, v...))
 }
 
-func Check(err error, v ...any) {
+func Strict(err error, v ...any) {
 	if err != nil {
 		if len(v) > 0 {
 			Panicf("%s: %v", ufmt.Join(v...), err)
@@ -24,8 +24,8 @@ func Check(err error, v ...any) {
 	}
 }
 
-func Checkf(err error, format string, v ...any) {
-	Check(err, fmt.Sprintf(format, v...))
+func Strictf(err error, format string, v ...any) {
+	Strict(err, fmt.Sprintf(format, v...))
 }
 
 func Recover(onError func(string)) {

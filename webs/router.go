@@ -122,7 +122,7 @@ func (this *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 			this.log.Error(WebSocketName(RequestName(r)), err)
 		})
 		conn, err := up.Upgrade(w, r, nil)
-		moon.Check(err, "upgrade")
+		moon.Strict(err, "upgrade")
 		onWebsocket(conn)
 	})
 }

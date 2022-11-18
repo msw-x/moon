@@ -7,52 +7,54 @@ import (
 	"io/ioutil"
 	"path/filepath"
 	"strings"
-
-	"github.com/msw-x/moon"
 )
 
-func Read(path string) []byte {
-	raw, err := ioutil.ReadFile(path)
-	moon.Check(err, "fs read")
-	return raw
+func Read(path string) ([]byte, error) {
+	return ioutil.ReadFile(path)
 }
 
-func Write(path string, content []byte) {
+func Write(path string, content []byte) error {
 	dir := filepath.Dir(path)
-	MakeDir(dir)
-	err := ioutil.WriteFile(path, content, 0644)
-	moon.Check(err, "fs write")
+	err := MakeDir(dir)
+	if err == nil {
+		err = ioutil.WriteFile(path, content, 0644)
+	}
+	return err
 }
 
-func ReadString(path string) string {
-	return string(Read(path))
+func ReadString(path string) (string, error) {
+	bytes, err := Read(path)
+	return string(bytes), err
 }
 
 func WriteString(path string, content string) {
 	Write(path, []byte(content))
 }
 
-func ReadLines(path string) []string {
-	s := ReadString(path)
-	return strings.Split(s, "\n")
+func ReadLines(path string) ([]string, error) {
+	s, err := ReadString(path)
+	return strings.Split(s, "\n"), err
 }
 
-func ReadCSV(path string) [][]string {
-	in := ReadString(path)
-	r := csv.NewReader(strings.NewReader(in))
-	r.Comma = ';'
-	r.Comment = '#'
-	records, err := r.ReadAll()
-	moon.Check(err, "read cvs")
-	return records
+func ReadCSV(path string) (records [][]string, err error) {
+	in, err := ReadString(path)
+	if err == nil {
+		r := csv.NewReader(strings.NewReader(in))
+		r.Comma = ';'
+		r.Comment = '#'
+		return r.ReadAll()
+	}
+	return
 }
 
-func WriteCSV(path string, records [][]string) {
+func WriteCSV(path string, records [][]string) error {
 	var buf bytes.Buffer
 	bw := io.Writer(&buf)
 	w := csv.NewWriter(bw)
 	w.Comma = ';'
-	w.WriteAll(records)
-	moon.Check(w.Error(), "write cvs")
-	Write(path, buf.Bytes())
+	err := w.WriteAll(records)
+	if err != nil {
+		return err
+	}
+	return Write(path, buf.Bytes())
 }

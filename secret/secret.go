@@ -149,7 +149,7 @@ func (this Gen) Generate(certPath string, keyPath string) error {
 func (this Gen) Ensure(certPath string, keyPath string) {
 	if !fs.Exist(certPath) || !fs.Exist(keyPath) {
 		err := this.Generate(certPath, keyPath)
-		moon.Check(err, "certificate generation")
+		moon.Strict(err, "certificate generation")
 	}
 }
 

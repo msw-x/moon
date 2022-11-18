@@ -3,24 +3,22 @@ package proc
 import (
 	"os/exec"
 	"strings"
-
-	"github.com/msw-x/moon"
 )
 
-func Start(name string, arg ...string) {
-	err := exec.Command(name, arg...).Start()
-	moon.Check(err, "exec:", name)
+func Start(name string, arg ...string) error {
+	return exec.Command(name, arg...).Start()
 }
 
-func Run(name string, arg ...string) {
-	err := exec.Command(name, arg...).Run()
-	moon.Check(err, "exec:", name)
+func Run(name string, arg ...string) error {
+	return exec.Command(name, arg...).Run()
 }
 
-func ReadStdout(name string, arg ...string) string {
+func ReadStdout(name string, arg ...string) (s string, err error) {
 	out, err := exec.Command(name, arg...).Output()
-	moon.Check(err, "exec:", name)
-	s := string(out)
+	if err != nil {
+		return
+	}
+	s = string(out)
 	s = strings.TrimSuffix(s, "\n")
-	return s
+	return
 }

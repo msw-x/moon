@@ -1,19 +1,25 @@
 package parse
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/msw-x/moon"
 )
 
-func Bool(s string) bool {
+func Bool(s string) (bool, error) {
 	s = strings.ToLower(s)
 	switch s {
 	case "0", "false", "no", "off", "disable":
-		return false
+		return false, nil
 	case "1", "true", "yes", "on", "enable":
-		return true
+		return true, nil
 	}
-	moon.Panic("parse bool:", s)
-	return false
+	return false, fmt.Errorf("parse bool: %S", s)
+}
+
+func BoolStrict(s string) bool {
+	b, err := Bool(s)
+	moon.Strict(err)
+	return b
 }
