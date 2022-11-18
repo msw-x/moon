@@ -76,7 +76,10 @@ func Criticalf(format string, v ...any) {
 func Stat() string {
 	ctx.mutex.Lock()
 	defer ctx.mutex.Unlock()
-	text := fmt.Sprintf("uptime[%s] goroutines[%d]", time.Since(ctx.inited).Truncate(time.Second), len(ctx.mapid))
+	text := fmt.Sprintf("uptime[%s]", time.Since(ctx.inited).Truncate(time.Second))
+	if ctx.conf.GoID {
+		text = fmt.Sprintf("%s goroutines[%d]", len(ctx.mapid))
+	}
 	add := func(level Level, count uint) {
 		if count > 0 {
 			text = fmt.Sprintf("%s %v[%d]", text, level, count)
