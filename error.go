@@ -3,6 +3,7 @@ package moon
 import (
 	"fmt"
 
+	"github.com/msw-x/moon/rt"
 	"github.com/msw-x/moon/ufmt"
 )
 
@@ -32,4 +33,8 @@ func Recover(onError func(string)) {
 	if r := recover(); r != nil {
 		onError(fmt.Sprint(r))
 	}
+}
+
+func StrictFn(err error, fn any) {
+	Strict(err, rt.FuncName(fn))
 }
