@@ -2,7 +2,7 @@ package umath
 
 import "math/rand"
 
-func Percent[Minor AnyInt, Major AnyInt](minor Minor, major Major) int {
+func Percent[Minor AnyNumber, Major AnyNumber](minor Minor, major Major) int {
 	mn := int64(minor)
 	mj := int64(major)
 	if mn == 0 {
