@@ -1,6 +1,9 @@
 package umath
 
-import "math/rand"
+import (
+	"math"
+	"math/rand"
+)
 
 func Percent[Minor AnyNumber, Major AnyNumber](minor Minor, major Major) int {
 	mn := int64(minor)
@@ -13,4 +16,8 @@ func Percent[Minor AnyNumber, Major AnyNumber](minor Minor, major Major) int {
 
 func Rand(min, max int) int {
 	return rand.Intn(max-min) + min
+}
+
+func NormalFloatDegree[T AnyFloat](v T) int {
+	return int(math.Floor(math.Log10(float64(v))))
 }
