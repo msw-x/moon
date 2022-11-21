@@ -21,3 +21,11 @@ func Rand(min, max int) int {
 func NormalFloatDegree[T AnyFloat](v T) int {
 	return int(math.Floor(math.Log10(float64(v))))
 }
+
+func Min[A AnyNumber, B AnyNumber](a A, b B) float64 {
+	return math.Min(float64(a), float64(b))
+}
+
+func Max[A AnyNumber, B AnyNumber](a A, b B) float64 {
+	return math.Max(float64(a), float64(b))
+}
