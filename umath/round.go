@@ -2,25 +2,25 @@ package umath
 
 import "math"
 
-func RestrictFrac[T AnyFloat](x T, fracLen int, round func(float64) float64) T {
+func StrictFrac[T AnyFloat](x T, fracLen int, round func(float64) float64) T {
 	accuracy := 1 / math.Pow10(fracLen)
 	return ReduceFrac(x, accuracy, round)
 }
 
-func RestrictFracRound[T AnyFloat](x T, fracLen int) T {
-	return RestrictFrac(x, fracLen, math.Round)
+func StrictFracRound[T AnyFloat](x T, fracLen int) T {
+	return StrictFrac(x, fracLen, math.Round)
 }
 
-func RestrictFracTrunc[T AnyFloat](x T, fracLen int) T {
-	return RestrictFrac(x, fracLen, math.Trunc)
+func StrictFracTrunc[T AnyFloat](x T, fracLen int) T {
+	return StrictFrac(x, fracLen, math.Trunc)
 }
 
-func RestrictFracFloor[T AnyFloat](x T, fracLen int) T {
-	return RestrictFrac(x, fracLen, math.Floor)
+func StrictFracFloor[T AnyFloat](x T, fracLen int) T {
+	return StrictFrac(x, fracLen, math.Floor)
 }
 
-func RestrictFracCeil[T AnyFloat](x T, fracLen int) T {
-	return RestrictFrac(x, fracLen, math.Ceil)
+func StrictFracCeil[T AnyFloat](x T, fracLen int) T {
+	return StrictFrac(x, fracLen, math.Ceil)
 }
 
 func ReduceFrac[T, A AnyFloat](x T, accuracy A, round func(float64) float64) T {
