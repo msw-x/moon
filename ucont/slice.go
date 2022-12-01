@@ -96,7 +96,7 @@ func (this Slice[T]) Reverse() {
 	Reverse(this)
 }
 
-func (this Slice[T]) Tansform(fn func(v T) T) {
+func (this Slice[T]) Transform(fn func(v T) T) {
 	for n, v := range this {
 		this[n] = fn(v)
 	}
