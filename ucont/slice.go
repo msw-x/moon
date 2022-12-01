@@ -63,7 +63,7 @@ func (this Slice[T]) TailMax(count int) Slice[T] {
 }
 
 func (this Slice[T]) FromTo(from, to int) Slice[T] {
-	return Slice[T](this[from, to])
+	return this[from:to]
 }
 
 func (this Slice[T]) Equal(o Slice[T], fn func(T, T) bool) bool {
@@ -78,6 +78,22 @@ func (this Slice[T]) Equal(o Slice[T], fn func(T, T) bool) bool {
 	return true
 }
 
+func (this Slice[T]) Sort(fn func(T, T) bool) {
+	sort.Slice(this, func(i, j int) bool {
+		return fn(this[i], this[j])
+	})
+}
+
+func (this Slice[T]) Reverse() {
+	Reverse(this)
+}
+
+func (this Slice[T]) Tansform(fn func(v T) T) {
+	for n, v := range this {
+		this[n] = fn(v)
+	}
+}
+
 func (this *Slice[T]) SetData(data []T) {
 	*this = data
 }
@@ -88,7 +104,7 @@ func (this *Slice[T]) Clear() {
 
 func (this *Slice[T]) Resize(size int) {
 	if size > this.Size() {
-		o := NewSliceWithSize(size)
+		o := NewSliceWithSize[T](size)
 		o.CopyFrom(*this)
 		*this = o
 	} else if size < this.Size() {
@@ -97,9 +113,9 @@ func (this *Slice[T]) Resize(size int) {
 }
 
 func (this *Slice[T]) CopyFrom(o Slice[T]) {
-	count := int(umath.Max(this.Size(0, o.Size())))
-	for n, v := range o {
-		this[n] = v
+	count := int(umath.Min(this.Size(), o.Size()))
+	for n, v := range o[0:count] {
+		(*this)[n] = v
 	}
 }
 
@@ -120,33 +136,11 @@ func (this *Slice[T]) Erase(index int) {
 }
 
 func (this *Slice[T]) EraseIf(fn func(T) bool) {
-	o := NewSlice()
+	o := NewSlice[T]()
 	for _, v := range *this {
 		if !fn(v) {
 			o.PushBack(v)
 		}
 	}
 	*this = o
-}
-
-func (this *Slice[T]) EraseAll(v T) {
-	this.EraseIf(func(a T) bool {
-		return v == a
-	})
-}
-
-func (this *Slice[T]) Sort(fn func(T, T)) {
-	sort.Slice(a, func(i, j int) bool {
-		return fn(this[i], this[j])
-	})
-}
-
-func (this *Slice[T]) Reverse() {
-	Reverse(*this)
-}
-
-func (this *Slice[T]) Tansform(fn func(v T) T) {
-	for n, v := range *this {
-		(*this)[n] = fn(v)
-	}
 }

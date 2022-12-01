@@ -2,7 +2,7 @@ package ucont
 
 func Insert[S ~[]T, T any](s S, index int, v T) S {
 	s = append(s[:index+1], s[index:]...)
-	s[index] = value
+	s[index] = v
 	return s
 }
 
