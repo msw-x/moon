@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/msw-x/moon/umath"
 	"github.com/msw-x/moon/ustring"
+	"golang.org/x/exp/constraints"
 )
 
 const IntPrefix = "KMGTPE"
@@ -50,7 +50,7 @@ func (this *IntCtx) init() {
 	}
 }
 
-func Int[V umath.AnyInt](v V, ctx IntCtx) string {
+func Int[V constraints.Integer](v V, ctx IntCtx) string {
 	ctx.init()
 	n := v
 	base := V(ctx.base)

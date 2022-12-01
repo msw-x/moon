@@ -3,10 +3,10 @@ package ufmt
 import (
 	"strconv"
 
-	"github.com/msw-x/moon/umath"
+	"golang.org/x/exp/constraints"
 )
 
-func WideInt[V umath.AnyInt](v V) string {
+func WideInt[V constraints.Integer](v V) string {
 	s := strconv.FormatInt(int64(v), 10)
 	parts := []string{}
 	for len(s) > 3 {

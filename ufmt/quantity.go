@@ -1,15 +1,15 @@
 package ufmt
 
-import "github.com/msw-x/moon/umath"
+import "golang.org/x/exp/constraints"
 
-func ByteSize[V umath.AnyInt](v V) string {
+func ByteSize[V constraints.Integer](v V) string {
 	return Int(v, IntCtx{
 		Base: 1024,
 		Name: "B",
 	})
 }
 
-func ByteSizeExact[V umath.AnyInt](v V) string {
+func ByteSizeExact[V constraints.Integer](v V) string {
 	return Int(v, IntCtx{
 		Base:     1024,
 		Name:     "B",
@@ -17,7 +17,7 @@ func ByteSizeExact[V umath.AnyInt](v V) string {
 	})
 }
 
-func ByteSizeDense[V umath.AnyInt](v V) string {
+func ByteSizeDense[V constraints.Integer](v V) string {
 	return Int(v, IntCtx{
 		Base:  1024,
 		Name:  "B",
@@ -25,14 +25,14 @@ func ByteSizeDense[V umath.AnyInt](v V) string {
 	})
 }
 
-func ByteSpeed[V umath.AnyInt](v V) string {
+func ByteSpeed[V constraints.Integer](v V) string {
 	return Int(v, IntCtx{
 		Base: 1024,
 		Name: "B/s",
 	})
 }
 
-func ByteSpeedDense[V umath.AnyInt](v V) string {
+func ByteSpeedDense[V constraints.Integer](v V) string {
 	return Int(v, IntCtx{
 		Base:  1024,
 		Name:  "B/s",
@@ -40,14 +40,14 @@ func ByteSpeedDense[V umath.AnyInt](v V) string {
 	})
 }
 
-func BitSize[V umath.AnyInt](v V) string {
+func BitSize[V constraints.Integer](v V) string {
 	return Int(v, IntCtx{
 		Base: 1024,
 		Name: "b",
 	})
 }
 
-func BitSizeExact[V umath.AnyInt](v V) string {
+func BitSizeExact[V constraints.Integer](v V) string {
 	return Int(v, IntCtx{
 		Base:     1024,
 		Name:     "b",
@@ -55,7 +55,7 @@ func BitSizeExact[V umath.AnyInt](v V) string {
 	})
 }
 
-func BitSizeDense[V umath.AnyInt](v V) string {
+func BitSizeDense[V constraints.Integer](v V) string {
 	return Int(v, IntCtx{
 		Base:  1024,
 		Name:  "b",
@@ -63,14 +63,14 @@ func BitSizeDense[V umath.AnyInt](v V) string {
 	})
 }
 
-func BitSpeed[V umath.AnyInt](v V) string {
+func BitSpeed[V constraints.Integer](v V) string {
 	return Int(v, IntCtx{
 		Base: 1024,
 		Name: "b/s",
 	})
 }
 
-func BitSpeedDense[V umath.AnyInt](v V) string {
+func BitSpeedDense[V constraints.Integer](v V) string {
 	return Int(v, IntCtx{
 		Base:  1024,
 		Name:  "b/s",
