@@ -20,6 +20,14 @@ func NewSliceWithCapacity[T any](capacity int) Slice[T] {
 	return Slice[T](make([]T, 0, capacity))
 }
 
+func (this Slice[T]) Get(index int) T {
+	return this[index]
+}
+
+func (this Slice[T]) Set(index int, v T) {
+	this[index] = v
+}
+
 func (this Slice[T]) Data() []T {
 	return this
 }
