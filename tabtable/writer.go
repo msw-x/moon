@@ -4,7 +4,10 @@ import (
 	"bufio"
 	"bytes"
 	"fmt"
+	"strings"
 	"text/tabwriter"
+
+	"github.com/msw-x/moon/ustring"
 )
 
 type Writer struct {
@@ -31,17 +34,25 @@ func (this *Writer) Write(a ...any) {
 	for _, v := range a {
 		s += fmt.Sprint(v) + "\t"
 	}
+	s += "\n"
 	fmt.Fprint(this.writer, s)
 }
 
 func (this *Writer) Writef(format string, a ...any) {
+	format += "\n"
 	fmt.Fprintf(this.writer, format, a...)
 }
 
 func (this *Writer) String() string {
 	this.writer.Flush()
 	this.bufwriter.Flush()
-	return fmt.Sprint(this.buf)
+	s := fmt.Sprint(this.buf)
+	lines := strings.Split(s, "\n")
+	for n, line := range lines {
+		lines[n] = ustring.TrimBackWhitespaces(line)
+	}
+	s = strings.Join(lines, "\n")
+	return s
 }
 
 func (this *Writer) Print() {
