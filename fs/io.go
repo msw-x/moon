@@ -27,8 +27,8 @@ func ReadString(path string) (string, error) {
 	return string(bytes), err
 }
 
-func WriteString(path string, content string) {
-	Write(path, []byte(content))
+func WriteString(path string, content string) error {
+	return Write(path, []byte(content))
 }
 
 func ReadLines(path string) ([]string, error) {
