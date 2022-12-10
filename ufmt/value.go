@@ -10,6 +10,9 @@ func Value(v any) string {
 }
 
 func reflectValue(v reflect.Value) string {
+	if s, ok := v.Interface().(interface{ String() string }); ok {
+		return s.String()
+	}
 	if v.Kind() == reflect.Ptr {
 		if v.IsNil() {
 			return "nil"
