@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	"github.com/msw-x/moon"
+	"github.com/msw-x/moon/ufmt"
 )
 
 func Print(level Level, v ...any) {
@@ -11,7 +14,7 @@ func Print(level Level, v ...any) {
 		m := NewMessage(level, v...)
 		ctx.mutex.Lock()
 		defer ctx.mutex.Unlock()
-		ctx.stat.Push(level)
+		ctx.stat.Push(level, m.Size())
 		if ctx.conf.Console || level == LevelCritical {
 			if level >= LevelError {
 				if ctx.conf.Console {
@@ -31,6 +34,14 @@ func Print(level Level, v ...any) {
 
 func Printf(level Level, format string, v ...any) {
 	Print(level, fmt.Sprintf(format, v...))
+}
+
+func Trace(v ...any) {
+	Print(LevelTrace, v...)
+}
+
+func Tracef(format string, v ...any) {
+	Printf(LevelTrace, format, v...)
 }
 
 func Debug(v ...any) {
@@ -76,15 +87,24 @@ func Criticalf(format string, v ...any) {
 func Stat() string {
 	ctx.mutex.Lock()
 	defer ctx.mutex.Unlock()
-	text := fmt.Sprintf("uptime[%s]", time.Since(ctx.inited).Truncate(time.Second))
+	tm := time.Since(ctx.inited)
+	dur := moon.DurationToTime(tm)
+	var text string
+	if tm < time.Second {
+		text = fmt.Sprintf("%d ms", dur.Milliseconds)
+	} else {
+		text = dur.FormatDays()
+	}
+	text = fmt.Sprintf("%s | %s", text, ufmt.ByteSize(ctx.stat.Size))
 	if ctx.conf.GoID {
-		text = fmt.Sprintf("%s goroutines[%d]", len(ctx.mapid))
+		text = fmt.Sprintf("%s go[%s]", text, ufmt.WideInt(len(ctx.mapid)))
 	}
 	add := func(level Level, count uint) {
 		if count > 0 {
-			text = fmt.Sprintf("%s %v[%d]", text, level, count)
+			text = fmt.Sprintf("%s %v[%s]", text, level.Laconic(), ufmt.WideInt(count))
 		}
 	}
+	add(LevelTrace, ctx.stat.Trace)
 	add(LevelDebug, ctx.stat.Debug)
 	add(LevelInfo, ctx.stat.Info)
 	add(LevelWarning, ctx.stat.Warning)

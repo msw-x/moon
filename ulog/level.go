@@ -5,7 +5,8 @@ import "github.com/msw-x/moon"
 type Level int
 
 const (
-	LevelDebug Level = iota + 1
+	LevelTrace Level = iota + 1
+	LevelDebug
 	LevelInfo
 	LevelWarning
 	LevelError
@@ -16,6 +17,8 @@ const LevelDefault = LevelInfo
 
 func (l Level) Laconic() string {
 	switch l {
+	case LevelTrace:
+		return "trc"
 	case LevelDebug:
 		return "dbg"
 	case LevelInfo:
@@ -32,6 +35,8 @@ func (l Level) Laconic() string {
 
 func (l Level) String() string {
 	switch l {
+	case LevelTrace:
+		return "trace"
 	case LevelDebug:
 		return "debug"
 	case LevelInfo:
@@ -50,17 +55,19 @@ func ParseLevel(s string) Level {
 	switch s {
 	case "":
 		return LevelDefault
-	case "debug":
+	case "trace", "trc":
+		return LevelTrace
+	case "debug", "dbg":
 		return LevelDebug
-	case "info":
+	case "info", "inf":
 		return LevelInfo
-	case "warning":
+	case "warning", "wrn":
 		return LevelWarning
-	case "error":
+	case "error", "err":
 		return LevelError
-	case "critical":
+	case "critical", "crt":
 		return LevelCritical
 	}
-	moon.Panicf("unknown log level:", s)
+	moon.Panic("unknown log level:", s)
 	return -1
 }

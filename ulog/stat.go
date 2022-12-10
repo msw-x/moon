@@ -1,6 +1,8 @@
 package ulog
 
 type Statistics struct {
+	Size     uint
+	Trace    uint
 	Debug    uint
 	Info     uint
 	Warning  uint
@@ -8,8 +10,11 @@ type Statistics struct {
 	Critical uint
 }
 
-func (this *Statistics) Push(level Level) {
+func (this *Statistics) Push(level Level, size int) {
+	this.Size += uint(size)
 	switch level {
+	case LevelTrace:
+		this.Trace++
 	case LevelDebug:
 		this.Debug++
 	case LevelInfo:

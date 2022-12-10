@@ -56,6 +56,10 @@ func (this *Message) Format() string {
 	return this.message
 }
 
+func (this *Message) Size() int {
+	return len(this.Format())
+}
+
 func fmtTime() string {
 	ts := time.Now()
 	ms := ts.Sub(ts.Truncate(time.Second)).Milliseconds()
