@@ -1,6 +1,7 @@
 package ulog
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"sync"
@@ -15,6 +16,7 @@ type context struct {
 	conf   Conf
 	stat   Statistics
 	file   *os.File
+	fname  string
 	maxid  int
 	mapid  map[int]bool
 	mutex  sync.Mutex
@@ -26,27 +28,37 @@ func (o *context) init(conf Conf) {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
 	conf.init()
+	o.fname = ""
 	if o.conf.File != conf.File || o.conf.Dir != conf.Dir {
 		if o.file != nil {
 			o.file.Close()
 			o.file = nil
 		}
-		filename := conf.File
-		if filename == "" && conf.Dir != "" {
+		o.fname = conf.File
+		if o.fname == "" && conf.Dir != "" {
 			appName := conf.AppName
 			if appName == "" {
 				appName = AppName()
 			}
-			filename = GenFilename(conf.Dir, appName)
+			o.fname = GenFilename(conf.Dir, appName)
 		}
-		if filename != "" {
-			o.file = OpenFile(filename, conf.Append)
+		if o.fname != "" {
+			o.file = OpenFile(o.fname, conf.Append)
 		}
 	}
 	o.conf = conf
 	o.maxid = 2
 	o.mapid = make(map[int]bool)
 	o.inited = time.Now()
+}
+
+func (o *context) close() {
+	o.mutex.Lock()
+	defer o.mutex.Unlock()
+	if o.file != nil {
+		o.file.Close()
+		o.file = nil
+	}
 }
 
 func (o *context) statistics() string {
@@ -78,11 +90,12 @@ func (o *context) statistics() string {
 	return text
 }
 
-func (o *context) close() {
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
-	if o.file != nil {
-		o.file.Close()
-		o.file = nil
+func (o *context) query(f Filter) (lines []string, err error) {
+	ctx.mutex.Lock()
+	defer ctx.mutex.Unlock()
+	if ctx.fname == "" {
+		err = errors.New("file is not used")
+		return
 	}
+	return QueryFromFile(ctx.fname, f)
 }

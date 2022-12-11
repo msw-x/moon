@@ -136,3 +136,7 @@ func (this *Log) Criticalf(format string, v ...any) {
 func (this *Log) Stat() {
 	this.Info(this.ctx.statistics())
 }
+
+func (this *Log) Query(f Filter) (lines []string, err error) {
+	return this.ctx.query(f)
+}
