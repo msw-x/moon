@@ -11,26 +11,7 @@ import (
 )
 
 func Init(conf Conf) {
-	ctx.mutex.Lock()
-	defer ctx.mutex.Unlock()
-	conf.init()
-	if ctx.conf.File != conf.File || ctx.conf.Dir != conf.Dir {
-		if ctx.file != nil {
-			ctx.file.Close()
-			ctx.file = nil
-		}
-		filename := conf.File
-		if filename == "" && conf.Dir != "" {
-			filename = GenFilename(conf.Dir, AppName())
-		}
-		if filename != "" {
-			ctx.file = OpenFile(filename, conf.Append)
-		}
-	}
-	ctx.conf = conf
-	ctx.maxid = 2
-	ctx.mapid = make(map[int]bool)
-	ctx.inited = time.Now()
+	ctx.init(conf)
 }
 
 func InitConsole() {
@@ -52,12 +33,7 @@ func InitDir(dirname string) {
 }
 
 func Close() {
-	ctx.mutex.Lock()
-	defer ctx.mutex.Unlock()
-	if ctx.file != nil {
-		ctx.file.Close()
-		ctx.file = nil
-	}
+	ctx.close()
 }
 
 func GenFilename(dir, app string) string {

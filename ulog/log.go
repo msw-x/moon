@@ -3,6 +3,7 @@ package ulog
 import "fmt"
 
 type Log struct {
+	ctx           *context
 	enable        bool
 	level         Level
 	prefix        string
@@ -11,15 +12,30 @@ type Log struct {
 
 func New(prefix string) *Log {
 	return &Log{
+		ctx:    &ctx,
 		enable: true,
 		prefix: prefix,
 	}
+}
+
+func (this *Log) Init(conf Conf) *Log {
+	c := &context{}
+	c.init(conf)
+	this.ctx = c
+	return this
 }
 
 func (this *Log) Close() {
 	if this.lifetimeLevel != nil {
 		this.Print(*this.lifetimeLevel, "~")
 	}
+	if !this.IsGloabl() {
+		this.ctx.close()
+	}
+}
+
+func (this *Log) IsGloabl() bool {
+	return this.ctx == &ctx
 }
 
 func (this *Log) WithID(id any) *Log {
@@ -62,12 +78,14 @@ func (this *Log) Branch(prefix string) *Log {
 
 func (this *Log) Print(level Level, v ...any) {
 	if this.enable && level >= this.level {
-		space := ""
-		if !ctx.conf.splitArgs {
-			space = " "
+		if this.prefix != "" {
+			space := ""
+			if !ctx.conf.splitArgs {
+				space = " "
+			}
+			v = append([]any{fmt.Sprintf("<%s>%s", this.prefix, space)}, v...)
 		}
-		v = append([]any{fmt.Sprintf("<%s>%s", this.prefix, space)}, v...)
-		Print(level, v...)
+		print(this.ctx, level, v...)
 	}
 }
 
@@ -113,4 +131,8 @@ func (this *Log) Critical(v ...any) {
 
 func (this *Log) Criticalf(format string, v ...any) {
 	Printf(LevelCritical, format, v...)
+}
+
+func (this *Log) Stat() {
+	this.Info(this.ctx.statistics())
 }

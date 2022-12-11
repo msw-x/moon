@@ -13,6 +13,7 @@ type Conf struct {
 	File      string
 	Dir       string
 	Append    bool
+	AppName   string
 	GoID      bool
 	SplitArgs any
 

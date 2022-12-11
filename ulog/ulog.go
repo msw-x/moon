@@ -3,33 +3,10 @@ package ulog
 import (
 	"fmt"
 	"os"
-	"time"
-
-	"github.com/msw-x/moon"
-	"github.com/msw-x/moon/ufmt"
 )
 
 func Print(level Level, v ...any) {
-	if level >= ctx.conf.level {
-		m := NewMessage(level, v...)
-		ctx.mutex.Lock()
-		defer ctx.mutex.Unlock()
-		ctx.stat.Push(level, m.Size())
-		if ctx.conf.Console || level == LevelCritical {
-			if level >= LevelError {
-				if ctx.conf.Console {
-					fmt.Fprint(os.Stderr, m.Format())
-				} else {
-					fmt.Fprint(os.Stderr, m.Text)
-				}
-			} else {
-				fmt.Print(m.Format())
-			}
-		}
-		if ctx.file != nil {
-			ctx.file.WriteString(m.Format())
-		}
-	}
+	print(&ctx, level, v...)
 }
 
 func Printf(level Level, format string, v ...any) {
@@ -85,30 +62,28 @@ func Criticalf(format string, v ...any) {
 }
 
 func Stat() string {
-	ctx.mutex.Lock()
-	defer ctx.mutex.Unlock()
-	tm := time.Since(ctx.inited)
-	dur := moon.DurationToTime(tm)
-	var text string
-	if tm < time.Second {
-		text = fmt.Sprintf("%d ms", dur.Milliseconds)
-	} else {
-		text = dur.FormatDays()
-	}
-	text = fmt.Sprintf("%s | %s", text, ufmt.ByteSize(ctx.stat.Size))
-	if ctx.conf.GoID {
-		text = fmt.Sprintf("%s go[%s]", text, ufmt.WideInt(len(ctx.mapid)))
-	}
-	add := func(level Level, count uint) {
-		if count > 0 {
-			text = fmt.Sprintf("%s %v[%s]", text, level.Laconic(), ufmt.WideInt(count))
+	return ctx.statistics()
+}
+
+func print(ctx *context, level Level, v ...any) {
+	if level >= ctx.conf.level {
+		m := NewMessage(level, v...)
+		ctx.mutex.Lock()
+		defer ctx.mutex.Unlock()
+		ctx.stat.Push(level, m.Size())
+		if ctx.conf.Console || level == LevelCritical {
+			if level >= LevelError {
+				if ctx.conf.Console {
+					fmt.Fprint(os.Stderr, m.Format())
+				} else {
+					fmt.Fprint(os.Stderr, m.Text)
+				}
+			} else {
+				fmt.Print(m.Format())
+			}
+		}
+		if ctx.file != nil {
+			ctx.file.WriteString(m.Format())
 		}
 	}
-	add(LevelTrace, ctx.stat.Trace)
-	add(LevelDebug, ctx.stat.Debug)
-	add(LevelInfo, ctx.stat.Info)
-	add(LevelWarning, ctx.stat.Warning)
-	add(LevelError, ctx.stat.Error)
-	add(LevelCritical, ctx.stat.Critical)
-	return text
 }
