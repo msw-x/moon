@@ -93,6 +93,14 @@ func (this *Log) Printf(level Level, format string, v ...any) {
 	this.Print(level, fmt.Sprintf(format, v...))
 }
 
+func (this *Log) Trace(v ...any) {
+	this.Print(LevelTrace, v...)
+}
+
+func (this *Log) Tracef(format string, v ...any) {
+	this.Printf(LevelTrace, format, v...)
+}
+
 func (this *Log) Debug(v ...any) {
 	this.Print(LevelDebug, v...)
 }
