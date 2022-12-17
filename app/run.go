@@ -28,13 +28,16 @@ func RunJust(version string, conf ulog.Conf, fn func()) {
 
 func Go(fn func()) {
 	go func() {
-		defer moon.Recover(Fatal)
+		defer moon.Recover(func(e string) {
+			ulog.Critical(e)
+		})
 		fn()
 	}()
 }
 
 func Fatal(s string) {
 	ulog.Critical(s)
+	ulog.Close()
 	os.Exit(1)
 }
 
