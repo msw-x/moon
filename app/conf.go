@@ -44,8 +44,8 @@ type Conf struct {
 	LogConsole bool
 }
 
-func (this *Conf) Log() ulog.Conf {
-	return ulog.Conf{
+func (this *Conf) Log() ulog.Options {
+	return ulog.Options{
 		Level:   ulog.ParseLevel(this.LogLevel),
 		Console: this.LogConsole,
 		File:    this.LogFile,

@@ -31,7 +31,9 @@ func Strictf(err error, format string, v ...any) {
 
 func Recover(onError func(string)) {
 	if r := recover(); r != nil {
-		onError(fmt.Sprint(r))
+		if onError != nil {
+			onError(fmt.Sprint(r))
+		}
 	}
 }
 

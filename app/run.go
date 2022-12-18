@@ -8,8 +8,9 @@ import (
 )
 
 func Run[UserConf any](version string, fn func(UserConf)) {
+	defer exit()
 	defer ulog.Close()
-	defer moon.Recover(Fatal)
+	defer moon.Recover(fatal)
 	if confFile, ok := ParseCmdLine(version); ok {
 		conf := LoadConf[Conf](confFile)
 		run(version, conf.Log(), func(log *ulog.Log) {
@@ -20,31 +21,38 @@ func Run[UserConf any](version string, fn func(UserConf)) {
 	}
 }
 
-func RunJust(version string, conf ulog.Conf, fn func()) {
+func RunJust(version string, opts ulog.Options, fn func()) {
+	defer exit()
 	defer ulog.Close()
-	defer moon.Recover(Fatal)
-	run(version, conf, fn)
+	defer moon.Recover(fatal)
+	run(version, opts, fn)
 }
 
-func Go(fn func()) {
-	go func() {
-		defer moon.Recover(func(e string) {
-			ulog.Critical(e)
-		})
-		fn()
-	}()
-}
+var exitCode int
 
-func Fatal(s string) {
+func fatal(s string) {
+	exitCode = 1
 	ulog.Critical(s)
-	ulog.Close()
-	os.Exit(1)
 }
 
-func run(version string, conf ulog.Conf, fn any) {
-	ulog.Init(conf)
+func exit() {
+	if exitCode > 0 {
+		os.Exit(1)
+	}
+}
+
+func run(version string, opts ulog.Options, fn any) {
+	ulog.Init(opts)
 	log := ulog.New("app")
-	defer log.Close()
+	defer func() {
+		log.Info(ulog.Stat())
+		log.Info("shutdown")
+		log.Close()
+	}()
+	defer moon.Recover(func(e string) {
+		exitCode = 1
+		log.Critical(e)
+	})
 	log.Info("startup")
 	log.Info("version:", version)
 	log.Info("pid:", Pid())
@@ -60,6 +68,4 @@ func run(version string, conf ulog.Conf, fn any) {
 	default:
 		panic("app run: invalid callback")
 	}
-	log.Info(ulog.Stat())
-	log.Info("shutdown")
 }
