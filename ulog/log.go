@@ -1,6 +1,8 @@
 package ulog
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Log struct {
 	ctx           *context
@@ -143,6 +145,12 @@ func (this *Log) Criticalf(format string, v ...any) {
 
 func (this *Log) Stat() {
 	this.Info(this.ctx.statistics())
+}
+
+func (this *Log) Recover() {
+	if r := recover(); r != nil {
+		this.Critical(r)
+	}
 }
 
 func (this *Log) Query(f Filter) (lines []string, err error) {

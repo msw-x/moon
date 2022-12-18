@@ -3,7 +3,6 @@ package app
 import (
 	"time"
 
-	"github.com/msw-x/moon"
 	"github.com/msw-x/moon/ulog"
 	"github.com/msw-x/moon/usync"
 )
@@ -12,9 +11,7 @@ func Go(fn func()) GoDo {
 	do := usync.NewDo()
 	go func() {
 		defer do.Notify()
-		defer moon.Recover(func(e string) {
-			ulog.Critical(e)
-		})
+		defer ulog.Recover()
 		fn()
 	}()
 	return do

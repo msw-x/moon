@@ -65,6 +65,12 @@ func Stat() string {
 	return ctx.statistics()
 }
 
+func Recover() {
+	if r := recover(); r != nil {
+		Critical(r)
+	}
+}
+
 func print(ctx *context, level Level, v ...any) {
 	if level >= ctx.opts.level {
 		m := NewMessage(level, v...)
