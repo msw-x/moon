@@ -66,17 +66,19 @@ func Stat() string {
 }
 
 func print(ctx *context, level Level, v ...any) {
-	if level >= ctx.conf.level {
+	if level >= ctx.opts.level {
 		m := NewMessage(level, v...)
 		ctx.mutex.Lock()
 		defer ctx.mutex.Unlock()
 		ctx.stat.Push(level, m.Size())
-		if ctx.conf.Console || level == LevelCritical {
+		if ctx.opts.Console || level == LevelCritical {
 			if level >= LevelError {
-				if ctx.conf.Console {
-					fmt.Fprint(os.Stderr, m.Format())
+				if ctx.opts.Console {
+					printStdErr(m.Format())
 				} else {
-					fmt.Fprint(os.Stderr, m.Text)
+					if ctx.opts.CrtStdErr {
+						printStdErr(m.Text)
+					}
 				}
 			} else {
 				fmt.Print(m.Format())
@@ -86,4 +88,8 @@ func print(ctx *context, level Level, v ...any) {
 			ctx.file.WriteString(m.Format())
 		}
 	}
+}
+
+func printStdErr(text string) {
+	fmt.Fprint(os.Stderr, text)
 }

@@ -13,7 +13,7 @@ import (
 
 type context struct {
 	inited time.Time
-	conf   Conf
+	opts   Options
 	stat   Statistics
 	file   *os.File
 	fname  string
@@ -24,29 +24,29 @@ type context struct {
 
 var ctx context
 
-func (o *context) init(conf Conf) {
+func (o *context) init(opts Options) {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
-	conf.init()
+	opts.init()
 	o.fname = ""
-	if o.conf.File != conf.File || o.conf.Dir != conf.Dir {
+	if o.opts.File != opts.File || o.opts.Dir != opts.Dir {
 		if o.file != nil {
 			o.file.Close()
 			o.file = nil
 		}
-		o.fname = conf.File
-		if o.fname == "" && conf.Dir != "" {
-			appName := conf.AppName
+		o.fname = opts.File
+		if o.fname == "" && opts.Dir != "" {
+			appName := opts.AppName
 			if appName == "" {
 				appName = AppName()
 			}
-			o.fname = GenFilename(conf.Dir, appName)
+			o.fname = GenFilename(opts.Dir, appName)
 		}
 		if o.fname != "" {
-			o.file = OpenFile(o.fname, conf.Append)
+			o.file = OpenFile(o.fname, opts.Append)
 		}
 	}
-	o.conf = conf
+	o.opts = opts
 	o.maxid = 2
 	o.mapid = make(map[int]bool)
 	o.inited = time.Now()
@@ -73,7 +73,7 @@ func (o *context) statistics() string {
 		text = dur.FormatDays()
 	}
 	text = fmt.Sprintf("%s | %s", text, ufmt.ByteSize(o.stat.Size))
-	if o.conf.GoID {
+	if o.opts.GoID {
 		text = fmt.Sprintf("%s go[%s]", text, ufmt.WideInt(len(o.mapid)))
 	}
 	add := func(level Level, count uint) {

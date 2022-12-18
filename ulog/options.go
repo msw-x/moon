@@ -7,7 +7,7 @@ import (
 	"github.com/msw-x/moon/parse"
 )
 
-type Conf struct {
+type Options struct {
 	Level     any
 	Console   bool
 	File      string
@@ -15,13 +15,14 @@ type Conf struct {
 	Append    bool
 	AppName   string
 	GoID      bool
+	CrtStdErr bool
 	SplitArgs any
 
 	level     Level
 	splitArgs bool
 }
 
-func (this *Conf) init() {
+func (this *Options) init() {
 	this.level = initLevel(this.Level)
 	this.splitArgs = initSplitArgs(this.SplitArgs)
 }

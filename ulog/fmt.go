@@ -23,7 +23,7 @@ type Message struct {
 
 func NewMessage(level Level, v ...any) *Message {
 	text := ""
-	if ctx.conf.splitArgs {
+	if ctx.opts.splitArgs {
 		s := []string{}
 		for _, a := range v {
 			s = append(s, fmt.Sprint(a))
@@ -43,7 +43,7 @@ func NewMessage(level Level, v ...any) *Message {
 func (this *Message) Format() string {
 	if this.message == "" {
 		l := this.Level
-		if ctx.conf.GoID {
+		if ctx.opts.GoID {
 			l = fmt.Sprintf("%s|%s", this.GoID, this.Level)
 		}
 		this.message = fmt.Sprintf(
@@ -67,7 +67,7 @@ func fmtTime() string {
 }
 
 func fmtGoroutineID() string {
-	if !ctx.conf.GoID {
+	if !ctx.opts.GoID {
 		return ""
 	}
 	id := rt.GoroutineID()

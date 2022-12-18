@@ -18,9 +18,9 @@ func New(prefix string) *Log {
 	}
 }
 
-func (this *Log) Init(conf Conf) *Log {
+func (this *Log) Init(opts Options) *Log {
 	c := &context{}
-	c.init(conf)
+	c.init(opts)
 	this.ctx = c
 	return this
 }
@@ -80,7 +80,7 @@ func (this *Log) Print(level Level, v ...any) {
 	if this.enable && level >= this.level {
 		if this.prefix != "" {
 			space := ""
-			if !ctx.conf.splitArgs {
+			if !ctx.opts.splitArgs {
 				space = " "
 			}
 			v = append([]any{fmt.Sprintf("<%s>%s", this.prefix, space)}, v...)
@@ -134,11 +134,11 @@ func (this *Log) Errorf(format string, v ...any) {
 }
 
 func (this *Log) Critical(v ...any) {
-	Print(LevelCritical, v...)
+	this.Print(LevelCritical, v...)
 }
 
 func (this *Log) Criticalf(format string, v ...any) {
-	Printf(LevelCritical, format, v...)
+	this.Printf(LevelCritical, format, v...)
 }
 
 func (this *Log) Stat() {

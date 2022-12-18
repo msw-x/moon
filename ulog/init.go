@@ -10,24 +10,24 @@ import (
 	"github.com/msw-x/moon/fs"
 )
 
-func Init(conf Conf) {
-	ctx.init(conf)
+func Init(opts Options) {
+	ctx.init(opts)
 }
 
 func InitConsole() {
-	Init(Conf{
+	Init(Options{
 		Console: true,
 	})
 }
 
 func InitFile(filename string) {
-	Init(Conf{
+	Init(Options{
 		File: filename,
 	})
 }
 
 func InitDir(dirname string) {
-	Init(Conf{
+	Init(Options{
 		Dir: dirname,
 	})
 }
@@ -73,5 +73,5 @@ func OpenFile(filename string, append bool) *os.File {
 }
 
 func init() {
-	Init(Conf{})
+	Init(Options{})
 }
