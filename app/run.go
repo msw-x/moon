@@ -28,6 +28,12 @@ func RunJust(version string, opts ulog.Options, fn func()) {
 	run(version, opts, fn)
 }
 
+func WaitInterrupt() {
+	s := moon.WaitInterrupt()
+	log.Info("signal:", s)
+}
+
+var log *ulog.Log
 var exitCode int
 
 func fatal(s string) {
@@ -43,7 +49,7 @@ func exit() {
 
 func run(version string, opts ulog.Options, fn any) {
 	ulog.Init(opts)
-	log := ulog.New("app")
+	log = ulog.New("app")
 	defer func() {
 		log.Info(ulog.Stat())
 		log.Info("shutdown")
