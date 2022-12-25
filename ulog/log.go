@@ -20,6 +20,10 @@ func New(prefix string) *Log {
 	}
 }
 
+func Empty() *Log {
+	return New("").Enable(false)
+}
+
 func (this *Log) Init(opts Options) *Log {
 	c := &context{}
 	c.init(opts)
