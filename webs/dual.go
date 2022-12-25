@@ -1,10 +1,16 @@
 package webs
 
-import "net/http"
+import (
+	"errors"
+	"fmt"
+	"net"
+	"net/http"
+)
 
 type DualServer struct {
-	s   *Server
-	tls *Server
+	s           *Server
+	tls         *Server
+	tlsRedirect string
 }
 
 func NewDual() *DualServer {
@@ -14,30 +20,47 @@ func NewDual() *DualServer {
 	}
 }
 
-func (this *DualServer) WithSecret(certFile, keyFile string) *DualServer {
-	this.tls.WithSecret(certFile, keyFile)
-	return this
+func (o *DualServer) WithSecret(certFile, keyFile string) *DualServer {
+	o.tls.WithSecret(certFile, keyFile)
+	return o
 }
 
-func (this *DualServer) WithSecretDir(dir string) *DualServer {
-	this.tls.WithSecretDir(dir)
-	return this
+func (o *DualServer) WithSecretDir(dir string) *DualServer {
+	o.tls.WithSecretDir(dir)
+	return o
 }
 
-func (this *DualServer) WithAutoSecret(dir string, domains ...string) *DualServer {
-	this.tls.WithAutoSecret(dir, domains...)
-	return this
+func (o *DualServer) WithAutoSecret(dir string, domains ...string) *DualServer {
+	o.tls.WithAutoSecret(dir, domains...)
+	return o
 }
 
-func (this *DualServer) Run(addr string, addrTls string, handler http.Handler) {
-	if !this.tls.IsTls() {
-		panic("dual-server: tls secret not defined")
+func (o *DualServer) WithRedirectToTls(tlsRedirect string) *DualServer {
+	o.tlsRedirect = tlsRedirect
+	return o
+}
+
+func (o *DualServer) Run(addr string, addrTls string, handler http.Handler) error {
+	if !o.tls.IsTls() {
+		return errors.New("dual-server: tls secret not defined")
 	}
-	this.s.Run(addr, handler)
-	this.tls.Run(addrTls, handler)
+	if o.tlsRedirect == "" {
+		o.s.Run(addr, handler)
+	} else {
+		_, port, err := net.SplitHostPort(addrTls)
+		if err != nil {
+			return nil
+		}
+		o.s.Run(addr, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			url := fmt.Sprintf("https://%s:%s%s", o.tlsRedirect, port, r.RequestURI)
+			http.Redirect(w, r, url, http.StatusMovedPermanently)
+		}))
+	}
+	o.tls.Run(addrTls, handler)
+	return nil
 }
 
-func (this *DualServer) Shutdown() {
-	this.s.Shutdown()
-	this.tls.Shutdown()
+func (o *DualServer) Shutdown() {
+	o.s.Shutdown()
+	o.tls.Shutdown()
 }
