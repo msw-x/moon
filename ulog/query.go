@@ -11,23 +11,18 @@ type Filter struct {
 	Last  int
 }
 
-func QueryFromFile(filename string, f Filter) ([]string, error) {
-	s, err := fs.ReadString(filename)
-	var ret []string
-	if err == nil {
-		lines := strings.Split(s, "\n")
-		for _, line := range lines {
-			i := strings.Index(line, "[")
-			if i > 0 {
-				s := line[i+1:]
-				i = strings.Index(s, "]")
-				lvl := s[:i]
-				if f.Level.Laconic() == lvl {
-					ret = append(ret, line)
-				}
+func QueryFromFile(filename string, f Filter) (ret []string, err error) {
+	err = fs.ForEachLine(filename, func(line string) {
+		i := strings.Index(line, "[")
+		if i > 0 {
+			s := line[i+1:]
+			i = strings.Index(s, "]")
+			lvl := s[:i]
+			if f.Level.Laconic() == lvl {
+				ret = append(ret, line)
 			}
 		}
-	}
+	})
 	count := len(ret)
 	overflow := count - f.Last - 1
 	if f.Last > 0 && overflow > 0 {
