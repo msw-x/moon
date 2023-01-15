@@ -53,6 +53,8 @@ func ForEachLine(path string, fn func(string)) error {
 			}
 			return err
 		}
+		line = strings.TrimSuffix(line, "\n")
+		line = strings.TrimSuffix(line, "\r")
 		fn(line)
 	}
 	return err
