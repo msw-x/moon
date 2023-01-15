@@ -1,10 +1,12 @@
 package fs
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/csv"
 	"io"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -34,6 +36,26 @@ func WriteString(path string, content string) error {
 func ReadLines(path string) ([]string, error) {
 	s, err := ReadString(path)
 	return strings.Split(s, "\n"), err
+}
+
+func ForEachLine(path string, fn func(string)) error {
+	file, err := os.OpenFile(path, os.O_RDONLY, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	rd := bufio.NewReader(file)
+	for {
+		line, err := rd.ReadString('\n')
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return err
+		}
+		fn(line)
+	}
+	return err
 }
 
 func ReadCSV(path string) (records [][]string, err error) {
