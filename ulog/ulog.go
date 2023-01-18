@@ -74,25 +74,32 @@ func Recover() {
 func print(ctx *context, level Level, v ...any) {
 	if level >= ctx.opts.level {
 		m := NewMessage(level, v...)
-		ctx.mutex.Lock()
-		defer ctx.mutex.Unlock()
-		ctx.stat.Push(level, m.Size())
-		if ctx.opts.Console || level == LevelCritical {
-			if level >= LevelError {
-				if ctx.opts.Console {
-					printStdErr(m.Format())
-				} else {
-					if ctx.opts.CrtStdErr {
-						printStdErr(m.Text)
-					}
-				}
+		printMessage(ctx, level, m)
+		if ctx.hook != nil {
+			ctx.hook(m)
+		}
+	}
+}
+
+func printMessage(ctx *context, level Level, m Message) {
+	ctx.mutex.Lock()
+	defer ctx.mutex.Unlock()
+	ctx.stat.Push(level, m.Size())
+	if ctx.opts.Console || level == LevelCritical {
+		if level >= LevelError {
+			if ctx.opts.Console {
+				printStdErr(m.Format())
 			} else {
-				fmt.Print(m.Format())
+				if ctx.opts.CrtStdErr {
+					printStdErr(m.Text)
+				}
 			}
+		} else {
+			fmt.Print(m.Format())
 		}
-		if ctx.file != nil {
-			ctx.file.WriteString(m.Format())
-		}
+	}
+	if ctx.file != nil {
+		ctx.file.WriteString(m.Format())
 	}
 }
 

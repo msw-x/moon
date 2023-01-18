@@ -24,139 +24,139 @@ func Empty() *Log {
 	return New("").Enable(false)
 }
 
-func (this *Log) Init(opts Options) *Log {
+func (o *Log) Init(opts Options) *Log {
 	c := &context{}
 	c.init(opts)
-	this.ctx = c
-	return this
+	o.ctx = c
+	return o
 }
 
-func (this *Log) Close() {
-	if this.lifetimeLevel != nil {
-		this.Print(*this.lifetimeLevel, "~")
+func (o *Log) Close() {
+	if o.lifetimeLevel != nil {
+		o.Print(*o.lifetimeLevel, "~")
 	}
-	if !this.IsGloabl() {
-		this.ctx.close()
+	if !o.IsGloabl() {
+		o.ctx.close()
 	}
 }
 
-func (this *Log) IsGloabl() bool {
-	return this.ctx == &ctx
+func (o *Log) IsGloabl() bool {
+	return o.ctx == &ctx
 }
 
-func (this *Log) WithID(id any) *Log {
+func (o *Log) WithID(id any) *Log {
 	if id != nil {
 		i := fmt.Sprint(id)
 		if i != "" {
-			this.prefix = fmt.Sprintf("%s[%s]", this.prefix, i)
+			o.prefix = fmt.Sprintf("%s[%s]", o.prefix, i)
 		}
 	}
-	return this
+	return o
 }
 
-func (this *Log) WithLifetime() *Log {
+func (o *Log) WithLifetime() *Log {
 	l := LevelInfo
-	this.Print(l, "+")
-	this.lifetimeLevel = &l
-	return this
+	o.Print(l, "+")
+	o.lifetimeLevel = &l
+	return o
 }
 
-func (this *Log) WithLifetimeDebug() *Log {
+func (o *Log) WithLifetimeDebug() *Log {
 	l := LevelDebug
-	this.Print(l, "+")
-	this.lifetimeLevel = &l
-	return this
+	o.Print(l, "+")
+	o.lifetimeLevel = &l
+	return o
 }
 
-func (this *Log) WithLevel(level Level) *Log {
-	this.level = level
-	return this
+func (o *Log) WithLevel(level Level) *Log {
+	o.level = level
+	return o
 }
 
-func (this *Log) Enable(enable bool) *Log {
-	this.enable = enable
-	return this
+func (o *Log) Enable(enable bool) *Log {
+	o.enable = enable
+	return o
 }
 
-func (this *Log) Branch(prefix string) *Log {
-	return New(this.prefix + "." + prefix)
+func (o *Log) Branch(prefix string) *Log {
+	return New(o.prefix + "." + prefix)
 }
 
-func (this *Log) Print(level Level, v ...any) {
-	if this.enable && level >= this.level {
-		if this.prefix != "" {
+func (o *Log) Print(level Level, v ...any) {
+	if o.enable && level >= o.level {
+		if o.prefix != "" {
 			space := ""
 			if !ctx.opts.splitArgs {
 				space = " "
 			}
-			v = append([]any{fmt.Sprintf("<%s>%s", this.prefix, space)}, v...)
+			v = append([]any{fmt.Sprintf("<%s>%s", o.prefix, space)}, v...)
 		}
-		print(this.ctx, level, v...)
+		print(o.ctx, level, v...)
 	}
 }
 
-func (this *Log) Printf(level Level, format string, v ...any) {
-	this.Print(level, fmt.Sprintf(format, v...))
+func (o *Log) Printf(level Level, format string, v ...any) {
+	o.Print(level, fmt.Sprintf(format, v...))
 }
 
-func (this *Log) Trace(v ...any) {
-	this.Print(LevelTrace, v...)
+func (o *Log) Trace(v ...any) {
+	o.Print(LevelTrace, v...)
 }
 
-func (this *Log) Tracef(format string, v ...any) {
-	this.Printf(LevelTrace, format, v...)
+func (o *Log) Tracef(format string, v ...any) {
+	o.Printf(LevelTrace, format, v...)
 }
 
-func (this *Log) Debug(v ...any) {
-	this.Print(LevelDebug, v...)
+func (o *Log) Debug(v ...any) {
+	o.Print(LevelDebug, v...)
 }
 
-func (this *Log) Debugf(format string, v ...any) {
-	this.Printf(LevelDebug, format, v...)
+func (o *Log) Debugf(format string, v ...any) {
+	o.Printf(LevelDebug, format, v...)
 }
 
-func (this *Log) Info(v ...any) {
-	this.Print(LevelInfo, v...)
+func (o *Log) Info(v ...any) {
+	o.Print(LevelInfo, v...)
 }
 
-func (this *Log) Infof(format string, v ...any) {
-	this.Printf(LevelInfo, format, v...)
+func (o *Log) Infof(format string, v ...any) {
+	o.Printf(LevelInfo, format, v...)
 }
 
-func (this *Log) Warning(v ...any) {
-	this.Print(LevelWarning, v...)
+func (o *Log) Warning(v ...any) {
+	o.Print(LevelWarning, v...)
 }
 
-func (this *Log) Warningf(format string, v ...any) {
-	this.Printf(LevelWarning, format, v...)
+func (o *Log) Warningf(format string, v ...any) {
+	o.Printf(LevelWarning, format, v...)
 }
 
-func (this *Log) Error(v ...any) {
-	this.Print(LevelError, v...)
+func (o *Log) Error(v ...any) {
+	o.Print(LevelError, v...)
 }
 
-func (this *Log) Errorf(format string, v ...any) {
-	this.Printf(LevelError, format, v...)
+func (o *Log) Errorf(format string, v ...any) {
+	o.Printf(LevelError, format, v...)
 }
 
-func (this *Log) Critical(v ...any) {
-	this.Print(LevelCritical, v...)
+func (o *Log) Critical(v ...any) {
+	o.Print(LevelCritical, v...)
 }
 
-func (this *Log) Criticalf(format string, v ...any) {
-	this.Printf(LevelCritical, format, v...)
+func (o *Log) Criticalf(format string, v ...any) {
+	o.Printf(LevelCritical, format, v...)
 }
 
-func (this *Log) Stat() {
-	this.Info(this.ctx.statistics())
+func (o *Log) Stat() {
+	o.Info(o.ctx.statistics())
 }
 
-func (this *Log) Recover() {
+func (o *Log) Recover() {
 	if r := recover(); r != nil {
-		this.Critical(r)
+		o.Critical(r)
 	}
 }
 
-func (this *Log) Query(f Filter) (lines []string, err error) {
-	return this.ctx.query(f)
+func (o *Log) Query(f Filter) (lines []string, err error) {
+	return o.ctx.query(f)
 }

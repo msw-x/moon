@@ -72,6 +72,10 @@ func OpenFile(filename string, append bool) *os.File {
 	return file
 }
 
+func SetHook(hook func(Message)) {
+	ctx.hook = hook
+}
+
 func init() {
 	Init(Options{})
 }

@@ -19,6 +19,7 @@ type context struct {
 	fname  string
 	maxid  int
 	mapid  map[int]bool
+	hook   func(Message)
 	mutex  sync.Mutex
 }
 

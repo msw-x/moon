@@ -9,10 +9,6 @@ import (
 	"github.com/msw-x/moon/rt"
 )
 
-func Format(level Level, v ...any) string {
-	return NewMessage(level, v...).Format()
-}
-
 type Message struct {
 	Time    string
 	GoID    string
@@ -21,7 +17,7 @@ type Message struct {
 	message string
 }
 
-func NewMessage(level Level, v ...any) *Message {
+func NewMessage(level Level, v ...any) Message {
 	text := ""
 	if ctx.opts.splitArgs {
 		s := []string{}
@@ -32,7 +28,7 @@ func NewMessage(level Level, v ...any) *Message {
 	} else {
 		text = fmt.Sprint(v...)
 	}
-	return &Message{
+	return Message{
 		Time:  fmtTime(),
 		GoID:  fmtGoroutineID(),
 		Level: level.Laconic(),
