@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-const voc string = "abcdfghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+const letters string = "abcdfghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const numbers string = "0123456789"
 const symbols string = "!@#$%&*+_-="
 
@@ -22,7 +22,7 @@ func generate(length int, chars string) string {
 }
 
 func Generate(length int, hasNumbers bool, hasSymbols bool) string {
-	chars := voc
+	chars := letters
 	if hasNumbers {
 		chars = chars + numbers
 	}
