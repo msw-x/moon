@@ -24,17 +24,14 @@ type Router struct {
 type OnRequest func(http.ResponseWriter, *http.Request)
 type OnWebsocket func(*websocket.Conn)
 
-func NewRouter() (ret *Router) {
-	return Router{
+func NewRouter() *Router {
+	return &Router{
 		router: mux.NewRouter(),
-	}.Branch("")
+	}
 }
 
 func (o Router) Branch(path string) *Router {
-	o.path += path
-	if !strings.HasSuffix(o.path, "/") {
-		o.path += "/"
-	}
+	o.path = o.uri(path)
 	return &o
 }
 
@@ -49,7 +46,7 @@ func (o *Router) WithLogRequest(logRequest bool) *Router {
 }
 
 func (o *Router) IsRoot() bool {
-	return o.path == "/"
+	return o.path == ""
 }
 
 func (o *Router) Handle(method string, path string, onRequest OnRequest) {
@@ -100,14 +97,15 @@ func (o *Router) Options(path string, onRequest OnRequest) {
 }
 
 func (o *Router) Files(files fs.FS) {
+	uri := o.uri("")
 	if o.logRequest {
-		o.log.Debugf("%s[files]", RouteName(http.MethodGet, o.path))
+		o.log.Debugf("%s[files]", RouteName(http.MethodGet, uri))
 	}
 	fs := http.FileServer(http.FS(files))
 	if o.IsRoot() {
-		o.router.PathPrefix(o.path).Handler(fs)
+		o.router.PathPrefix(uri).Handler(fs)
 	} else {
-		o.router.PathPrefix(o.path).Handler(http.StripPrefix(strings.TrimSuffix(o.path, "/"), fs))
+		o.router.PathPrefix(uri).Handler(http.StripPrefix(strings.TrimSuffix(uri, "/"), fs))
 	}
 }
 
@@ -144,7 +142,13 @@ func (o *Router) init() {
 }
 
 func (o *Router) uri(path string) string {
-	return o.path + path
+	if path == "" {
+		if o.IsRoot() {
+			return "/"
+		}
+		return o.path
+	}
+	return o.path + "/" + path
 }
 
 func RouteName(method, uri string) string {
