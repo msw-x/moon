@@ -73,7 +73,7 @@ func Recover() {
 
 func print(ctx *context, level Level, v ...any) {
 	if level >= ctx.opts.level {
-		m := NewMessage(level, v...)
+		m := NewMessage(ctx, level, v...)
 		printMessage(ctx, level, m)
 		if ctx.hook != nil {
 			ctx.hook(m)

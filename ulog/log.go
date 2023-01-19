@@ -86,7 +86,7 @@ func (o *Log) Print(level Level, v ...any) {
 	if o.enable && level >= o.level {
 		if o.prefix != "" {
 			space := ""
-			if !ctx.opts.splitArgs {
+			if !o.ctx.opts.splitArgs {
 				space = " "
 			}
 			v = append([]any{fmt.Sprintf("<%s>%s", o.prefix, space)}, v...)

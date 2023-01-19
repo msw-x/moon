@@ -4,10 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/msw-x/moon"
+	"github.com/msw-x/moon/rt"
 	"github.com/msw-x/moon/ufmt"
 )
 
@@ -92,11 +94,35 @@ func (o *context) statistics() string {
 }
 
 func (o *context) query(f Filter) (lines []string, err error) {
-	ctx.mutex.Lock()
-	defer ctx.mutex.Unlock()
-	if ctx.fname == "" {
+	o.mutex.Lock()
+	defer o.mutex.Unlock()
+	if o.fname == "" {
 		err = errors.New("file is not used")
 		return
 	}
-	return QueryFromFile(ctx.fname, f)
+	return QueryFromFile(o.fname, f)
+}
+
+func (o *context) goroutineID() int {
+	if o.opts.GoID {
+		return rt.GoroutineID()
+	}
+	return -1
+}
+
+func (o *context) fmtTime(ts time.Time) string {
+	ms := ts.Sub(ts.Truncate(time.Second)).Milliseconds()
+	return fmt.Sprintf("%s.%03d", ts.Format("2006-Jan-02 15:04:05"), ms)
+}
+
+func (o *context) fmtGoroutineID(id int) string {
+	sid := strconv.Itoa(id)
+	if len(sid) > o.maxid {
+		o.maxid = len(sid)
+	}
+	for n := o.maxid - len(sid); n != 0; n-- {
+		sid = " " + sid
+	}
+	o.mapid[id] = true
+	return sid
 }
