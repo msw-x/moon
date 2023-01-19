@@ -30,96 +30,97 @@ func NewRouter() (ret *Router) {
 	}.Branch("")
 }
 
-func (this Router) Branch(path string) *Router {
-	this.path += path
-	if !strings.HasSuffix(this.path, "/") {
-		this.path += "/"
+func (o Router) Branch(path string) *Router {
+	o.path += path
+	if !strings.HasSuffix(o.path, "/") {
+		o.path += "/"
 	}
-	return &this
+	return &o
 }
 
-func (this *Router) WithID(id any) *Router {
-	this.id = fmt.Sprint(id)
-	return this
+func (o *Router) WithID(id any) *Router {
+	o.id = fmt.Sprint(id)
+	return o
 }
 
-func (this *Router) WithLogRequest(logRequest bool) *Router {
-	this.logRequest = logRequest
-	return this
+func (o *Router) WithLogRequest(logRequest bool) *Router {
+	o.logRequest = logRequest
+	return o
 }
 
-func (this *Router) IsRoot() bool {
-	return this.path == "/"
+func (o *Router) IsRoot() bool {
+	return o.path == "/"
 }
 
-func (this *Router) Handle(method string, path string, onRequest OnRequest) {
+func (o *Router) Handle(method string, path string, onRequest OnRequest) {
 	if onRequest == nil {
 		panic("router on-request func is nil")
 	}
-	this.init()
-	uri := this.uri(path)
-	if this.logRequest {
-		this.log.Debug(RouteName(method, uri))
+	o.init()
+	uri := o.uri(path)
+	if o.logRequest {
+		o.log.Debug(RouteName(method, uri))
 	}
-	this.router.HandleFunc(uri, func(w http.ResponseWriter, r *http.Request) {
+	o.router.HandleFunc(uri, func(w http.ResponseWriter, r *http.Request) {
 		name := RequestName(r)
 		defer moon.Recover(func(err string) {
-			this.log.Error(name, err)
+			o.log.Error(name, err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err))
 		})
-		if this.logRequest {
+		if o.logRequest {
 			if r.ContentLength > 0 {
-				this.log.Debug(name, ufmt.ByteSize(r.ContentLength))
+				o.log.Debug(name, ufmt.ByteSize(r.ContentLength))
 			} else {
-				this.log.Debug(name)
+				o.log.Debug(name)
 			}
 		}
 		onRequest(w, r)
 	}).Methods(method)
 }
 
-func (this *Router) Get(path string, onRequest OnRequest) {
-	this.Handle(http.MethodGet, path, onRequest)
+func (o *Router) Get(path string, onRequest OnRequest) {
+	o.Handle(http.MethodGet, path, onRequest)
 }
 
-func (this *Router) Put(path string, onRequest OnRequest) {
-	this.Handle(http.MethodPut, path, onRequest)
+func (o *Router) Put(path string, onRequest OnRequest) {
+	o.Handle(http.MethodPut, path, onRequest)
 }
 
-func (this *Router) Post(path string, onRequest OnRequest) {
-	this.Handle(http.MethodPost, path, onRequest)
+func (o *Router) Post(path string, onRequest OnRequest) {
+	o.Handle(http.MethodPost, path, onRequest)
 }
 
-func (this *Router) Delete(path string, onRequest OnRequest) {
-	this.Handle(http.MethodDelete, path, onRequest)
+func (o *Router) Delete(path string, onRequest OnRequest) {
+	o.Handle(http.MethodDelete, path, onRequest)
 }
 
-func (this *Router) Options(path string, onRequest OnRequest) {
-	this.Handle(http.MethodOptions, path, onRequest)
+func (o *Router) Options(path string, onRequest OnRequest) {
+	o.Handle(http.MethodOptions, path, onRequest)
 }
 
-func (this *Router) Files(files fs.FS) {
-	if this.logRequest {
-		this.log.Debugf("%s[files]", RouteName(http.MethodGet, this.path))
+func (o *Router) Files(files fs.FS) {
+	if o.logRequest {
+		o.log.Debugf("%s[files]", RouteName(http.MethodGet, o.path))
 	}
-	if this.IsRoot() {
-		this.router.PathPrefix(this.path).Handler(http.FileServer(http.FS(files)))
+	fs := http.FileServer(http.FS(files))
+	if o.IsRoot() {
+		o.router.PathPrefix(o.path).Handler(fs)
 	} else {
-		this.router.PathPrefix(this.path).Handler(http.StripPrefix(strings.TrimSuffix(this.path, "/"), http.FileServer(http.FS(files))))
+		o.router.PathPrefix(o.path).Handler(http.StripPrefix(strings.TrimSuffix(o.path, "/"), fs))
 	}
 }
 
-func (this *Router) WebSocket(path string, onWebsocket OnWebsocket) {
+func (o *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 	up := websocket.Upgrader{
 		ReadBufferSize:  0,
 		WriteBufferSize: 0,
 	}
 	method := http.MethodGet
-	this.log.Debug(WebSocketName(RouteName(method, this.uri(path))))
-	this.Handle(method, path, func(w http.ResponseWriter, r *http.Request) {
+	o.log.Debug(WebSocketName(RouteName(method, o.uri(path))))
+	o.Handle(method, path, func(w http.ResponseWriter, r *http.Request) {
 		defer moon.Recover(func(err string) {
-			this.log.Error(WebSocketName(RequestName(r)), err)
+			o.log.Error(WebSocketName(RequestName(r)), err)
 		})
 		conn, err := up.Upgrade(w, r, nil)
 		moon.Strict(err, "upgrade")
@@ -127,23 +128,23 @@ func (this *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 	})
 }
 
-func (this *Router) Log() *ulog.Log {
-	this.init()
-	return this.log
+func (o *Router) Log() *ulog.Log {
+	o.init()
+	return o.log
 }
 
-func (this *Router) Router() *mux.Router {
-	return this.router
+func (o *Router) Router() *mux.Router {
+	return o.router
 }
 
-func (this *Router) init() {
-	if this.log == nil {
-		this.log = ulog.New("router").WithID(this.id)
+func (o *Router) init() {
+	if o.log == nil {
+		o.log = ulog.New("router").WithID(o.id)
 	}
 }
 
-func (this *Router) uri(path string) string {
-	return this.path + path
+func (o *Router) uri(path string) string {
+	return o.path + path
 }
 
 func RouteName(method, uri string) string {
