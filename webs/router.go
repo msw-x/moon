@@ -159,7 +159,7 @@ func RequestName(r *http.Request) string {
 	if r == nil {
 		return "?"
 	}
-	return ufmt.JoinWith("?", r.RemoteAddr, RouteName(r.Method, r.RequestURI))
+	return ufmt.JoinWith("'", r.RemoteAddr, RouteName(r.Method, r.RequestURI))
 }
 
 func WebSocketName(name string) string {
