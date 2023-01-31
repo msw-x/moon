@@ -15,9 +15,9 @@ func MarshalToLowerCamelCase(v any) (dst []byte, err error) {
 
 func ToLowerCamelCase(src []byte) (dst []byte, err error) {
 	var o any
-	err = json.Unmarshal(bytes, &o)
+	err = json.Unmarshal(src, &o)
 	if err == nil {
-		o = toLowerCamelCaseMap(o)
+		toLowerCamelCaseNames(o)
 	}
 	return json.Marshal(o)
 }
@@ -28,7 +28,7 @@ func toLowerCamelCaseNames(o any) {
 			delete(f, k)
 			name := toLowerCamelCase(k)
 			f[name] = v
-			adaptFieldNames(v)
+			toLowerCamelCaseNames(v)
 		}
 	}
 
