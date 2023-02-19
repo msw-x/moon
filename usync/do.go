@@ -6,7 +6,7 @@ import (
 
 type Do struct {
 	do bool
-	ch Chan
+	ch Await
 }
 
 func NewDo() *Do {
@@ -16,32 +16,32 @@ func NewDo() *Do {
 	}
 }
 
-func (this *Do) Do() bool {
-	return this.do
+func (o *Do) Do() bool {
+	return o.do
 }
 
-func (this *Do) Notify() {
-	this.ch.Notify()
+func (o *Do) Notify() {
+	o.ch.Notify()
 }
 
-func (this *Do) Cancel() {
-	this.do = false
+func (o *Do) Cancel() {
+	o.do = false
 }
 
-func (this *Do) Stop() {
-	if this.do {
-		this.Cancel()
-		this.ch.Wait()
+func (o *Do) Stop() {
+	if o.do {
+		o.Cancel()
+		o.ch.Wait()
 	}
 }
 
-func (this *Do) Sleep(timeout time.Duration) {
-	if this.Do() {
+func (o *Do) Sleep(timeout time.Duration) {
+	if o.Do() {
 		const maxSleepTime = time.Millisecond * 10
 		if timeout > maxSleepTime {
 			count := int(timeout / maxSleepTime)
 			for n := 0; n != count; n++ {
-				if !this.Do() {
+				if !o.Do() {
 					return
 				}
 				time.Sleep(maxSleepTime)
