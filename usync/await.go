@@ -6,7 +6,7 @@ import (
 
 type Await chan bool
 
-func NewChan() Await {
+func NewAwait() Await {
 	return make(Await, 1)
 }
 

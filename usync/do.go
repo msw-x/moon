@@ -12,7 +12,7 @@ type Do struct {
 func NewDo() *Do {
 	return &Do{
 		do: true,
-		ch: NewChan(),
+		ch: NewAwait(),
 	}
 }
 
