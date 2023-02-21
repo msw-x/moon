@@ -42,13 +42,15 @@ type Conf struct {
 	LogDir     string
 	LogFile    string
 	LogConsole bool
+	LogGoID    bool
 }
 
-func (this *Conf) Log() ulog.Options {
+func (o *Conf) Log() ulog.Options {
 	return ulog.Options{
-		Level:   ulog.ParseLevel(this.LogLevel),
-		Console: this.LogConsole,
-		File:    this.LogFile,
-		Dir:     this.LogDir,
+		Level:   ulog.ParseLevel(o.LogLevel),
+		Console: o.LogConsole,
+		File:    o.LogFile,
+		Dir:     o.LogDir,
+		GoID:    o.LogGoID,
 	}
 }
