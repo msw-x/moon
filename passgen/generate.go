@@ -3,6 +3,8 @@ package passgen
 import (
 	"math/rand"
 	"time"
+
+	"golang.org/x/exp/slices"
 )
 
 const letters string = "abcdfghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -13,21 +15,40 @@ func init() {
 	rand.Seed(time.Now().UnixNano())
 }
 
+func Valid(password string, withLetters bool, withNumbers bool, withSymbols bool) bool {
+	has := func(chars string) bool {
+		for _, r := range []rune(chars) {
+			if slices.Contains([]rune(password), r) {
+				return true
+			}
+		}
+		return false
+	}
+	return has(letters) && has(numbers) && has(symbols)
+}
+
+func Generate(length int, withNumbers bool, withSymbols bool) string {
+	chars := letters
+	if withNumbers {
+		chars = chars + numbers
+	}
+	if withSymbols {
+		chars = chars + symbols
+	}
+	var password string
+	for {
+		password = generate(length, chars)
+		if Valid(password, true, withNumbers, withSymbols) {
+			break
+		}
+	}
+	return password
+}
+
 func generate(length int, chars string) string {
 	password := ""
 	for i := 0; i < length; i++ {
 		password += string([]rune(chars)[rand.Intn(len(chars))])
 	}
 	return password
-}
-
-func Generate(length int, hasNumbers bool, hasSymbols bool) string {
-	chars := letters
-	if hasNumbers {
-		chars = chars + numbers
-	}
-	if hasSymbols {
-		chars = chars + symbols
-	}
-	return generate(length, chars)
 }
