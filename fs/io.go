@@ -45,13 +45,15 @@ func ForEachLine(path string, fn func(string)) error {
 	}
 	defer file.Close()
 	rd := bufio.NewReader(file)
-	for {
+	ok := true
+	for ok {
 		line, err := rd.ReadString('\n')
 		if err != nil {
 			if err == io.EOF {
-				break
+				ok = false
+			} else {
+				return err
 			}
-			return err
 		}
 		line = strings.TrimSuffix(line, "\n")
 		line = strings.TrimSuffix(line, "\r")

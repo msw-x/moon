@@ -32,6 +32,10 @@ func EnableDisable(v bool) string {
 	return Bool(v, "enable", "disable")
 }
 
+func OnlineOffline(v bool) string {
+	return Bool(v, "online", "offline")
+}
+
 func SuccessFailure(v bool) string {
 	return Bool(v, "success", "failure")
 }
