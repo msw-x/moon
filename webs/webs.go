@@ -33,90 +33,90 @@ func New() *Server {
 	}
 }
 
-func (this *Server) WithSecret(certFile, keyFile string) *Server {
-	this.certFile = certFile
-	this.keyFile = keyFile
-	return this
+func (o *Server) WithSecret(certFile, keyFile string) *Server {
+	o.certFile = certFile
+	o.keyFile = keyFile
+	return o
 }
 
-func (this *Server) WithSecretDir(dir string) *Server {
-	this.certFile, this.keyFile = secret.FileNames(dir)
-	return this
+func (o *Server) WithSecretDir(dir string) *Server {
+	o.certFile, o.keyFile = secret.FileNames(dir)
+	return o
 }
 
-func (this *Server) WithAutoSecret(dir string, domains ...string) *Server {
-	this.certFile = ""
-	this.keyFile = ""
-	this.tlsman = &autocert.Manager{
+func (o *Server) WithAutoSecret(dir string, domains ...string) *Server {
+	o.certFile = ""
+	o.keyFile = ""
+	o.tlsman = &autocert.Manager{
 		Cache:      autocert.DirCache(dir),
 		Prompt:     autocert.AcceptTOS,
 		HostPolicy: autocert.HostWhitelist(domains...),
 	}
-	return this
+	return o
 }
 
-func (this *Server) Run(addr string, handler http.Handler) {
+func (o *Server) Run(addr string, handler http.Handler) {
 	if addr == "" {
 		return
 	}
 	name := "http"
-	if this.IsTls() {
+	if o.IsTls() {
 		name = "https"
-		if this.tlsman == nil {
-			secret.Ensure(this.certFile, this.keyFile)
+		if o.tlsman == nil {
+			secret.Ensure(o.certFile, o.keyFile)
 		}
 	}
-	this.log = ulog.New(name).WithID(addr)
-	if this.IsTls() {
-		if this.tlsman == nil {
-			this.log.Info("cert:", this.certFile)
-			this.log.Info("key:", this.keyFile)
+	o.log = ulog.New(name).WithID(addr)
+	if o.IsTls() {
+		if o.tlsman == nil {
+			o.log.Info("cert:", o.certFile)
+			o.log.Info("key:", o.keyFile)
 		}
 	}
-	this.s = &http.Server{
+	o.s = &http.Server{
 		Addr:         addr,
 		Handler:      handler,
-		WriteTimeout: this.timeout.write,
-		ReadTimeout:  this.timeout.read,
-		IdleTimeout:  this.timeout.idle,
+		WriteTimeout: o.timeout.write,
+		ReadTimeout:  o.timeout.read,
+		IdleTimeout:  o.timeout.idle,
 	}
-	if this.tlsman != nil {
-		this.s.TLSConfig = this.tlsman.TLSConfig()
+	if o.tlsman != nil {
+		o.s.TLSConfig = o.tlsman.TLSConfig()
 	}
-	this.do = usync.NewDo()
+	o.do = usync.NewDo()
 	app.Go(func() {
 		defer func() {
-			this.log.Info("stopped")
-			this.do.Notify()
+			o.log.Info("stopped")
+			o.do.Notify()
 		}()
-		this.log.Info("listen")
+		o.log.Info("listen")
 		var err error
-		if this.IsTls() {
-			err = this.s.ListenAndServeTLS(this.certFile, this.keyFile)
+		if o.IsTls() {
+			err = o.s.ListenAndServeTLS(o.certFile, o.keyFile)
 		} else {
-			err = this.s.ListenAndServe()
+			err = o.s.ListenAndServe()
 		}
-		if this.s != nil && err != nil {
-			this.log.Error(err)
+		if o.s != nil && err != nil {
+			o.log.Error(err)
 		}
 	})
 }
 
-func (this *Server) Shutdown() {
-	if this.s != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), this.timeout.close)
+func (o *Server) Shutdown() {
+	if o.s != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), o.timeout.close)
 		defer cancel()
-		this.log.Info("shutdown")
-		s := this.s
-		this.s = nil
+		o.log.Info("shutdown")
+		s := o.s
+		o.s = nil
 		s.Shutdown(ctx)
-		this.do.Stop()
-		this.log.Info("shutdown completed")
+		o.do.Stop()
+		o.log.Info("shutdown completed")
 	}
 }
 
-func (this *Server) IsTls() bool {
-	return this.certFile != "" && this.keyFile != "" || this.tlsman != nil
+func (o *Server) IsTls() bool {
+	return o.certFile != "" && o.keyFile != "" || o.tlsman != nil
 }
 
 type timeout struct {

@@ -117,6 +117,9 @@ func (o *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 	method := http.MethodGet
 	o.log.Debug(WebSocketName(RouteName(method, o.uri(path))))
 	o.Handle(method, path, func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS, PUT, DELETE")
 		defer moon.Recover(func(err string) {
 			o.log.Error(WebSocketName(RequestName(r)), err)
 		})
