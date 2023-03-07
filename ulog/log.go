@@ -44,6 +44,10 @@ func (o *Log) IsGloabl() bool {
 	return o.ctx == &ctx
 }
 
+func (o *Log) SetHook(hook func(Message)) {
+	o.ctx.hook = hook
+}
+
 func (o *Log) WithID(id any) *Log {
 	if id != nil {
 		i := fmt.Sprint(id)
