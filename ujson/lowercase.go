@@ -11,34 +11,33 @@ func MarshalLowerCase(v any) (bytes []byte, err error) {
 }
 
 func ToLowerCase(j []byte) {
-	var waitQuote bool
-	var waitKey bool
+	var keyIndex int
+	var waitColon bool
 	for i, c := range j {
 		if containsAny(c, "\n\n\t ") {
 			continue
 		}
-		if c == '\\' {
-			waitQuote = false
-			waitKey = false
+		if containsAny(c, "{}[],\\") {
+			keyIndex = 0
+			waitColon = false
 			continue
 		}
-		if containsAny(c, "{,") {
-			waitQuote = true
-			waitKey = true
-			continue
-		}
-		if waitQuote && c == '"' {
-			waitQuote = false
-			waitKey = true
-			continue
-		}
-		if waitKey {
-			if c >= 'A' && c <= 'Z' {
-				j[i] = c + 32
+		if c == '"' {
+			if keyIndex == 0 {
+				keyIndex = i + 1
+			} else {
+				waitColon = true
 			}
+			continue
 		}
-		waitQuote = false
-		waitKey = false
+		if waitColon && c == ':' {
+			c = j[keyIndex]
+			if c >= 'A' && c <= 'Z' {
+				j[keyIndex] = c + 32
+			}
+			keyIndex = 0
+			waitColon = false
+		}
 	}
 }
 
