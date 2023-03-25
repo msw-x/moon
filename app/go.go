@@ -8,6 +8,13 @@ import (
 	"github.com/msw-x/moon/usync"
 )
 
+type GoDo interface {
+	Do() bool
+	Stop()
+	Cancel()
+	Sleep(timeout time.Duration)
+}
+
 func Go(fn func()) GoDo {
 	do := usync.NewDo()
 	go func() {
@@ -18,11 +25,19 @@ func Go(fn func()) GoDo {
 	return do
 }
 
-type GoDo interface {
-	Do() bool
-	Stop()
-	Cancel()
-	Sleep(timeout time.Duration)
+func GoLoop(fn func()) (do GoDo) {
+	return Go(func() {
+		for do.Do() {
+			fn()
+		}
+	})
+}
+
+func GoInterval(fn func(), interval time.Duration) (do GoDo) {
+	return GoLoop(func() {
+		fn()
+		do.Sleep(interval)
+	})
 }
 
 func GoGroup(n int, fn func()) {
