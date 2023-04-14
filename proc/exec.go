@@ -14,10 +14,8 @@ func Run(name string, arg ...string) error {
 }
 
 func ReadStdout(name string, arg ...string) (s string, err error) {
-	out, err := exec.Command(name, arg...).Output()
-	if err != nil {
-		return
-	}
+	var out []byte
+	out, err = exec.Command(name, arg...).Output()
 	s = string(out)
 	s = strings.TrimSuffix(s, "\n")
 	return
