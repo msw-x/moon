@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+
+	"github.com/msw-x/moon/ulog"
 )
 
 type DualServer struct {
@@ -35,8 +37,26 @@ func (o *DualServer) WithAutoSecret(dir string, domains ...string) *DualServer {
 	return o
 }
 
-func (o *DualServer) WithRedirectToTls(tlsRedirect string) *DualServer {
-	o.tlsRedirect = tlsRedirect
+func (o *DualServer) WithLogRequests(use bool) *DualServer {
+	o.s.WithLogRequests(use)
+	o.tls.WithLogRequests(use)
+	return o
+}
+
+func (o *DualServer) WithLogErrors(use bool) *DualServer {
+	o.s.WithLogErrors(use)
+	o.tls.WithLogErrors(use)
+	return o
+}
+
+func (o *DualServer) WithLogErrorsLevel(level ulog.Level) *DualServer {
+	o.s.WithLogErrorsLevel(level)
+	o.tls.WithLogErrorsLevel(level)
+	return o
+}
+
+func (o *DualServer) WithRedirectToTls(use string) *DualServer {
+	o.tlsRedirect = use
 	return o
 }
 

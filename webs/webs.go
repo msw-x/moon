@@ -14,13 +14,15 @@ import (
 )
 
 type Server struct {
-	log      *ulog.Log
-	s        *http.Server
-	do       *usync.Do
-	timeout  timeout
-	certFile string
-	keyFile  string
-	tlsman   *autocert.Manager
+	log         *ulog.Log
+	s           *http.Server
+	do          *usync.Do
+	timeout     timeout
+	certFile    string
+	keyFile     string
+	tlsman      *autocert.Manager
+	logRequests bool
+	logErrors   *ulog.Level
 }
 
 func New() *Server {
@@ -56,6 +58,27 @@ func (o *Server) WithAutoSecret(dir string, domains ...string) *Server {
 	return o
 }
 
+func (o *Server) WithLogRequests(use bool) *Server {
+	o.logRequests = use
+	return o
+}
+
+func (o *Server) WithLogErrors(use bool) *Server {
+	if use {
+		if o.logErrors == nil {
+			o.WithLogErrorsLevel(ulog.LevelError)
+		}
+	} else {
+		o.logErrors = nil
+	}
+	return o
+}
+
+func (o *Server) WithLogErrorsLevel(level ulog.Level) *Server {
+	o.logErrors = &level
+	return o
+}
+
 func (o *Server) Run(addr string, handler http.Handler) {
 	if addr == "" {
 		return
@@ -74,22 +97,24 @@ func (o *Server) Run(addr string, handler http.Handler) {
 			o.log.Info("key:", o.keyFile)
 		}
 	}
+	if o.logRequests {
+		handler = o.LogRequest(handler)
+	}
 	o.s = &http.Server{
 		Addr:         addr,
 		Handler:      handler,
 		WriteTimeout: o.timeout.write,
 		ReadTimeout:  o.timeout.read,
 		IdleTimeout:  o.timeout.idle,
+		ErrorLog: ulog.StdBridge(func(m string) {
+			if o.logErrors != nil {
+				level := *o.logErrors
+				o.log.Print(level, m)
+			}
+		}),
 	}
 	if o.tlsman != nil {
 		o.s.TLSConfig = o.tlsman.TLSConfig()
-		o.s.TLSConfig.GetCertificate = func(hello *tls.ClientHelloInfo) (cert *tls.Certificate, err error) {
-			cert, err = o.tlsman.GetCertificate(hello)
-			if err != nil {
-				o.log.Error(err)
-			}
-			return
-		}
 	}
 	o.do = usync.NewDo()
 	app.Go(func() {
@@ -125,6 +150,15 @@ func (o *Server) Shutdown() {
 
 func (o *Server) IsTls() bool {
 	return o.certFile != "" && o.keyFile != "" || o.tlsman != nil
+}
+
+func (o *Server) LogRequest(mux http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		o.log.Debugf("%v'%s:%s", r.RemoteAddr, r.Method, r.RequestURI)
+		tm := time.Now()
+		mux.ServeHTTP(w, r)
+		o.log.Debugf("%v'%s:%s %v", r.RemoteAddr, r.Method, r.RequestURI, time.Since(tm).Truncate(time.Millisecond))
+	})
 }
 
 type timeout struct {
