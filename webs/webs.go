@@ -115,6 +115,18 @@ func (o *Server) Run(addr string, handler http.Handler) {
 	}
 	if o.tlsman != nil {
 		o.s.TLSConfig = o.tlsman.TLSConfig()
+		o.s.TLSConfig.GetCertificate = func(hello *tls.ClientHelloInfo) (cert *tls.Certificate, err error) {
+			timeout := 10 * time.Second
+			timer := time.AfterFunc(timeout, func() {
+				o.log.Warning("getting the certificate takes more than", timeout)
+			})
+			defer timer.Stop()
+			cert, err = o.tlsman.GetCertificate(hello)
+			if err != nil {
+				o.log.Error(err)
+			}
+			return
+		}
 	}
 	o.do = usync.NewDo()
 	app.Go(func() {
