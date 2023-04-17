@@ -50,6 +50,7 @@ func (o *Server) WithSecretDir(dir string) *Server {
 func (o *Server) WithAutoSecret(dir string, domains ...string) *Server {
 	o.certFile = ""
 	o.keyFile = ""
+	o.log.Info("domains:", domains)
 	o.tlsman = &autocert.Manager{
 		Cache:      autocert.DirCache(dir),
 		Prompt:     autocert.AcceptTOS,
