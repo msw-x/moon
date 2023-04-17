@@ -21,6 +21,7 @@ type Server struct {
 	certFile    string
 	keyFile     string
 	tlsman      *autocert.Manager
+	domains     []string
 	logRequests bool
 	logErrors   *ulog.Level
 }
@@ -50,12 +51,12 @@ func (o *Server) WithSecretDir(dir string) *Server {
 func (o *Server) WithAutoSecret(dir string, domains ...string) *Server {
 	o.certFile = ""
 	o.keyFile = ""
-	o.log.Info("domains:", domains)
 	o.tlsman = &autocert.Manager{
 		Cache:      autocert.DirCache(dir),
 		Prompt:     autocert.AcceptTOS,
 		HostPolicy: autocert.HostWhitelist(domains...),
 	}
+	o.domains = append(o.domains, domains...)
 	return o
 }
 
@@ -96,6 +97,8 @@ func (o *Server) Run(addr string, handler http.Handler) {
 		if o.tlsman == nil {
 			o.log.Info("cert:", o.certFile)
 			o.log.Info("key:", o.keyFile)
+		} else {
+			o.log.Info("domains:", o.domains)
 		}
 	}
 	if o.logRequests {
