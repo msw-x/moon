@@ -8,6 +8,7 @@ import (
 
 	"github.com/msw-x/moon/app"
 	"github.com/msw-x/moon/secret"
+	"github.com/msw-x/moon/ufmt"
 	"github.com/msw-x/moon/ulog"
 	"github.com/msw-x/moon/usync"
 	"golang.org/x/crypto/acme/autocert"
@@ -20,8 +21,8 @@ type Server struct {
 	timeout     timeout
 	certFile    string
 	keyFile     string
-	tlsman      *autocert.Manager
 	domains     []string
+	tlsman      *autocert.Manager
 	logRequests bool
 	logErrors   *ulog.Level
 }
@@ -51,12 +52,12 @@ func (o *Server) WithSecretDir(dir string) *Server {
 func (o *Server) WithAutoSecret(dir string, domains ...string) *Server {
 	o.certFile = ""
 	o.keyFile = ""
+	o.domains = domains[:]
 	o.tlsman = &autocert.Manager{
 		Cache:      autocert.DirCache(dir),
 		Prompt:     autocert.AcceptTOS,
 		HostPolicy: autocert.HostWhitelist(domains...),
 	}
-	o.domains = append(o.domains, domains...)
 	return o
 }
 
@@ -98,7 +99,7 @@ func (o *Server) Run(addr string, handler http.Handler) {
 			o.log.Info("cert:", o.certFile)
 			o.log.Info("key:", o.keyFile)
 		} else {
-			o.log.Info("domains:", o.domains)
+			o.log.Info("domains:", ufmt.JoinSlice(o.domains))
 		}
 	}
 	if o.logRequests {
