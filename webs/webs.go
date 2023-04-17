@@ -53,10 +53,14 @@ func (o *Server) WithAutoSecret(dir string, domains ...string) *Server {
 	o.certFile = ""
 	o.keyFile = ""
 	o.domains = domains[:]
-	o.tlsman = &autocert.Manager{
-		Cache:      autocert.DirCache(dir),
-		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist(domains...),
+	if len(o.domains) > 0 && o.domains[0] != "" {
+		o.tlsman = &autocert.Manager{
+			Cache:      autocert.DirCache(dir),
+			Prompt:     autocert.AcceptTOS,
+			HostPolicy: autocert.HostWhitelist(domains...),
+		}
+	} else {
+		o.WithSecretDir(dir)
 	}
 	return o
 }
@@ -126,11 +130,12 @@ func (o *Server) Run(addr string, handler http.Handler) {
 				o.log.Warning("getting the certificate takes more than", timeout)
 			})
 			defer timer.Stop()
-			cert, err = o.tlsman.GetCertificate(hello)
-			if err != nil {
-				o.log.Error(err)
-			}
-			return
+			return o.tlsman.GetCertificate(hello)
+			//cert, err = o.tlsman.GetCertificate(hello)
+			//if err != nil {
+			//	o.log.Error(err)
+			//}
+			//return
 		}
 	}
 	o.do = usync.NewDo()
