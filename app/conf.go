@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/msw-x/moon"
+	"github.com/msw-x/moon/parse"
 	"github.com/msw-x/moon/ulog"
 
 	"github.com/BurntSushi/toml"
@@ -38,19 +39,24 @@ func LoadConf[Conf any](filename string) Conf {
 }
 
 type Conf struct {
-	LogLevel   string
-	LogDir     string
-	LogFile    string
-	LogConsole bool
-	LogGoID    bool
+	LogLevel    string
+	LogDir      string
+	LogFile     string
+	LogConsole  bool
+	LogGoID     bool
+	LogFileSize string
 }
 
 func (o *Conf) Log() ulog.Options {
-	return ulog.Options{
+	opts := ulog.Options{
 		Level:   ulog.ParseLevel(o.LogLevel),
 		Console: o.LogConsole,
 		File:    o.LogFile,
 		Dir:     o.LogDir,
 		GoID:    o.LogGoID,
 	}
+	if o.LogFileSize != "" {
+		opts.FileSizeLimit = parse.BytesCountStrict(o.LogFileSize)
+	}
+	return opts
 }

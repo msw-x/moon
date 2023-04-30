@@ -14,15 +14,16 @@ import (
 )
 
 type context struct {
-	inited time.Time
-	opts   Options
-	stat   Statistics
-	file   *os.File
-	fname  string
-	maxid  int
-	mapid  map[int]bool
-	hook   func(Message)
-	mutex  sync.Mutex
+	inited   time.Time
+	opts     Options
+	stat     Statistics
+	file     *os.File
+	fileSize uint64
+	fname    string
+	maxid    int
+	mapid    map[int]bool
+	hook     func(Message)
+	mutex    sync.Mutex
 }
 
 var ctx context
@@ -31,23 +32,8 @@ func (o *context) init(opts Options) {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
 	opts.init()
-	o.fname = ""
 	if o.opts.File != opts.File || o.opts.Dir != opts.Dir {
-		if o.file != nil {
-			o.file.Close()
-			o.file = nil
-		}
-		o.fname = opts.File
-		if o.fname == "" && opts.Dir != "" {
-			appName := opts.AppName
-			if appName == "" {
-				appName = AppName()
-			}
-			o.fname = GenFilename(opts.Dir, appName)
-		}
-		if o.fname != "" {
-			o.file = OpenFile(o.fname, opts.Append)
-		}
+		o.openFile(opts, false)
 	}
 	o.opts = opts
 	o.maxid = 2
@@ -125,4 +111,34 @@ func (o *context) fmtGoroutineID(id int) string {
 	}
 	o.mapid[id] = true
 	return sid
+}
+
+func (o *context) openFile(opts Options, rotate bool) {
+	o.fname = ""
+	if o.file != nil {
+		o.file.Close()
+		o.file = nil
+	}
+	o.fname = opts.File
+	if opts.useDir() {
+		appName := opts.AppName
+		if appName == "" {
+			appName = AppName()
+		}
+		if rotate {
+			appName += ".~"
+		}
+		o.fname = GenFilename(opts.Dir, appName)
+	}
+	if o.fname != "" {
+		o.file = OpenFile(o.fname, opts.Append)
+		o.fileSize = 0
+	}
+}
+
+func (o *context) rotate(nextMessageSize int) {
+	if o.file != nil && o.opts.useDir() && o.opts.FileSizeLimit != 0 && (o.fileSize+uint64(nextMessageSize)) > o.opts.FileSizeLimit {
+		o.file.Close()
+		o.openFile(o.opts, true)
+	}
 }

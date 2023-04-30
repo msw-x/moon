@@ -99,6 +99,8 @@ func printMessage(ctx *context, level Level, m Message) {
 		}
 	}
 	if ctx.file != nil {
+		ctx.rotate(m.Size())
+		ctx.fileSize += uint64(m.Size())
 		ctx.file.WriteString(m.Format())
 	}
 }

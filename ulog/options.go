@@ -8,23 +8,28 @@ import (
 )
 
 type Options struct {
-	Level     any
-	Console   bool
-	File      string
-	Dir       string
-	Append    bool
-	AppName   string
-	GoID      bool
-	CrtStdErr bool
-	SplitArgs any
+	Level         any
+	Console       bool
+	File          string
+	Dir           string
+	Append        bool
+	AppName       string
+	GoID          bool
+	CrtStdErr     bool
+	SplitArgs     any
+	FileSizeLimit uint64
 
 	level     Level
 	splitArgs bool
 }
 
-func (this *Options) init() {
-	this.level = initLevel(this.Level)
-	this.splitArgs = initSplitArgs(this.SplitArgs)
+func (o *Options) init() {
+	o.level = initLevel(o.Level)
+	o.splitArgs = initSplitArgs(o.SplitArgs)
+}
+
+func (o *Options) useDir() bool {
+	return o.File == "" && o.Dir != ""
 }
 
 func initLevel(a any) Level {
