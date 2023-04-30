@@ -14,11 +14,12 @@ import (
 )
 
 type Router struct {
-	log        *ulog.Log
-	id         string
-	path       string
-	router     *mux.Router
-	logRequest bool
+	log               *ulog.Log
+	id                string
+	path              string
+	router            *mux.Router
+	logRequest        bool
+	upgradeErrorLevel ulog.Level
 }
 
 type OnRequest func(http.ResponseWriter, *http.Request)
@@ -26,7 +27,8 @@ type OnWebsocket func(*websocket.Conn)
 
 func NewRouter() *Router {
 	return &Router{
-		router: mux.NewRouter(),
+		router:            mux.NewRouter(),
+		upgradeErrorLevel: ulog.LevelError,
 	}
 }
 
@@ -42,6 +44,11 @@ func (o *Router) WithID(id any) *Router {
 
 func (o *Router) WithLogRequest(logRequest bool) *Router {
 	o.logRequest = logRequest
+	return o
+}
+
+func (o *Router) WithUpgradeErrorLevel(level ulog.Level) *Router {
+	o.upgradeErrorLevel = level
 	return o
 }
 
@@ -124,8 +131,11 @@ func (o *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 			o.log.Error(WebSocketName(RequestName(r)), err)
 		})
 		conn, err := up.Upgrade(w, r, nil)
-		moon.Strict(err, "upgrade")
-		onWebsocket(conn)
+		if err == nil {
+			onWebsocket(conn)
+		} else {
+			o.log.Print(o.upgradeErrorLevel, WebSocketName(RequestName(r)), err)
+		}
 	})
 }
 
