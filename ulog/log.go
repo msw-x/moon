@@ -40,6 +40,10 @@ func (o *Log) Close() {
 	}
 }
 
+func (o *Log) Enabled() bool {
+	return o.enable
+}
+
 func (o *Log) IsGloabl() bool {
 	return o.ctx == &ctx
 }
