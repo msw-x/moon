@@ -65,7 +65,7 @@ func (o *Job) OnFinish(fn func()) *Job {
 	return o
 }
 
-func (o *Job) WithLog(log *ulog.Log, level ulog.Level) *Job {
+func (o *Job) WithLog(log *ulog.Log) *Job {
 	o.log = log
 	return o
 }
