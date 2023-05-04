@@ -24,3 +24,32 @@ func GoGroup(n int, fn func()) {
 	}
 	wg.Wait()
 }
+
+type GoSwarm struct {
+	log *ulog.Log
+	wg  sync.WaitGroup
+}
+
+func NewGoSwarm() *GoSwarm {
+	o := new(GoSwarm)
+	o.log = ulog.New("")
+	return o
+}
+
+func (o *GoSwarm) WithLog(log *ulog.Log) *GoSwarm {
+	o.log = log
+	return o
+}
+
+func (o *GoSwarm) Add(fn func()) {
+	o.wg.Add(1)
+	Go(func() {
+		defer o.log.Recover()
+		defer o.wg.Done()
+		fn()
+	})
+}
+
+func (o *GoSwarm) Wait() {
+	o.wg.Wait()
+}
