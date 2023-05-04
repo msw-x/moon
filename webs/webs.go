@@ -17,7 +17,7 @@ import (
 type Server struct {
 	log         *ulog.Log
 	s           *http.Server
-	job         *usync.Job
+	do          *usync.Do
 	timeout     timeout
 	certFile    string
 	keyFile     string
@@ -133,11 +133,11 @@ func (o *Server) Run(addr string, handler http.Handler) {
 			return o.tlsman.GetCertificate(hello)
 		}
 	}
-	o.job = usync.NewJob()
+	o.do = usync.NewDo()
 	app.Go(func() {
 		defer func() {
 			o.log.Info("stopped")
-			o.job.Notify()
+			o.do.Notify()
 		}()
 		o.log.Info("listen")
 		var err error
@@ -160,7 +160,7 @@ func (o *Server) Shutdown() {
 		s := o.s
 		o.s = nil
 		s.Shutdown(ctx)
-		o.job.Stop()
+		o.do.Stop()
 		o.log.Info("shutdown completed")
 	}
 }

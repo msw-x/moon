@@ -4,39 +4,39 @@ import (
 	"time"
 )
 
-type Job struct {
+type Do struct {
 	do bool
 	ch Await
 }
 
-func NewJob() *Job {
-	return &Job{
+func NewDo() *Do {
+	return &Do{
 		do: true,
 		ch: NewAwait(),
 	}
 }
 
-func (o *Job) Do() bool {
+func (o *Do) Do() bool {
 	return o.do
 }
 
-func (o *Job) Notify() {
+func (o *Do) Notify() {
 	o.Cancel()
 	o.ch.Notify()
 }
 
-func (o *Job) Cancel() {
+func (o *Do) Cancel() {
 	o.do = false
 }
 
-func (o *Job) Stop() {
+func (o *Do) Stop() {
 	if o.do {
 		o.Cancel()
 		o.ch.Wait()
 	}
 }
 
-func (o *Job) Sleep(timeout time.Duration) {
+func (o *Do) Sleep(timeout time.Duration) {
 	if o.Do() {
 		const maxSleepTime = time.Millisecond * 10
 		if timeout > maxSleepTime {

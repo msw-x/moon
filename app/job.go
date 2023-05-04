@@ -8,7 +8,7 @@ import (
 )
 
 type Job struct {
-	job      *usync.Job
+	do       *usync.Do
 	log      *ulog.Log
 	level    ulog.Level
 	onInit   func() error
@@ -18,14 +18,14 @@ type Job struct {
 
 func NewJob() *Job {
 	o := new(Job)
-	o.job = usync.NewJob()
+	o.do = usync.NewDo()
 	o.log = ulog.Empty()
 	o.level = ulog.LevelDebug
 	return o
 }
 
 func (o *Job) Do() bool {
-	return o.job.Do()
+	return o.do.Do()
 }
 
 func (o *Job) Wait() {
@@ -38,16 +38,16 @@ func (o *Job) Wait() {
 
 func (o *Job) Stop() {
 	o.logPrint("stop")
-	o.job.Stop()
+	o.do.Stop()
 	o.logPrint("stopped")
 }
 
 func (o *Job) Cancel() {
-	o.job.Cancel()
+	o.do.Cancel()
 }
 
 func (o *Job) Sleep(timeout time.Duration) {
-	o.job.Sleep(timeout)
+	o.do.Sleep(timeout)
 }
 
 func (o *Job) OnInit(fn func() error) *Job {
@@ -78,7 +78,7 @@ func (o *Job) WithLogLevel(level ulog.Level) *Job {
 func (o *Job) Run(fn func()) {
 	go func() {
 		defer o.recover()
-		defer o.job.Notify()
+		defer o.do.Notify()
 		if o.init() {
 			o.start()
 			defer o.finish()
