@@ -85,7 +85,7 @@ func (o *Db) Ping() bool {
 func (o *Db) Wait(timeout time.Duration) bool {
 	tick := time.Millisecond * 10
 	for o.job.Do() && timeout > 0 && !o.Ok() {
-		timeout -= time.tick
+		timeout -= tick
 		o.job.Sleep(tick)
 	}
 	return o.Ok()
