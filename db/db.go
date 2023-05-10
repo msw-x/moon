@@ -22,7 +22,7 @@ type Db struct {
 	ok  bool
 }
 
-func NewDb(opt Options) *Db {
+func New(opt Options) *Db {
 	//todo: circuit breaker
 	o := new(Db)
 	o.log = ulog.New("db")
