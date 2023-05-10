@@ -1,9 +1,9 @@
 package collection
 
 import (
-	"ginats/db"
 	"time"
 
+	"github.com/msw-x/moon/db"
 	"github.com/msw-x/moon/ulog"
 	"github.com/uptrace/bun"
 	"golang.org/x/exp/constraints"
@@ -83,7 +83,7 @@ func (o *AsyncPlain[Id, Item]) ForEach(fn func(Item)) {
 }
 
 func (o *AsyncPlain[Id, Item]) Walk(fn func(Item) bool) bool {
-	return o.c.Loop(fn)
+	return o.c.Walk(fn)
 }
 
 func (o *AsyncPlain[Id, Item]) List() []Item {

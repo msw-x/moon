@@ -1,10 +1,10 @@
 package collection
 
 import (
-	"ginats/db"
 	"time"
 
 	"github.com/msw-x/moon/app"
+	"github.com/msw-x/moon/db"
 	"github.com/msw-x/moon/ulog"
 	"github.com/uptrace/bun"
 	"golang.org/x/exp/constraints"
@@ -67,11 +67,11 @@ func (o *Async[Id, MapItem, DbItem]) Init() {
 	o.c.Init()
 }
 
-func (o *Async[Id, MapItem, DbItem]) Add(e Item) (Id, error) {
+func (o *Async[Id, MapItem, DbItem]) Add(e DbItem) (Id, error) {
 	return o.c.Add(e)
 }
 
-func (o *Async[Id, MapItem, DbItem]) AddNamed(name string, e Item) (Id, error) {
+func (o *Async[Id, MapItem, DbItem]) AddNamed(name string, e DbItem) (Id, error) {
 	return o.c.AddNamed(name, e)
 }
 
@@ -96,7 +96,7 @@ func (o *Async[Id, MapItem, DbItem]) ForEach(fn func(MapItem)) {
 }
 
 func (o *Async[Id, MapItem, DbItem]) Walk(fn func(MapItem) bool) bool {
-	return o.c.Loop(fn)
+	return o.c.Walk(fn)
 }
 
 func (o *Async[Id, MapItem, DbItem]) List() []MapItem {

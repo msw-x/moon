@@ -2,27 +2,26 @@ package collection
 
 import (
 	"fmt"
-	"ginats/db"
+	"reflect"
 	"sort"
 	"sync"
 
 	"github.com/msw-x/moon"
+	"github.com/msw-x/moon/db"
 	"github.com/msw-x/moon/ulog"
 	"github.com/uptrace/bun"
 	"golang.org/x/exp/constraints"
 )
 
 type Sync[Id constraints.Ordered, MapItem any, DbItem any] struct {
-	log         *ulog.Log
-	db          *db.Db
-	m           map[Id]MapItem
-	name        string
-	dbItemId    func(DbItem) Id
-	newMapItem  func(DbItem) MapItem
-	mapToDbItem func(MapItem) DbItem
-	onSelect    func(*bun.SelectQuery)
-	mutex       sync.Mutex
-	logUpdate   bool
+	log       *ulog.Log
+	db        *db.Db
+	m         map[Id]MapItem
+	name      string
+	fn        Funcs[Id, MapItem, DbItem]
+	onSelect  func(*bun.SelectQuery)
+	mutex     sync.Mutex
+	logUpdate bool
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Open(name string, log *ulog.Log, db *db.Db, dbItemId func(DbItem) Id) {
@@ -34,8 +33,8 @@ func (o *Sync[Id, MapItem, DbItem]) Open(name string, log *ulog.Log, db *db.Db, 
 	o.log = log.WithLifetime()
 	o.db = db
 	o.name = name
-	o.dbItemId = dbItemId
-	o.assertFunc("db-item-id", o.dbItemId == nil)
+	o.fn.dbItemId = dbItemId
+	o.assertFn("db-item-id", o.fn.dbItemId)
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Close() {
@@ -43,8 +42,8 @@ func (o *Sync[Id, MapItem, DbItem]) Close() {
 }
 
 func (o *Sync[Id, MapItem, DbItem]) OnConvert(newMapItem func(DbItem) MapItem, mapToDbItem func(MapItem) DbItem) {
-	o.newMapItem = newMapItem
-	o.mapToDbItem = mapToDbItem
+	o.fn.newMapItem = newMapItem
+	o.fn.mapToDbItem = mapToDbItem
 }
 
 func (o *Sync[Id, MapItem, DbItem]) OnSelect(onSelect func(*bun.SelectQuery)) {
@@ -112,7 +111,7 @@ func (o *Sync[Id, MapItem, DbItem]) Delete(id Id) error {
 	if err == nil {
 		o.mutex.Lock()
 		defer o.mutex.Unlock()
-		v := o.mapToDbItem(e)
+		v := o.fn.mapToDbItem(e)
 		err = o.db.Delete(&v, nil)
 		if err == nil {
 			delete(o.m, id)
@@ -175,7 +174,7 @@ func (o *Sync[Id, MapItem, DbItem]) DbList() []DbItem {
 	lst := o.List()
 	l := make([]DbItem, len(lst))
 	for n, e := range lst {
-		l[n] = o.mapToDbItem(e)
+		l[n] = o.fn.mapToDbItem(e)
 	}
 	return l
 }
@@ -208,7 +207,7 @@ func (o *Sync[Id, MapItem, DbItem]) add(action string, e DbItem) (Id, error) {
 	}
 	var id Id
 	if err == nil {
-		id = o.dbItemId(e)
+		id = o.fn.dbItemId(e)
 		o.log.Info(action, "id:", id)
 		o.mutex.Lock()
 		defer o.mutex.Unlock()
@@ -221,8 +220,8 @@ func (o *Sync[Id, MapItem, DbItem]) add(action string, e DbItem) (Id, error) {
 }
 
 func (o *Sync[Id, MapItem, DbItem]) put(e DbItem) {
-	o.assertFunc("new-map-item", o.newMapItem == nil)
-	o.m[o.dbItemId(e)] = o.newMapItem(e)
+	o.assertFn("new-map-item", o.fn.newMapItem)
+	o.m[o.fn.dbItemId(e)] = o.fn.newMapItem(e)
 }
 
 func (o *Sync[Id, MapItem, DbItem]) update(remove bool, id Id, fn func(e MapItem) MapItem) error {
@@ -241,10 +240,10 @@ func (o *Sync[Id, MapItem, DbItem]) update(remove bool, id Id, fn func(e MapItem
 		var e MapItem
 		e, err = o.Get(id)
 		if err == nil {
-			o.assertFunc("map-to-db-item", o.mapToDbItem == nil)
-			prev := o.mapToDbItem(e)
+			o.assertFn("map-to-db-item", o.fn.mapToDbItem)
+			prev := o.fn.mapToDbItem(e)
 			e = fn(e)
-			curr := o.mapToDbItem(e)
+			curr := o.fn.mapToDbItem(e)
 			_, err = db.UpdateDiff(o.db, prev, curr)
 			if err == nil {
 				o.mutex.Lock()
@@ -264,11 +263,11 @@ func (o *Sync[Id, MapItem, DbItem]) update(remove bool, id Id, fn func(e MapItem
 }
 
 func (o *Sync[Id, MapItem, DbItem]) mapItemId(e MapItem) Id {
-	return o.dbItemId(o.mapToDbItem(e))
+	return o.fn.dbItemId(o.fn.mapToDbItem(e))
 }
 
-func (o *Sync[Id, MapItem, DbItem]) assertFunc(name string, isnil bool) {
-	if isnil {
+func (o *Sync[Id, MapItem, DbItem]) assertFn(name string, fn any) {
+	if reflect.ValueOf(fn).IsNil() {
 		moon.Panicf("%s func '%s' is nil", o.name, name)
 	}
 }

@@ -1,8 +1,7 @@
 package collection
 
 import (
-	"ginats/db"
-
+	"github.com/msw-x/moon/db"
 	"github.com/msw-x/moon/ulog"
 	"github.com/uptrace/bun"
 	"golang.org/x/exp/constraints"
@@ -77,12 +76,21 @@ func (o *SyncPlain[Id, Item]) Replace(e Item) error {
 	return o.c.Replace(e)
 }
 
-func (o *SyncPlain[Id, Item]) Upsert(name string, e Item) error {
-	id := o.c.dbItemId(e)
+func (o *SyncPlain[Id, Item]) Upsert(e Item) error {
+	id := o.c.fn.dbItemId(e)
 	if o.Exist(id) {
 		return o.Replace(e)
 	}
-	_, err := o.Add(name, e)
+	_, err := o.Add(e)
+	return err
+}
+
+func (o *SyncPlain[Id, Item]) UpsertNamed(name string, e Item) error {
+	id := o.c.fn.dbItemId(e)
+	if o.Exist(id) {
+		return o.Replace(e)
+	}
+	_, err := o.AddNamed(name, e)
 	return err
 }
 
@@ -91,7 +99,7 @@ func (o *SyncPlain[Id, Item]) ForEach(fn func(Item)) {
 }
 
 func (o *SyncPlain[Id, Item]) Walk(fn func(Item) bool) bool {
-	return o.c.Loop(fn)
+	return o.c.Walk(fn)
 }
 
 func (o *SyncPlain[Id, Item]) List() []Item {
