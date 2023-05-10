@@ -30,6 +30,10 @@ func (o *AsyncPlain[Id, Item]) OnSelect(onSelect func(*bun.SelectQuery)) {
 	o.c.OnSelect(onSelect)
 }
 
+func (o *AsyncPlain[Id, Item]) Db() *db.Db {
+	return o.c.Db()
+}
+
 func (o *AsyncPlain[Id, Item]) Log() *ulog.Log {
 	return o.c.Log()
 }

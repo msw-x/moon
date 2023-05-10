@@ -43,6 +43,10 @@ func (o *Async[Id, MapItem, DbItem]) OnSelect(onSelect func(*bun.SelectQuery)) {
 	o.c.OnSelect(onSelect)
 }
 
+func (o *Async[Id, MapItem, DbItem]) Db() *db.Db {
+	return o.c.Db()
+}
+
 func (o *Async[Id, MapItem, DbItem]) Log() *ulog.Log {
 	return o.c.Log()
 }

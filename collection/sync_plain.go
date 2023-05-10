@@ -24,6 +24,10 @@ func (o *SyncPlain[Id, Item]) OnSelect(onSelect func(*bun.SelectQuery)) {
 	o.c.OnSelect(onSelect)
 }
 
+func (o *SyncPlain[Id, Item]) Db() *db.Db {
+	return o.c.Db()
+}
+
 func (o *SyncPlain[Id, Item]) Log() *ulog.Log {
 	return o.c.Log()
 }

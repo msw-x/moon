@@ -50,6 +50,10 @@ func (o *Sync[Id, MapItem, DbItem]) OnSelect(onSelect func(*bun.SelectQuery)) {
 	o.onSelect = onSelect
 }
 
+func (o *Sync[Id, MapItem, DbItem]) Db() *db.Db {
+	return o.db
+}
+
 func (o *Sync[Id, MapItem, DbItem]) Log() *ulog.Log {
 	return o.log
 }
