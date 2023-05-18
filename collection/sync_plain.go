@@ -106,6 +106,10 @@ func (o *SyncPlain[Id, Item]) Walk(fn func(Item) bool) bool {
 	return o.c.Walk(fn)
 }
 
+func (o *SyncPlain[Id, Item]) Keys() []Id {
+	return o.c.Keys()
+}
+
 func (o *SyncPlain[Id, Item]) List() []Item {
 	return o.c.List()
 }

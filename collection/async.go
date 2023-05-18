@@ -103,6 +103,10 @@ func (o *Async[Id, MapItem, DbItem]) Walk(fn func(MapItem) bool) bool {
 	return o.c.Walk(fn)
 }
 
+func (o *Async[Id, MapItem, DbItem]) Keys() []Id {
+	return o.c.Keys()
+}
+
 func (o *Async[Id, MapItem, DbItem]) List() []MapItem {
 	return o.c.List()
 }

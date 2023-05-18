@@ -90,6 +90,10 @@ func (o *AsyncPlain[Id, Item]) Walk(fn func(Item) bool) bool {
 	return o.c.Walk(fn)
 }
 
+func (o *AsyncPlain[Id, Item]) Keys() []Id {
+	return o.c.Keys()
+}
+
 func (o *AsyncPlain[Id, Item]) List() []Item {
 	return o.c.List()
 }

@@ -160,6 +160,16 @@ func (o *Sync[Id, MapItem, DbItem]) Walk(fn func(MapItem) bool) bool {
 	return false
 }
 
+func (o *Sync[Id, MapItem, DbItem]) Keys() []Id {
+	o.mutex.Lock()
+	defer o.mutex.Unlock()
+	var l []Id
+	for id := range o.m {
+		l = append(l, id)
+	}
+	return l
+}
+
 func (o *Sync[Id, MapItem, DbItem]) List() []MapItem {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
