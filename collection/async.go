@@ -43,7 +43,7 @@ func (o *Async[Id, MapItem, DbItem]) OnSelect(onSelect func(*bun.SelectQuery)) {
 	o.c.OnSelect(onSelect)
 }
 
-func (o *Async[Id, MapItem, DbItem]) OnDelete(onDelete func(*bun.DeleteQuery)) {
+func (o *Async[Id, MapItem, DbItem]) OnDelete(onDelete func(MapItem, *bun.DeleteQuery)) {
 	o.c.OnDelete(onDelete)
 }
 

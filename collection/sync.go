@@ -20,7 +20,7 @@ type Sync[Id constraints.Ordered, MapItem any, DbItem any] struct {
 	name      string
 	fn        Funcs[Id, MapItem, DbItem]
 	onSelect  func(*bun.SelectQuery)
-	onDelete  func(*bun.DeleteQuery)
+	onDelete  func(MapItem, *bun.DeleteQuery)
 	mutex     sync.Mutex
 	logUpdate bool
 }
@@ -51,7 +51,7 @@ func (o *Sync[Id, MapItem, DbItem]) OnSelect(onSelect func(*bun.SelectQuery)) {
 	o.onSelect = onSelect
 }
 
-func (o *Sync[Id, MapItem, DbItem]) OnDelete(onDelete func(*bun.DeleteQuery)) {
+func (o *Sync[Id, MapItem, DbItem]) OnDelete(onDelete func(MapItem, *bun.DeleteQuery)) {
 	o.onDelete = onDelete
 }
 
@@ -121,7 +121,13 @@ func (o *Sync[Id, MapItem, DbItem]) Delete(id Id) error {
 		o.mutex.Lock()
 		defer o.mutex.Unlock()
 		v := o.fn.mapToDbItem(e)
-		err = o.db.Delete(&v, o.onDelete)
+		var onDelete func(*bun.DeleteQuery)
+		if o.onDelete != nil {
+			onDelete = func(q *bun.DeleteQuery) {
+				o.onDelete(e, q)
+			}
+		}
+		err = o.db.Delete(&v, onDelete)
 		if err == nil {
 			delete(o.m, id)
 		}
