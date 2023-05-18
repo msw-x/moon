@@ -20,7 +20,7 @@ type Sync[Id constraints.Ordered, MapItem any, DbItem any] struct {
 	name      string
 	fn        Funcs[Id, MapItem, DbItem]
 	onSelect  func(*bun.SelectQuery)
-	onDelete  func(*bun.SelectQuery)
+	onDelete  func(*bun.DeleteQuery)
 	mutex     sync.Mutex
 	logUpdate bool
 }
