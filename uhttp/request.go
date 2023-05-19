@@ -1,13 +1,9 @@
 package uhttp
 
 import (
-	"fmt"
 	"net/http"
 	"net/url"
-	"sort"
 	"strings"
-
-	"github.com/msw-x/moon/ufmt"
 )
 
 type Request struct {
@@ -41,17 +37,7 @@ func (o *Request) ParamsString() string {
 }
 
 func (o *Request) HeaderString() string {
-	if len(o.Header) == 0 {
-		return ""
-	}
-	var l []string
-	for name, vals := range o.Header {
-		l = append(l, fmt.Sprintf("%s%v", name, vals))
-	}
-	sort.Slice(l, func(i, j int) bool {
-		return l[i] < l[j]
-	})
-	return ufmt.JoinSliceWith("\n", l)
+	return HeaderString(o.Header)
 }
 
 func (o *Request) BodyString() string {

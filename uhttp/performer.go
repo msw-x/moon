@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/msw-x/moon/rt"
+	"github.com/msw-x/moon/refl"
 	"github.com/msw-x/moon/ujson"
 	"github.com/msw-x/moon/ustring"
 )
@@ -28,6 +28,7 @@ func (o *Performer) Do() (r Responce) {
 		responce, err := o.c.Do(request)
 		if err == nil {
 			defer responce.Body.Close()
+			r.Header = responce.Header
 			r.Status = responce.Status
 			r.StatusCode = responce.StatusCode
 			r.Body, err = io.ReadAll(responce.Body)
@@ -57,7 +58,7 @@ func (o *Performer) Param(name string, value any) *Performer {
 }
 
 func (o *Performer) Params(s any) *Performer {
-	rt.PlainValues(s, "url", func(v any, name string, flags []string) {
+	refl.WalkOnTagsAny(s, UrlTag, func(v any, name string, flags []string) {
 		o.Param(name, v)
 	})
 	return o
@@ -72,7 +73,7 @@ func (o *Performer) Header(name string, value any) *Performer {
 }
 
 func (o *Performer) Headers(s any) *Performer {
-	rt.PlainValues(s, "http", func(v any, name string, flags []string) {
+	refl.WalkOnTagsAny(s, HeaderTag, func(v any, name string, flags []string) {
 		o.Header(name, v)
 	})
 	return o

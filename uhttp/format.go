@@ -1,8 +1,9 @@
 package uhttp
 
 type Format struct {
-	Params       bool
-	Header       bool
-	RequestBody  bool
-	ResponceBody bool
+	RequestParams  bool
+	RequestHeader  bool
+	ResponceHeader bool
+	RequestBody    bool
+	ResponceBody   bool
 }

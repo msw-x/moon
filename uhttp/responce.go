@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/msw-x/moon/parse"
 	"github.com/msw-x/moon/ufmt"
 )
 
@@ -14,6 +15,7 @@ type Responce struct {
 	Time       time.Duration
 	Status     string
 	StatusCode int
+	Header     http.Header
 	Body       []byte
 	Error      error
 }
@@ -24,6 +26,26 @@ func (o *Responce) Ok() bool {
 
 func (o *Responce) Json(v any) error {
 	return json.Unmarshal(o.Body, v)
+}
+
+func (o *Responce) HeaderTo(v any) error {
+	return HeaderTo(o.Header, v)
+}
+
+func (o *Responce) HeaderExists(key string) bool {
+	return o.HeaderValue(key) != ""
+}
+
+func (o *Responce) HeaderValue(key string) string {
+	return o.Header.Get(key)
+}
+
+func (o *Responce) HeaderInt64(key string) (int64, error) {
+	return parse.Int64(o.HeaderValue(key))
+}
+
+func (o *Responce) HeaderFloat64(key string) (float64, error) {
+	return parse.Float64(o.HeaderValue(key))
 }
 
 func (o *Responce) RefineError(text string, err error) {
@@ -41,17 +63,21 @@ func (o *Responce) Title() (s string) {
 	return
 }
 
-func (o *Responce) Format(f Format) (s string) {
-	delim := "\n"
-	push := func(ok bool, value string) {
+func (o *Responce) Format(f Format) string {
+	l := []string{o.Title()}
+	push := func(ok bool, name string, value string) {
 		if ok && value != "" {
-			s += delim + value
+			l = append(l, fmt.Sprintf("%s: %s", name, value))
 		}
 	}
-	s = o.Title()
-	push(f.Params, o.Request.ParamsString())
-	push(f.Header, o.Request.HeaderString())
-	push(f.RequestBody, o.Request.BodyString())
-	push(f.ResponceBody, string(o.Body))
-	return
+	push(f.RequestParams, "request-params", o.Request.ParamsString())
+	push(f.RequestHeader, "request-header", o.Request.HeaderString())
+	push(f.RequestBody, "request-body", o.Request.BodyString())
+	push(f.ResponceHeader, "responce-header", o.HeaderString())
+	push(f.ResponceBody, "responce-body", string(o.Body))
+	return ufmt.NotableJoinSliceWith("\n", l)
+}
+
+func (o *Responce) HeaderString() string {
+	return HeaderString(o.Header)
 }
