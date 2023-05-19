@@ -79,28 +79,3 @@ func (o *Client) Put(url string) *Performer {
 func (o *Client) Delete(url string) *Performer {
 	return o.Request(http.MethodDelete, url)
 }
-
-/*
-c := uhttp.NewClient()
-.WithUrl("https://google.com")
-.WithPath("foo")
-.WithProxy()
-.WithTimeout()
-.WithTrace()
-
-resp, err = c
-.Request(http.MethodGet, url).Do()
-.Get(url)
-.Post(url)
-.Param("user_id", 834)
-.Params(params)
-.Header("ContentType", "application/json")
-.Headers(header)
-.Auth("")
-.AuthBearer(token)
-.ContentType("application/json")
-.Body(body)
-.Json(body)
-.Timeout(time.Second)
-.Trace()
-*/

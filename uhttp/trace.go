@@ -1,7 +1,9 @@
 package uhttp
 
+import "github.com/msw-x/moon/ulog"
+
 type Tracer struct {
-	log *ulog.Log
+	log    *ulog.Log
 	format Format
 }
 
@@ -11,7 +13,7 @@ func NewTracer(log *ulog.Log) *Tracer {
 	return o
 }
 
-func (o *Tracer) WtihFormat(f Format) *Tracer {
+func (o *Tracer) WithFormat(f Format) *Tracer {
 	o.format = f
 	return o
 }
@@ -26,15 +28,12 @@ func (o *Tracer) Trace(r Responce) {
 }
 
 func TraceFormat(log *ulog.Log, format Format) func(Responce) {
-	t := NewTracer(log).WithFOrmat(format)
+	t := NewTracer(log).WithFormat(format)
 	return func(r Responce) {
 		t.Trace(r)
 	}
 }
 
 func Trace(log *ulog.Log) func(Responce) {
-	t := NewTracer(log).WithFOrmat(format)
-	return func(r Responce) {
-		t.Trace(r)
-	}
+	return TraceFormat(log, Format{})
 }

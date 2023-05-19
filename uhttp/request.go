@@ -1,10 +1,13 @@
 package uhttp
 
 import (
-	"bufio"
-	"bytes"
+	"fmt"
 	"net/http"
 	"net/url"
+	"sort"
+	"strings"
+
+	"github.com/msw-x/moon/ufmt"
 )
 
 type Request struct {
@@ -17,6 +20,12 @@ type Request struct {
 
 func (o *Request) Path(path string) {
 	o.Url = urlJoin(o.Url, path)
+}
+
+func (o *Request) RefineUrl() {
+	if !strings.Contains(o.Url, "://") {
+		o.Url = "https://" + o.Url
+	}
 }
 
 func (o *Request) Uri() string {
@@ -32,10 +41,17 @@ func (o *Request) ParamsString() string {
 }
 
 func (o *Request) HeaderString() string {
-	var b bytes.Buffer
-	w := bufio.NewWriter(&b)
-	o.Header.Write(o.Header)
-	return string(b)
+	if len(o.Header) == 0 {
+		return ""
+	}
+	var l []string
+	for name, vals := range o.Header {
+		l = append(l, fmt.Sprintf("%s%v", name, vals))
+	}
+	sort.Slice(l, func(i, j int) bool {
+		return l[i] < l[j]
+	})
+	return ufmt.JoinSliceWith("\n", l)
 }
 
 func (o *Request) BodyString() string {

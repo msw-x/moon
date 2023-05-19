@@ -2,12 +2,15 @@ package uhttp
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/msw-x/moon/rt"
 	"github.com/msw-x/moon/ujson"
+	"github.com/msw-x/moon/ustring"
 )
 
 type Performer struct {
@@ -19,16 +22,17 @@ type Performer struct {
 func (o *Performer) Do() (r Responce) {
 	r.Request = o.r
 	ts := time.Now()
+	r.Request.RefineUrl()
 	request, err := http.NewRequest(r.Request.Method, r.Request.Uri(), bytes.NewReader(r.Request.Body))
 	if err == nil {
 		responce, err := o.c.Do(request)
 		if err == nil {
-			defer resp.Body.Close()
-			r.Status = resp.Status
-			r.StatusCode = resp.StatusCode
-			r.Body, err = io.ReadAll(resp.Body)
+			defer responce.Body.Close()
+			r.Status = responce.Status
+			r.StatusCode = responce.StatusCode
+			r.Body, err = io.ReadAll(responce.Body)
 			if err != nil {
-				responce.RefineError("read body", err)
+				r.RefineError("read body", err)
 			}
 		} else {
 			r.RefineError("do request", err)
@@ -38,13 +42,17 @@ func (o *Performer) Do() (r Responce) {
 	}
 	r.Time = time.Since(ts)
 	if o.t != nil {
-		t(r)
+		o.t(r)
 	}
 	return
 }
 
 func (o *Performer) Param(name string, value any) *Performer {
-	o.r.Params.Set(name, value)
+	if o.r.Params == nil {
+		o.r.Params = make(url.Values)
+	}
+	name = ustring.TitleLowerCase(name)
+	o.r.Params.Set(name, fmt.Sprint(value))
 	return o
 }
 
@@ -56,7 +64,10 @@ func (o *Performer) Params(s any) *Performer {
 }
 
 func (o *Performer) Header(name string, value any) *Performer {
-	o.r.Header.Set(name, value)
+	if o.r.Header == nil {
+		o.r.Header = make(http.Header)
+	}
+	o.r.Header.Set(name, fmt.Sprint(value))
 	return o
 }
 
@@ -96,4 +107,5 @@ func (o *Performer) Json(v any) *Performer {
 
 func (o *Performer) Trace(t func(Responce)) *Performer {
 	o.t = t
+	return o
 }

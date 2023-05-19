@@ -3,7 +3,10 @@ package uhttp
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
+
+	"github.com/msw-x/moon/ufmt"
 )
 
 type Responce struct {
@@ -15,6 +18,10 @@ type Responce struct {
 	Error      error
 }
 
+func (o *Responce) Ok() bool {
+	return o.StatusCode == http.StatusOK && o.Error == nil
+}
+
 func (o *Responce) Json(v any) error {
 	return json.Unmarshal(o.Body, v)
 }
@@ -23,28 +30,28 @@ func (o *Responce) RefineError(text string, err error) {
 	o.Error = fmt.Errorf("%s: %v", text, err)
 }
 
-func (o *Responce) Format(f Format) string {
-	/*
-		"POST[url] 200 OK 350ms 12.3KB"
-		if f.Params {
-			"?id=1245&user_id=9283577"
-		}
-		if f.Header {
-			"Content-Type: application/json"
-		}
-		if f.RequestBody {
-			"RequestBody"
-		}
-		if f.ResponceBody {
-			"ResponceBody"
-		}
-	*/
-	return ""
+func (o *Responce) Title() (s string) {
+	s = fmt.Sprintf("%s[%s]", o.Request.Method, o.Request.Url)
+	if o.StatusCode != 0 {
+		s = ufmt.Join(s, o.Status, o.Time.Truncate(time.Millisecond), ufmt.ByteSizeDense(len(o.Body)))
+	}
+	if o.Error != nil {
+		s = ufmt.Join(s, o.Error)
+	}
+	return
 }
 
-type Format struct {
-	Params       bool
-	Header       bool
-	RequestBody  bool
-	ResponceBody bool
+func (o *Responce) Format(f Format) (s string) {
+	delim := "\n"
+	push := func(ok bool, value string) {
+		if ok && value != "" {
+			s += delim + value
+		}
+	}
+	s = o.Title()
+	push(f.Params, o.Request.ParamsString())
+	push(f.Header, o.Request.HeaderString())
+	push(f.RequestBody, o.Request.BodyString())
+	push(f.ResponceBody, string(o.Body))
+	return
 }

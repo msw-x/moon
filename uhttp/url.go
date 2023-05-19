@@ -1,5 +1,7 @@
 package uhttp
 
-func urlJoin(s ...string) string {
-	return ustring.NotableJoinWith("/", s...)
+import "github.com/msw-x/moon/ufmt"
+
+func urlJoin(s ...any) string {
+	return ufmt.NotableJoinWith("/", s...)
 }
