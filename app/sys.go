@@ -7,13 +7,13 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/msw-x/moon"
 	"github.com/msw-x/moon/fs"
+	"github.com/msw-x/moon/uerr"
 )
 
 func Executable() string {
 	p, err := os.Executable()
-	moon.Strict(err, "app executable")
+	uerr.Strict(err, "app executable")
 	return path.Clean(p)
 }
 

@@ -3,7 +3,7 @@ package parse
 import (
 	"time"
 
-	"github.com/msw-x/moon"
+	"github.com/msw-x/moon/uerr"
 )
 
 func Time(format string, s string) (time.Time, error) {
@@ -12,6 +12,6 @@ func Time(format string, s string) (time.Time, error) {
 
 func TimeStrict(format string, s string) time.Time {
 	t, err := Time(format, s)
-	moon.Strict(err, "time parse")
+	uerr.Strict(err, "time parse")
 	return t
 }

@@ -3,8 +3,8 @@ package ulog
 import (
 	"reflect"
 
-	"github.com/msw-x/moon"
 	"github.com/msw-x/moon/parse"
+	"github.com/msw-x/moon/uerr"
 )
 
 type Options struct {
@@ -41,7 +41,7 @@ func initLevel(a any) Level {
 	case string:
 		return ParseLevel(v)
 	}
-	moon.Panic("invalid ulog level type:", reflect.TypeOf(a))
+	uerr.Panic("invalid ulog level type:", reflect.TypeOf(a))
 	return -1
 }
 
@@ -54,6 +54,6 @@ func initSplitArgs(a any) bool {
 	case string:
 		return parse.BoolStrict(v)
 	}
-	moon.Panic("invalid ulog level type:", reflect.TypeOf(a))
+	uerr.Panic("invalid ulog level type:", reflect.TypeOf(a))
 	return false
 }

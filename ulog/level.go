@@ -1,6 +1,6 @@
 package ulog
 
-import "github.com/msw-x/moon"
+import "github.com/msw-x/moon/uerr"
 
 type Level int
 
@@ -68,6 +68,6 @@ func ParseLevel(s string) Level {
 	case "critical", "crt":
 		return LevelCritical
 	}
-	moon.Panic("unknown log level:", s)
+	uerr.Panic("unknown log level:", s)
 	return -1
 }

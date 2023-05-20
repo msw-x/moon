@@ -3,7 +3,7 @@ package parse
 import (
 	"encoding/hex"
 
-	"github.com/msw-x/moon"
+	"github.com/msw-x/moon/uerr"
 )
 
 func Hex(s string) ([]byte, error) {
@@ -12,6 +12,6 @@ func Hex(s string) ([]byte, error) {
 
 func HexStrict(s string) []byte {
 	b, err := Hex(s)
-	moon.Strict(err, "parse hex")
+	uerr.Strict(err, "parse hex")
 	return b
 }

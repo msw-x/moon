@@ -8,7 +8,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
-	"github.com/msw-x/moon"
+	"github.com/msw-x/moon/uerr"
 	"github.com/msw-x/moon/ufmt"
 	"github.com/msw-x/moon/ulog"
 )
@@ -67,7 +67,7 @@ func (o *Router) Handle(method string, path string, onRequest OnRequest) {
 	}
 	o.router.HandleFunc(uri, func(w http.ResponseWriter, r *http.Request) {
 		name := RequestName(r)
-		defer moon.Recover(func(err string) {
+		defer uerr.Recover(func(err string) {
 			o.log.Error(name, err)
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err))
@@ -127,7 +127,7 @@ func (o *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 	method := http.MethodGet
 	o.log.Debug(WebSocketName(RouteName(method, o.uri(path))))
 	o.Handle(method, path, func(w http.ResponseWriter, r *http.Request) {
-		defer moon.Recover(func(err string) {
+		defer uerr.Recover(func(err string) {
 			o.log.Error(WebSocketName(RequestName(r)), err)
 		})
 		conn, err := up.Upgrade(w, r, nil)

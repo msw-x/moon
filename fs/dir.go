@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/msw-x/moon"
+	"github.com/msw-x/moon/uerr"
 )
 
 func ReadDir(dir string, ignorAccessDenied bool) (files []os.FileInfo, err error) {
@@ -17,6 +17,6 @@ func ReadDir(dir string, ignorAccessDenied bool) (files []os.FileInfo, err error
 
 func ReadDirStrict(dir string, ignorAccessDenied bool) []os.FileInfo {
 	files, err := ReadDir(dir, ignorAccessDenied)
-	moon.Strict(err, "read dir")
+	uerr.Strict(err, "read dir")
 	return files
 }

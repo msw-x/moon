@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/msw-x/moon"
+	"github.com/msw-x/moon/uerr"
 )
 
 func Bool(s string) (bool, error) {
@@ -20,6 +20,6 @@ func Bool(s string) (bool, error) {
 
 func BoolStrict(s string) bool {
 	b, err := Bool(s)
-	moon.Strict(err)
+	uerr.Strict(err)
 	return b
 }

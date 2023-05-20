@@ -18,8 +18,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/msw-x/moon"
 	"github.com/msw-x/moon/fs"
+	"github.com/msw-x/moon/uerr"
 )
 
 func Ensure(certPath string, keyPath string) {
@@ -149,7 +149,7 @@ func (this Gen) Generate(certPath string, keyPath string) error {
 func (this Gen) Ensure(certPath string, keyPath string) {
 	if !fs.Exist(certPath) || !fs.Exist(keyPath) {
 		err := this.Generate(certPath, keyPath)
-		moon.Strict(err, "certificate generation")
+		uerr.Strict(err, "certificate generation")
 	}
 }
 

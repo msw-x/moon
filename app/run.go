@@ -4,13 +4,14 @@ import (
 	"os"
 
 	"github.com/msw-x/moon"
+	"github.com/msw-x/moon/uerr"
 	"github.com/msw-x/moon/ulog"
 )
 
 func Run[UserConf any](version string, fn func(UserConf)) {
 	defer exit()
 	defer ulog.Close()
-	defer moon.Recover(fatal)
+	defer uerr.Recover(fatal)
 	if confFile, ok := ParseCmdLine(version); ok {
 		conf := LoadConf[Conf](confFile)
 		run(version, conf.Log(), func(log *ulog.Log) {
@@ -24,7 +25,7 @@ func Run[UserConf any](version string, fn func(UserConf)) {
 func RunJust(version string, opts ulog.Options, fn func()) {
 	defer exit()
 	defer ulog.Close()
-	defer moon.Recover(fatal)
+	defer uerr.Recover(fatal)
 	run(version, opts, fn)
 }
 
@@ -55,7 +56,7 @@ func run(version string, opts ulog.Options, fn any) {
 		log.Info("shutdown")
 		log.Close()
 	}()
-	defer moon.Recover(func(e string) {
+	defer uerr.Recover(func(e string) {
 		exitCode = 1
 		log.Critical(e)
 	})

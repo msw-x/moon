@@ -4,7 +4,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/msw-x/moon"
+	"github.com/msw-x/moon/uerr"
 )
 
 type List struct {
@@ -70,7 +70,7 @@ func (this List) Get(dir string) (result []string, err error) {
 
 func (this List) GetStrict(dir string) []string {
 	r, err := this.Get(dir)
-	moon.Strict(err, "fs list")
+	uerr.Strict(err, "fs list")
 	return r
 }
 

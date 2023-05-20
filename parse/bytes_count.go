@@ -3,7 +3,7 @@ package parse
 import (
 	"math"
 
-	"github.com/msw-x/moon"
+	"github.com/msw-x/moon/uerr"
 )
 
 func BytesCount(s string) (v uint64, err error) {
@@ -33,6 +33,6 @@ func BytesCount(s string) (v uint64, err error) {
 
 func BytesCountStrict(s string) uint64 {
 	n, err := BytesCount(s)
-	moon.Strict(err, "parse bytes count")
+	uerr.Strict(err, "parse bytes count")
 	return n
 }

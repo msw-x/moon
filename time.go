@@ -3,6 +3,8 @@ package moon
 import (
 	"fmt"
 	"time"
+
+	"github.com/msw-x/moon/uerr"
 )
 
 type Time struct {
@@ -20,70 +22,70 @@ func Now() *Time {
 	return NewTime().SetNow()
 }
 
-func (this *Time) SetDailyHours(h int) {
+func (o *Time) SetDailyHours(h int) {
 	if h >= 24 {
-		Panic("hours must be less than 24 but not", h)
+		uerr.Panic("hours must be less than 24 but not", h)
 	}
-	this.Hours = h
+	o.Hours = h
 }
 
-func (this *Time) SetMinutes(m int) {
+func (o *Time) SetMinutes(m int) {
 	if m >= 60 {
-		Panic("minutes must be less than 60 but not", m)
+		uerr.Panic("minutes must be less than 60 but not", m)
 	}
-	this.Minutes = m
+	o.Minutes = m
 }
 
-func (this *Time) SetSeconds(s int) {
+func (o *Time) SetSeconds(s int) {
 	if s >= 60 {
-		Panic("seconds must be less than 60 but not", s)
+		uerr.Panic("seconds must be less than 60 but not", s)
 	}
-	this.Seconds = s
+	o.Seconds = s
 }
 
-func (this *Time) SetTime(t time.Time) *Time {
-	this.Hours = t.Hour()
-	this.Minutes = t.Minute()
-	this.Seconds = t.Second()
-	return this
+func (o *Time) SetTime(t time.Time) *Time {
+	o.Hours = t.Hour()
+	o.Minutes = t.Minute()
+	o.Seconds = t.Second()
+	return o
 }
 
-func (this *Time) SetNow() *Time {
-	return this.SetTime(time.Now())
+func (o *Time) SetNow() *Time {
+	return o.SetTime(time.Now())
 }
 
-func (this Time) Days() (days, hours int) {
-	days = this.Hours / 24
-	hours = this.Hours % 24
+func (o Time) Days() (days, hours int) {
+	days = o.Hours / 24
+	hours = o.Hours % 24
 	return
 }
 
-func (this Time) TotalMinutes() int {
-	return this.Hours*60 + this.Minutes
+func (o Time) TotalMinutes() int {
+	return o.Hours*60 + o.Minutes
 }
 
-func (this Time) TotalSeconds() int {
-	return this.TotalMinutes()*60 + this.Seconds
+func (o Time) TotalSeconds() int {
+	return o.TotalMinutes()*60 + o.Seconds
 }
 
-func (this Time) Format() string {
-	return fmt.Sprintf("%02d:%02d:%02d", this.Hours, this.Minutes, this.Seconds)
+func (o Time) Format() string {
+	return fmt.Sprintf("%02d:%02d:%02d", o.Hours, o.Minutes, o.Seconds)
 }
 
-func (this Time) FormatMs() string {
-	return fmt.Sprintf("%s.%03d", this.Format(), this.Milliseconds)
+func (o Time) FormatMs() string {
+	return fmt.Sprintf("%s.%03d", o.Format(), o.Milliseconds)
 }
 
-func (this Time) FormatDays() string {
-	days, hours := this.Days()
+func (o Time) FormatDays() string {
+	days, hours := o.Days()
 	if days > 0 {
 		plural := ""
 		if days > 1 {
 			plural = "s"
 		}
-		return fmt.Sprintf("%d day%s %02d:%02d:%02d", days, plural, hours, this.Minutes, this.Seconds)
+		return fmt.Sprintf("%d day%s %02d:%02d:%02d", days, plural, hours, o.Minutes, o.Seconds)
 	}
-	return this.Format()
+	return o.Format()
 }
 
 func DurationToTime(d time.Duration) Time {

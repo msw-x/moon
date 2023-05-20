@@ -5,8 +5,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/msw-x/moon"
 	"github.com/msw-x/moon/parse"
+	"github.com/msw-x/moon/uerr"
 	"github.com/msw-x/moon/ulog"
 
 	"github.com/BurntSushi/toml"
@@ -15,7 +15,7 @@ import (
 func LoadConf[Conf any](filename string) Conf {
 	var conf Conf
 	_, err := toml.DecodeFile(filename, &conf)
-	moon.Strict(err, "load conf")
+	uerr.Strict(err, "load conf")
 	rv := reflect.ValueOf(&conf).Elem()
 	for i := 0; i < rv.NumField(); i++ {
 		name := rv.Type().Field(i).Name
