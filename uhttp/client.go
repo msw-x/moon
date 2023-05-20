@@ -35,8 +35,12 @@ func (o *Client) WithPath(path string) *Client {
 }
 
 func (o *Client) WithProxy(url *url.URL) *Client {
-	o.c.Transport = &http.Transport{
-		Proxy: http.ProxyURL(url),
+	if url == nil {
+		o.c.Transport = nil
+	} else {
+		o.c.Transport = &http.Transport{
+			Proxy: http.ProxyURL(url),
+		}
 	}
 	return o
 }
@@ -51,7 +55,7 @@ func (o *Client) WithTrace(trace func(Responce)) *Client {
 	return o
 }
 
-func (o *Client) WithTraceFormat(log *ulog.Log, f uhttp.Format) *Client {
+func (o *Client) WithTraceFormat(log *ulog.Log, f Format) *Client {
 	return o.WithTrace(TraceFormat(log, f))
 }
 
