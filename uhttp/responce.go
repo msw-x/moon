@@ -24,6 +24,10 @@ func (o *Responce) Ok() bool {
 	return o.StatusCode == http.StatusOK && o.Error == nil
 }
 
+func (o *Responce) BodyExists() bool {
+	return len(o.Body) > 0
+}
+
 func (o *Responce) Json(v any) error {
 	return json.Unmarshal(o.Body, v)
 }
