@@ -37,6 +37,10 @@ func (o *Client) WithPath(path string) *Client {
 	return o
 }
 
+func (o *Client) WithAppendPath(path string) *Client {
+	return o.WithPath(urlJoin(o.path, path))
+}
+
 func (o *Client) WithProxy(proxy string) *Client {
 	if proxy == "" {
 		return o.WithProxyUrl(nil)
