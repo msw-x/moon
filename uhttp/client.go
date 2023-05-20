@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/msw-x/moon/ulog"
 )
 
 type Client struct {
@@ -47,6 +49,10 @@ func (o *Client) WithTimeout(timeout time.Duration) *Client {
 func (o *Client) WithTrace(trace func(Responce)) *Client {
 	o.trace = trace
 	return o
+}
+
+func (o *Client) WithTraceFormat(log *ulog.Log, f uhttp.Format) *Client {
+	return o.WithTrace(TraceFormat(log, f))
 }
 
 func (o *Client) Timeout() time.Duration {
