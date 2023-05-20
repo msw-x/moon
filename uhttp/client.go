@@ -85,12 +85,12 @@ func (o *Client) Url(url string) string {
 
 func (o *Client) Request(method string, url string) *Performer {
 	return &Performer{
-		c: o.c,
-		r: Request{
+		Request: Request{
 			Method: method,
 			Url:    o.Url(url),
 		},
-		t: o.trace,
+		c:     o.c,
+		trace: o.trace,
 	}
 }
 

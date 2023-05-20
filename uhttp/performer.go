@@ -14,13 +14,13 @@ import (
 )
 
 type Performer struct {
-	c *http.Client
-	r Request
-	t func(Responce)
+	Request Request
+	c       *http.Client
+	trace   func(Responce)
 }
 
 func (o *Performer) Do() (r Responce) {
-	r.Request = o.r
+	r.Request = o.Request
 	ts := time.Now()
 	r.Request.RefineUrl()
 	request, err := http.NewRequest(r.Request.Method, r.Request.Uri(), bytes.NewReader(r.Request.Body))
@@ -42,18 +42,18 @@ func (o *Performer) Do() (r Responce) {
 		r.RefineError("init request", err)
 	}
 	r.Time = time.Since(ts)
-	if o.t != nil {
-		o.t(r)
+	if o.trace != nil {
+		o.trace(r)
 	}
 	return
 }
 
 func (o *Performer) Param(name string, value any) *Performer {
-	if o.r.Params == nil {
-		o.r.Params = make(url.Values)
+	if o.Request.Params == nil {
+		o.Request.Params = make(url.Values)
 	}
 	name = ustring.TitleLowerCase(name)
-	o.r.Params.Set(name, fmt.Sprint(value))
+	o.Request.Params.Set(name, fmt.Sprint(value))
 	return o
 }
 
@@ -65,10 +65,10 @@ func (o *Performer) Params(s any) *Performer {
 }
 
 func (o *Performer) Header(name string, value any) *Performer {
-	if o.r.Header == nil {
-		o.r.Header = make(http.Header)
+	if o.Request.Header == nil {
+		o.Request.Header = make(http.Header)
 	}
-	o.r.Header.Set(name, fmt.Sprint(value))
+	o.Request.Header.Set(name, fmt.Sprint(value))
 	return o
 }
 
@@ -96,7 +96,7 @@ func (o *Performer) AuthBearer(token string) *Performer {
 }
 
 func (o *Performer) Body(body []byte) *Performer {
-	o.r.Body = body
+	o.Request.Body = body
 	return o
 }
 
@@ -106,7 +106,7 @@ func (o *Performer) Json(v any) *Performer {
 	return o.Body(body)
 }
 
-func (o *Performer) Trace(t func(Responce)) *Performer {
-	o.t = t
+func (o *Performer) Trace(trace func(Responce)) *Performer {
+	o.trace = trace
 	return o
 }
