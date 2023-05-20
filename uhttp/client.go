@@ -11,7 +11,8 @@ import (
 
 type Client struct {
 	c     *http.Client
-	url   string
+	base  string
+	path  string
 	trace func(Responce)
 }
 
@@ -26,13 +27,14 @@ func (o *Client) Clone() *Client {
 	return &c
 }
 
-func (o *Client) WithUrl(url string) *Client {
-	o.url = url
+func (o *Client) WithBase(base string) *Client {
+	o.base = base
 	return o
 }
 
 func (o *Client) WithPath(path string) *Client {
-	return o.Clone().WithUrl(urlJoin(o.url, path))
+	o.path = path
+	return o
 }
 
 func (o *Client) WithProxy(proxy string) *Client {
@@ -73,12 +75,16 @@ func (o *Client) Timeout() time.Duration {
 	return o.c.Timeout
 }
 
+func (o *Client) Url(url string) string {
+	return urlJoin(o.base, o.path, url)
+}
+
 func (o *Client) Request(method string, url string) *Performer {
 	return &Performer{
 		c: o.c,
 		r: Request{
 			Method: method,
-			Url:    urlJoin(o.url, url),
+			Url:    o.Url(url),
 		},
 		t: o.trace,
 	}
