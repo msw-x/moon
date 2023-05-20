@@ -36,6 +36,9 @@ func (o *Client) WithPath(path string) *Client {
 }
 
 func (o *Client) WithProxy(proxy string) *Client {
+	if proxy == "" {
+		return o.WithProxyUrl(nil)
+	}
 	proxyUrl, err := url.Parse(proxy)
 	uerr.Strictf(err, "parse proxy url: %s", proxy)
 	return o.WithProxyUrl(proxyUrl)
