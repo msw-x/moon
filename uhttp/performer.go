@@ -24,6 +24,7 @@ func (o *Performer) Do() (r Responce) {
 	ts := time.Now()
 	r.Request.RefineUrl()
 	request, err := http.NewRequest(r.Request.Method, r.Request.Uri(), bytes.NewReader(r.Request.Body))
+	request.Header = r.Request.Header
 	if err == nil {
 		responce, err := o.c.Do(request)
 		if err == nil {
