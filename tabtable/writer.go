@@ -22,36 +22,36 @@ func New() *Writer {
 	return w
 }
 
-func (this *Writer) Init(ctx Context) {
-	this.writer = new(tabwriter.Writer)
-	this.buf = bytes.NewBuffer(nil)
-	this.bufwriter = bufio.NewWriter(this.buf)
-	this.writer.Init(this.bufwriter, ctx.MinWidth, ctx.TabWidth, ctx.Padding, ctx.PadChar, ctx.Flags)
+func (o *Writer) Init(ctx Context) {
+	o.writer = new(tabwriter.Writer)
+	o.buf = bytes.NewBuffer(nil)
+	o.bufwriter = bufio.NewWriter(o.buf)
+	o.writer.Init(o.bufwriter, ctx.MinWidth, ctx.TabWidth, ctx.Padding, ctx.PadChar, ctx.Flags)
 }
 
-func (this *Writer) Write(a ...any) {
+func (o *Writer) Write(a ...any) {
 	s := ""
 	for _, v := range a {
 		s += fmt.Sprint(v) + "\t"
 	}
 	s += "\n"
-	fmt.Fprint(this.writer, s)
+	fmt.Fprint(o.writer, s)
 }
 
-func (this *Writer) Writef(format string, a ...any) {
+func (o *Writer) Writef(format string, a ...any) {
 	format += "\n"
-	fmt.Fprintf(this.writer, format, a...)
+	fmt.Fprintf(o.writer, format, a...)
 }
 
-func (this *Writer) String() string {
-	this.writer.Flush()
-	this.bufwriter.Flush()
-	s := fmt.Sprint(this.buf)
+func (o *Writer) String() string {
+	o.writer.Flush()
+	o.bufwriter.Flush()
+	s := fmt.Sprint(o.buf)
 	s = ustring.TransformLines(s, ustring.TrimBackWhitespaces)
 	s = strings.TrimSuffix(s, "\n")
 	return s
 }
 
-func (this *Writer) Print() {
-	fmt.Print(this.String())
+func (o *Writer) Print() {
+	fmt.Print(o.String())
 }

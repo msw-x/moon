@@ -19,74 +19,74 @@ func NewNumericsWithCapacity[T constraints.Ordered](capacity int) Numerics[T] {
 	return Numerics[T](make([]T, 0, capacity))
 }
 
-func (this Numerics[T]) Get(index int) T {
-	return this.ref().Get(index)
+func (o Numerics[T]) Get(index int) T {
+	return o.ref().Get(index)
 }
 
-func (this Numerics[T]) Set(index int, v T) {
-	this.ref().Set(index, v)
+func (o Numerics[T]) Set(index int, v T) {
+	o.ref().Set(index, v)
 }
 
-func (this Numerics[T]) Data() []T {
-	return this.ref().Data()
+func (o Numerics[T]) Data() []T {
+	return o.ref().Data()
 }
 
-func (this Numerics[T]) Empty() bool {
-	return this.ref().Empty()
+func (o Numerics[T]) Empty() bool {
+	return o.ref().Empty()
 }
 
-func (this Numerics[T]) Size() int {
-	return this.ref().Size()
+func (o Numerics[T]) Size() int {
+	return o.ref().Size()
 }
 
-func (this Numerics[T]) Capacity() int {
-	return this.ref().Capacity()
+func (o Numerics[T]) Capacity() int {
+	return o.ref().Capacity()
 }
 
-func (this Numerics[T]) Front() T {
-	return this.ref().Front()
+func (o Numerics[T]) Front() T {
+	return o.ref().Front()
 }
 
-func (this Numerics[T]) Back() T {
-	return this.ref().Back()
+func (o Numerics[T]) Back() T {
+	return o.ref().Back()
 }
 
-func (this Numerics[T]) Head(count int) Numerics[T] {
-	return this.FromTo(0, count)
+func (o Numerics[T]) Head(count int) Numerics[T] {
+	return o.FromTo(0, count)
 }
 
-func (this Numerics[T]) Tail(count int) Numerics[T] {
-	return this.FromTo(this.Size()-count, this.Size())
+func (o Numerics[T]) Tail(count int) Numerics[T] {
+	return o.FromTo(o.Size()-count, o.Size())
 }
 
-func (this Numerics[T]) HeadMax(count int) Numerics[T] {
-	count = int(umath.Min(count, this.Size()))
-	return this.Head(count)
+func (o Numerics[T]) HeadMax(count int) Numerics[T] {
+	count = int(umath.Min(count, o.Size()))
+	return o.Head(count)
 }
 
-func (this Numerics[T]) TailMax(count int) Numerics[T] {
-	count = int(umath.Min(count, this.Size()))
-	return this.Tail(count)
+func (o Numerics[T]) TailMax(count int) Numerics[T] {
+	count = int(umath.Min(count, o.Size()))
+	return o.Tail(count)
 }
 
-func (this Numerics[T]) FromTo(from, to int) Numerics[T] {
-	return this[from:to]
+func (o Numerics[T]) FromTo(from, to int) Numerics[T] {
+	return o[from:to]
 }
 
-func (this Numerics[T]) Equal(o Numerics[T]) bool {
-	return this.ref().Equal(o.ref(), func(a, b T) bool {
+func (o Numerics[T]) Equal(v Numerics[T]) bool {
+	return o.ref().Equal(v.ref(), func(a, b T) bool {
 		return a == b
 	})
 }
 
-func (this Numerics[T]) Sort() {
-	this.ref().Sort(func(a, b T) bool {
+func (o Numerics[T]) Sort() {
+	o.ref().Sort(func(a, b T) bool {
 		return a < b
 	})
 }
 
-func (this Numerics[T]) Find(w T) int {
-	for n, v := range this.ref() {
+func (o Numerics[T]) Find(w T) int {
+	for n, v := range o.ref() {
 		if v == w {
 			return n
 		}
@@ -94,64 +94,64 @@ func (this Numerics[T]) Find(w T) int {
 	return -1
 }
 
-func (this Numerics[T]) Includes(v T) bool {
-	return this.Find(v) != -1
+func (o Numerics[T]) Includes(v T) bool {
+	return o.Find(v) != -1
 }
 
-func (this Numerics[T]) Reverse() {
-	this.ref().Reverse()
+func (o Numerics[T]) Reverse() {
+	o.ref().Reverse()
 }
 
-func (this Numerics[T]) Transform(fn func(v T) T) {
-	this.ref().Transform(fn)
+func (o Numerics[T]) Transform(fn func(v T) T) {
+	o.ref().Transform(fn)
 }
 
-func (this *Numerics[T]) SetData(data []T) {
-	this.ptr().SetData(data)
+func (o *Numerics[T]) SetData(data []T) {
+	o.ptr().SetData(data)
 }
 
-func (this *Numerics[T]) Clear() {
-	this.ptr().Clear()
+func (o *Numerics[T]) Clear() {
+	o.ptr().Clear()
 }
 
-func (this *Numerics[T]) Resize(size int) {
-	this.ptr().Resize(size)
+func (o *Numerics[T]) Resize(size int) {
+	o.ptr().Resize(size)
 }
 
-func (this *Numerics[T]) CopyFrom(o Numerics[T]) {
-	this.ptr().CopyFrom(o.ref())
+func (o *Numerics[T]) CopyFrom(v Numerics[T]) {
+	o.ptr().CopyFrom(v.ref())
 }
 
-func (this *Numerics[T]) Insert(index int, v T) {
-	this.ptr().Insert(index, v)
+func (o *Numerics[T]) Insert(index int, v T) {
+	o.ptr().Insert(index, v)
 }
 
-func (this *Numerics[T]) PushBack(v T) {
-	this.ptr().PushBack(v)
+func (o *Numerics[T]) PushBack(v T) {
+	o.ptr().PushBack(v)
 }
 
-func (this *Numerics[T]) PushFront(v T) {
-	this.ptr().PushFront(v)
+func (o *Numerics[T]) PushFront(v T) {
+	o.ptr().PushFront(v)
 }
 
-func (this *Numerics[T]) Erase(index int) {
-	this.ptr().Erase(index)
+func (o *Numerics[T]) Erase(index int) {
+	o.ptr().Erase(index)
 }
 
-func (this *Numerics[T]) EraseIf(fn func(T) bool) {
-	this.ptr().EraseIf(fn)
+func (o *Numerics[T]) EraseIf(fn func(T) bool) {
+	o.ptr().EraseIf(fn)
 }
 
-func (this *Numerics[T]) EraseAll(w T) {
-	this.ptr().EraseIf(func(v T) bool {
+func (o *Numerics[T]) EraseAll(w T) {
+	o.ptr().EraseIf(func(v T) bool {
 		return v == w
 	})
 }
 
-func (this Numerics[T]) ref() Slice[T] {
-	return Slice[T](this)
+func (o Numerics[T]) ref() Slice[T] {
+	return Slice[T](o)
 }
 
-func (this *Numerics[T]) ptr() *Slice[T] {
-	return (*Slice[T])(this)
+func (o *Numerics[T]) ptr() *Slice[T] {
+	return (*Slice[T])(o)
 }

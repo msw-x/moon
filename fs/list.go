@@ -19,18 +19,18 @@ type List struct {
 	level int
 }
 
-func (this List) Get(dir string) (result []string, err error) {
-	content, err := ReadDir(dir, this.IgnorAccessDenied)
+func (o List) Get(dir string) (result []string, err error) {
+	content, err := ReadDir(dir, o.IgnorAccessDenied)
 	filter := func(c os.FileInfo) bool {
-		if this.Folders {
+		if o.Folders {
 			return c.IsDir()
-		} else if this.Files {
+		} else if o.Files {
 			if c.Mode().IsRegular() {
-				if this.Extension == "" {
-					if len(this.ExtensionList) == 0 {
+				if o.Extension == "" {
+					if len(o.ExtensionList) == 0 {
 						return true
 					} else {
-						for _, ext := range this.ExtensionList {
+						for _, ext := range o.ExtensionList {
 							if EqualExt(Ext(c.Name()), ext) {
 								return true
 							}
@@ -38,7 +38,7 @@ func (this List) Get(dir string) (result []string, err error) {
 						return false
 					}
 				} else {
-					return EqualExt(Ext(c.Name()), this.Extension)
+					return EqualExt(Ext(c.Name()), o.Extension)
 				}
 			}
 		}
@@ -48,9 +48,9 @@ func (this List) Get(dir string) (result []string, err error) {
 		if filter(c) {
 			result = append(result, c.Name())
 		}
-		if this.Recursive && c.IsDir() {
+		if o.Recursive && c.IsDir() {
 			var subResult []string
-			subResult, err = this.sub().Get(path.Join(dir, c.Name()))
+			subResult, err = o.sub().Get(path.Join(dir, c.Name()))
 			if err != nil {
 				return
 			}
@@ -60,7 +60,7 @@ func (this List) Get(dir string) (result []string, err error) {
 			result = append(result, subResult...)
 		}
 	}
-	if !this.RelativePath && this.level == 0 {
+	if !o.RelativePath && o.level == 0 {
 		for n, i := range result {
 			result[n] = path.Join(dir, i)
 		}
@@ -68,13 +68,13 @@ func (this List) Get(dir string) (result []string, err error) {
 	return
 }
 
-func (this List) GetStrict(dir string) []string {
-	r, err := this.Get(dir)
+func (o List) GetStrict(dir string) []string {
+	r, err := o.Get(dir)
 	uerr.Strict(err, "fs list")
 	return r
 }
 
-func (this List) sub() List {
-	this.level++
-	return this
+func (o List) sub() List {
+	o.level++
+	return o
 }

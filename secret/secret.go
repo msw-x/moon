@@ -46,33 +46,33 @@ type Gen struct {
 	isCA bool
 }
 
-func (this *Gen) init() {
-	if this.Organization == "" {
-		this.Organization = "Goodlife"
+func (o *Gen) init() {
+	if o.Organization == "" {
+		o.Organization = "Goodlife"
 	}
-	if this.ValidFrom.IsZero() {
-		this.ValidFrom = time.Now()
+	if o.ValidFrom.IsZero() {
+		o.ValidFrom = time.Now()
 	}
-	if this.ValidFor == 0 {
-		this.ValidFor = 365 * 24 * time.Hour
+	if o.ValidFor == 0 {
+		o.ValidFor = 365 * 24 * time.Hour
 	}
-	if this.IsCA == nil {
-		this.isCA = true
+	if o.IsCA == nil {
+		o.isCA = true
 	} else {
-		this.isCA = this.IsCA.(bool)
+		o.isCA = o.IsCA.(bool)
 	}
-	if this.RsaBits == 0 {
-		this.RsaBits = 2048
+	if o.RsaBits == 0 {
+		o.RsaBits = 2048
 	}
 }
 
-func (this Gen) Generate(certPath string, keyPath string) error {
-	this.init()
+func (o Gen) Generate(certPath string, keyPath string) error {
+	o.init()
 	var priv any
 	var err error
-	switch this.EcdsaCurve {
+	switch o.EcdsaCurve {
 	case "":
-		priv, err = rsa.GenerateKey(rand.Reader, this.RsaBits)
+		priv, err = rsa.GenerateKey(rand.Reader, o.RsaBits)
 	case "P224":
 		priv, err = ecdsa.GenerateKey(elliptic.P224(), rand.Reader)
 	case "P256":
@@ -82,14 +82,14 @@ func (this Gen) Generate(certPath string, keyPath string) error {
 	case "P521":
 		priv, err = ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
 	default:
-		return fmt.Errorf("unrecognized elliptic curve: %q", this.EcdsaCurve)
+		return fmt.Errorf("unrecognized elliptic curve: %q", o.EcdsaCurve)
 	}
 	if err != nil {
 		return fmt.Errorf("failed to generate private key: %v", err)
 	}
 
-	notBefore := this.ValidFrom
-	notAfter := notBefore.Add(this.ValidFor)
+	notBefore := o.ValidFrom
+	notAfter := notBefore.Add(o.ValidFor)
 
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
@@ -100,7 +100,7 @@ func (this Gen) Generate(certPath string, keyPath string) error {
 	template := x509.Certificate{
 		SerialNumber: serialNumber,
 		Subject: pkix.Name{
-			Organization: []string{this.Organization},
+			Organization: []string{o.Organization},
 		},
 		NotBefore:             notBefore,
 		NotAfter:              notAfter,
@@ -109,7 +109,7 @@ func (this Gen) Generate(certPath string, keyPath string) error {
 		BasicConstraintsValid: true,
 	}
 
-	hosts := strings.Split(this.Host, ",")
+	hosts := strings.Split(o.Host, ",")
 	for _, h := range hosts {
 		if ip := net.ParseIP(h); ip != nil {
 			template.IPAddresses = append(template.IPAddresses, ip)
@@ -118,7 +118,7 @@ func (this Gen) Generate(certPath string, keyPath string) error {
 		}
 	}
 
-	if this.isCA {
+	if o.isCA {
 		template.IsCA = true
 		template.KeyUsage |= x509.KeyUsageCertSign
 	}
@@ -146,9 +146,9 @@ func (this Gen) Generate(certPath string, keyPath string) error {
 	return nil
 }
 
-func (this Gen) Ensure(certPath string, keyPath string) {
+func (o Gen) Ensure(certPath string, keyPath string) {
 	if !fs.Exist(certPath) || !fs.Exist(keyPath) {
-		err := this.Generate(certPath, keyPath)
+		err := o.Generate(certPath, keyPath)
 		uerr.Strict(err, "certificate generation")
 	}
 }
