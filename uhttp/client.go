@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/msw-x/moon/uerr"
 	"github.com/msw-x/moon/ulog"
 )
 
@@ -34,7 +35,13 @@ func (o *Client) WithPath(path string) *Client {
 	return o.Clone().WithUrl(urlJoin(o.url, path))
 }
 
-func (o *Client) WithProxy(url *url.URL) *Client {
+func (o *Client) WithProxy(proxy string) *Client {
+	proxyUrl, err := url.Parse(proxy)
+	uerr.Strictf(err, "parse proxy url: %s", proxy)
+	return o.WithProxyUrl(proxyUrl)
+}
+
+func (o *Client) WithProxyUrl(url *url.URL) *Client {
 	if url == nil {
 		o.c.Transport = nil
 	} else {
