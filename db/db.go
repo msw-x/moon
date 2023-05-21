@@ -117,6 +117,12 @@ func (o *Db) Select(model any, fn func(*bun.SelectQuery)) error {
 	return q.Scan(context.Background())
 }
 
+func (o *Db) SelectIn(model any, ids any) error {
+	return o.Select(model, func(q *bun.SelectQuery) {
+		q.Where("id IN (?)", bun.In(ids))
+	})
+}
+
 func (o *Db) SelectAll(model any) error {
 	return o.Select(model, nil)
 }
