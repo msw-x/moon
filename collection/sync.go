@@ -6,8 +6,8 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/msw-x/moon"
 	"github.com/msw-x/moon/db"
+	"github.com/msw-x/moon/uerr"
 	"github.com/msw-x/moon/ulog"
 	"github.com/uptrace/bun"
 	"golang.org/x/exp/constraints"
@@ -293,7 +293,7 @@ func (o *Sync[Id, MapItem, DbItem]) mapItemId(e MapItem) Id {
 
 func (o *Sync[Id, MapItem, DbItem]) assertFn(name string, fn any) {
 	if reflect.ValueOf(fn).IsNil() {
-		moon.Panicf("%s func '%s' is nil", o.name, name)
+		uerr.Panicf("%s func '%s' is nil", o.name, name)
 	}
 }
 
