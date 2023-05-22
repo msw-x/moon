@@ -1,9 +1,6 @@
 package ujson
 
 import (
-	"fmt"
-	"strings"
-
 	"github.com/msw-x/moon/parse"
 	"github.com/msw-x/moon/umath"
 )
@@ -34,14 +31,6 @@ func (o Float64) MarshalJSON() ([]byte, error) {
 
 func (o Float64) Value() float64 {
 	return float64(o)
-}
-
-func quote(v any) []byte {
-	return []byte(fmt.Sprintf(`"%v"`, v))
-}
-
-func unquote(b []byte) string {
-	return strings.Trim(string(b), `"`)
 }
 
 func unmarshalNumber[N Int64 | Float64, T umath.Number](b []byte, parse func(string) (T, error), n *N) error {
