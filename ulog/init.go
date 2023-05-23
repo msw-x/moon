@@ -77,5 +77,7 @@ func SetHook(hook func(Message)) {
 }
 
 func init() {
-	Init(Options{})
+	Init(Options{
+		CrtStdErr: true,
+	})
 }
