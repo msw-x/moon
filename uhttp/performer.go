@@ -106,7 +106,7 @@ func (o *Performer) param(name string, value any, omitempty bool) *Performer {
 	if o.Request.Params == nil {
 		o.Request.Params = make(url.Values)
 	}
-	if v, ok := Marshal(value, omitempty); ok {
+	if v, omit := Marshal(value, omitempty); !omit {
 		name = ustring.TitleLowerCase(name)
 		o.Request.Params.Set(name, v)
 	}
@@ -117,7 +117,7 @@ func (o *Performer) header(name string, value any, omitempty bool) *Performer {
 	if o.Request.Header == nil {
 		o.Request.Header = make(http.Header)
 	}
-	if v, ok := Marshal(value, omitempty); ok {
+	if v, omit := Marshal(value, omitempty); !omit {
 		o.Request.Header.Set(name, v)
 	}
 	return o
