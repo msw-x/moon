@@ -2,7 +2,6 @@ package uhttp
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -50,32 +49,23 @@ func (o *Performer) Do() (r Responce) {
 }
 
 func (o *Performer) Param(name string, value any) *Performer {
-	if o.Request.Params == nil {
-		o.Request.Params = make(url.Values)
-	}
-	name = ustring.TitleLowerCase(name)
-	o.Request.Params.Set(name, fmt.Sprint(value))
-	return o
+	return o.param(name, value, false)
 }
 
 func (o *Performer) Params(s any) *Performer {
 	refl.WalkOnTagsAny(s, UrlTag, func(v any, name string, flags []string) {
-		o.Param(name, v)
+		o.param(name, v, OmitEmpty(flags))
 	})
 	return o
 }
 
 func (o *Performer) Header(name string, value any) *Performer {
-	if o.Request.Header == nil {
-		o.Request.Header = make(http.Header)
-	}
-	o.Request.Header.Set(name, fmt.Sprint(value))
-	return o
+	return o.header(name, value, false)
 }
 
 func (o *Performer) Headers(s any) *Performer {
 	refl.WalkOnTagsAny(s, HeaderTag, func(v any, name string, flags []string) {
-		o.Header(name, v)
+		o.header(name, v, OmitEmpty(flags))
 	})
 	return o
 }
@@ -109,5 +99,26 @@ func (o *Performer) Json(v any) *Performer {
 
 func (o *Performer) Trace(trace func(Responce)) *Performer {
 	o.trace = trace
+	return o
+}
+
+func (o *Performer) param(name string, value any, omitempty bool) *Performer {
+	if o.Request.Params == nil {
+		o.Request.Params = make(url.Values)
+	}
+	if v, ok := Marshal(value, omitempty); ok {
+		name = ustring.TitleLowerCase(name)
+		o.Request.Params.Set(name, v)
+	}
+	return o
+}
+
+func (o *Performer) header(name string, value any, omitempty bool) *Performer {
+	if o.Request.Header == nil {
+		o.Request.Header = make(http.Header)
+	}
+	if v, ok := Marshal(value, omitempty); ok {
+		o.Request.Header.Set(name, v)
+	}
 	return o
 }
