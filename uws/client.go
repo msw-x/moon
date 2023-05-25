@@ -126,7 +126,7 @@ func (o *Client) Send(messageType int, data []byte) error {
 	}
 	err = ws.WriteMessage(messageType, data)
 	if err == nil {
-		o.dump("sent", messageType, data, o.Options.LogReadSize, o.Options.LogReadData)
+		o.dump("sent", messageType, data, o.Options.LogSentType, o.Options.LogSentSize, o.Options.LogSentData)
 	} else {
 		o.log.Error(err)
 		o.closeSocket()
@@ -234,7 +234,7 @@ func (o *Client) run() {
 				return
 			}
 			if o.job.Do() {
-				o.dump("recv", messageType, data, o.Options.LogReadSize, o.Options.LogReadData)
+				o.dump("recv", messageType, data, o.Options.LogReadType, o.Options.LogReadSize, o.Options.LogReadData)
 				o.Options.callOnMessage(messageType, data)
 			}
 		}
@@ -255,36 +255,27 @@ func (o *Client) ping() {
 	}
 }
 
-func (o *Client) dump(action string, messageType int, data []byte, viewSize bool, viewData bool) {
+func (o *Client) dump(action string, messageType int, data []byte, viewType bool, viewSize bool, viewData bool) {
 	if viewSize || viewData {
-		var s string
-		switch messageType {
-		case websocket.TextMessage:
-			s = "text"
-		case websocket.BinaryMessage:
-			s = "binary"
-		case websocket.CloseMessage:
-			s = "close"
-		case websocket.PingMessage:
-			s = "ping"
-		case websocket.PongMessage:
-			s = "pong"
+		var l []string
+		if viewType {
+			l = append(l, MessageTypeString(messageType))
 		}
 		size := len(data)
 		if size > 0 {
 			if viewSize {
-				s += ": "
-				s += ufmt.ByteSizeDense(len(data))
+				l = append(l, ufmt.ByteSizeDense(size))
 			}
 			if viewData {
-				s += ": "
 				if messageType == websocket.TextMessage {
-					s += string(data)
+					l = append(l, string(data))
 				} else {
-					s += ufmt.Hex(data)
+					l = append(l, ufmt.Hex(data))
 				}
 			}
 		}
-		o.log.Debugf("%s: %s", action, s)
+		if len(l) > 0 {
+			o.log.Debugf("%s: %s", action, strings.Join(l, ": "))
+		}
 	}
 }

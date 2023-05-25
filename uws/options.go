@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/msw-x/moon/uerr"
 	"github.com/msw-x/moon/uhttp"
 )
@@ -25,8 +26,10 @@ type Options struct {
 	OnConnected        func()
 	OnDisconnected     func()
 	OnCloseError       func(error)
+	LogSentType        bool
 	LogSentSize        bool
 	LogSentData        bool
+	LogReadType        bool
 	LogReadSize        bool
 	LogReadData        bool
 }
@@ -61,14 +64,18 @@ func (o *Options) SetProxy(proxy string) {
 }
 
 func (o *Options) SetOnBinaryMessage(f func([]byte)) {
-	o.OnMessage = func(_ int, data []byte) {
-		f(data)
+	o.OnMessage = func(messateType int, data []byte) {
+		if messateType == websocket.BinaryMessage {
+			f(data)
+		}
 	}
 }
 
 func (o *Options) SetOnTextMessage(f func(string)) {
-	o.OnMessage = func(_ int, data []byte) {
-		f(string(data))
+	o.OnMessage = func(messateType int, data []byte) {
+		if messateType == websocket.TextMessage {
+			f(string(data))
+		}
 	}
 }
 
