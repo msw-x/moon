@@ -38,7 +38,7 @@ func (o *Client) WithPath(path string) *Client {
 }
 
 func (o *Client) WithAppendPath(path string) *Client {
-	return o.WithPath(urlJoin(o.path, path))
+	return o.WithPath(UrlJoin(o.path, path))
 }
 
 func (o *Client) WithProxy(proxy string) *Client {
@@ -80,7 +80,7 @@ func (o *Client) Timeout() time.Duration {
 }
 
 func (o *Client) Url(url string) string {
-	return urlJoin(o.base, o.path, url)
+	return UrlJoin(o.base, o.path, url)
 }
 
 func (o *Client) Request(method string, url string) *Performer {

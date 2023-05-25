@@ -15,7 +15,7 @@ type Request struct {
 }
 
 func (o *Request) Path(path string) {
-	o.Url = urlJoin(o.Url, path)
+	o.Url = UrlJoin(o.Url, path)
 }
 
 func (o *Request) RefineUrl() {
