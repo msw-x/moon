@@ -24,10 +24,10 @@ type Options struct {
 
 func (o *Options) SetDefaultTimeouts() {
 	o.PingInterval = time.Second * 24
-	o.ReDialInterval = time.Second * 10
-	o.HandshakeTimeout = time.Second * 4
+	o.ReDialInterval = time.Second * 12
+	o.HandshakeTimeout = time.Second * 12
 	o.ReadTimeout = o.PingInterval + time.Second*4
-	o.SendTimeout = time.Second * 4
+	o.SendTimeout = time.Second * 8
 }
 
 func (o *Options) Url() string {
