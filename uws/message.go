@@ -21,3 +21,9 @@ func MessageTypeString(i int) string {
 	}
 	return fmt.Sprintf("type[%d]", i)
 }
+
+type LogMessage struct {
+	Type bool
+	Size bool
+	Data bool
+}

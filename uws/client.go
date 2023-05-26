@@ -18,6 +18,7 @@ import (
 
 type Client struct {
 	Options Options
+	Events  Events
 
 	log      *ulog.Log
 	mutex    sync.Mutex
@@ -28,7 +29,7 @@ type Client struct {
 
 func NewClient(url string) *Client {
 	o := new(Client)
-	o.Options.Default()
+	o.Options.SetDefaultTimeouts()
 	o.Options.Base = url
 	o.log = ulog.Empty()
 	o.job = app.NewJob()
@@ -72,36 +73,40 @@ func (o *Client) WithProxyUrl(url *url.URL) *Client {
 	return o
 }
 
+func (o *Client) WithOnPing(f func()) {
+	o.Events.OnPing = f
+}
+
 func (o *Client) WithOnMessage(f func(int, []byte)) {
-	o.Options.OnMessage = f
+	o.Events.OnMessage = f
 }
 
 func (o *Client) WithOnBinaryMessage(f func([]byte)) {
-	o.Options.SetOnBinaryMessage(f)
+	o.Events.SetOnBinaryMessage(f)
 }
 
 func (o *Client) WithOnTextMessage(f func(string)) {
-	o.Options.SetOnTextMessage(f)
+	o.Events.SetOnTextMessage(f)
 }
 
 func (o *Client) WithOnDial(f func(string)) {
-	o.Options.OnDial = f
+	o.Events.OnDial = f
 }
 
 func (o *Client) WithOnDialError(f func(error)) {
-	o.Options.OnDialError = f
+	o.Events.OnDialError = f
 }
 
 func (o *Client) WithOnConnected(f func()) {
-	o.Options.OnConnected = f
+	o.Events.OnConnected = f
 }
 
 func (o *Client) WithOnDisconnected(f func()) {
-	o.Options.OnDisconnected = f
+	o.Events.OnDisconnected = f
 }
 
 func (o *Client) WithOnCloseError(f func(error)) {
-	o.Options.OnCloseError = f
+	o.Events.OnCloseError = f
 }
 
 func (o *Client) Run() {
@@ -126,7 +131,7 @@ func (o *Client) Send(messageType int, data []byte) error {
 	}
 	err = ws.WriteMessage(messageType, data)
 	if err == nil {
-		o.dump("sent", messageType, data, o.Options.LogSentType, o.Options.LogSentSize, o.Options.LogSentData)
+		o.dump("sent", messageType, data, o.Options.LogSent)
 	} else {
 		o.log.Error(err)
 		o.closeSocket()
@@ -173,7 +178,7 @@ func (o *Client) connectAndRun() {
 	err := o.dial(url)
 	if err != nil {
 		o.log.Error("dial:", err)
-		o.Options.callOnDialError(err)
+		o.Events.callOnDialError(err)
 		o.job.Sleep(o.Options.ReDialInterval)
 		return
 	}
@@ -183,9 +188,7 @@ func (o *Client) connectAndRun() {
 }
 
 func (o *Client) dial(url string) (err error) {
-	if o.Options.OnDial != nil {
-		o.Options.OnDial(url)
-	}
+	o.Events.callOnDial(url)
 	dialer := websocket.Dialer{
 		HandshakeTimeout: o.Options.HandshakeTimeout,
 	}
@@ -202,13 +205,13 @@ func (o *Client) dial(url string) (err error) {
 
 func (o *Client) onConnected() {
 	o.log.Info("connected")
-	o.Options.callOnConnected()
+	o.Events.callOnConnected()
 }
 
 func (o *Client) onDisconnected() {
 	o.log.Info("disconnected")
 	defer o.closeSocket()
-	defer o.Options.callOnDisconnected()
+	defer o.Events.callOnDisconnected()
 }
 
 func (o *Client) run() {
@@ -227,15 +230,15 @@ func (o *Client) run() {
 				o.closeSocket()
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseNoStatusReceived) {
 					o.log.Info("recv:", err)
-					o.Options.callOnCloseError(err)
+					o.Events.callOnCloseError(err)
 				} else {
 					o.log.Error("recv:", err)
 				}
 				return
 			}
 			if o.job.Do() {
-				o.dump("recv", messageType, data, o.Options.LogReadType, o.Options.LogReadSize, o.Options.LogReadData)
-				o.Options.callOnMessage(messageType, data)
+				o.dump("recv", messageType, data, o.Options.LogRead)
+				o.Events.callOnMessage(messageType, data)
 			}
 		}
 	}
@@ -246,27 +249,27 @@ func (o *Client) ping() {
 		o.lastSend = time.Now()
 	} else {
 		if time.Since(o.lastSend) > o.Options.PingInterval/2 {
-			if o.Options.OnPing == nil {
+			if o.Events.OnPing == nil {
 				o.Send(websocket.PingMessage, nil)
 			} else {
-				o.Options.OnPing()
+				o.Events.OnPing()
 			}
 		}
 	}
 }
 
-func (o *Client) dump(action string, messageType int, data []byte, viewType bool, viewSize bool, viewData bool) {
-	if viewSize || viewData {
+func (o *Client) dump(action string, messageType int, data []byte, log LogMessage) {
+	if log.Size || log.Data {
 		var l []string
-		if viewType {
+		if log.Type {
 			l = append(l, MessageTypeString(messageType))
 		}
 		size := len(data)
 		if size > 0 {
-			if viewSize {
+			if log.Size {
 				l = append(l, ufmt.ByteSizeDense(size))
 			}
-			if viewData {
+			if log.Data {
 				if messageType == websocket.TextMessage {
 					l = append(l, string(data))
 				} else {
