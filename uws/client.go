@@ -118,6 +118,10 @@ func (o *Client) Run() {
 	o.job.RunLoop(o.connectAndRun)
 }
 
+func (o *Client) Connected() bool {
+	return o.ws != nil
+}
+
 func (o *Client) Send(messageType int, data []byte) error {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
