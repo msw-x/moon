@@ -237,7 +237,7 @@ func (o *Client) run() {
 				return
 			}
 			if o.job.Do() {
-				o.dump("recv", messageType, data, o.Options.LogRead)
+				o.dump("recv", messageType, data, o.Options.LogRecv)
 				o.Events.callOnMessage(messageType, data)
 			}
 		}

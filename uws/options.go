@@ -19,7 +19,7 @@ type Options struct {
 	ReadTimeout        time.Duration
 	SendTimeout        time.Duration
 	LogSent            LogMessage
-	LogRead            LogMessage
+	LogRecv            LogMessage
 }
 
 func (o *Options) SetDefaultTimeouts() {
