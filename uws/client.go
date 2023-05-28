@@ -131,6 +131,7 @@ func (o *Client) Send(messageType int, data []byte) error {
 	defer o.mutex.Unlock()
 	ws, err := o.socket()
 	if err != nil {
+		o.log.Error(err)
 		return err
 	}
 	o.lastSend = time.Now()
