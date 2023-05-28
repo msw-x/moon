@@ -19,3 +19,31 @@ func (o StringNumber) Int64() (int64, error) {
 func (o StringNumber) Float64() (float64, error) {
 	return parse.Float64(string(o))
 }
+
+type StringInt64 string
+
+func (o StringInt64) Empty() bool {
+	return o == ""
+}
+
+func (o StringInt64) Exists() bool {
+	return !o.Empty()
+}
+
+func (o StringInt64) Value() (int64, error) {
+	return parse.Int64(string(o))
+}
+
+type StringFloat64 string
+
+func (o StringFloat64) Empty() bool {
+	return o == ""
+}
+
+func (o StringFloat64) Exists() bool {
+	return !o.Empty()
+}
+
+func (o StringFloat64) Value() (float64, error) {
+	return parse.Float64(string(o))
+}
