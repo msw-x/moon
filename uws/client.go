@@ -42,6 +42,10 @@ func (o *Client) Close() {
 	o.job.Stop()
 }
 
+func (o *Client) Log() *ulog.Log {
+	return o.log
+}
+
 func (o *Client) WithLog(log *ulog.Log) *Client {
 	o.log = log
 	o.job.WithLog(log)
