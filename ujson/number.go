@@ -35,6 +35,9 @@ func (o Float64) Value() float64 {
 
 func unmarshalNumber[N Int64 | Float64, T umath.Number](b []byte, parse func(string) (T, error), n *N) error {
 	s := unquote(b)
+	if s == "" || s == "null" {
+		return nil
+	}
 	v, err := parse(s)
 	*n = N(v)
 	return err

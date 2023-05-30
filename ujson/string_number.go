@@ -5,7 +5,7 @@ import "github.com/msw-x/moon/parse"
 type StringNumber string
 
 func (o StringNumber) Empty() bool {
-	return o == ""
+	return o == "" || o == "null"
 }
 
 func (o StringNumber) Exists() bool {
@@ -23,7 +23,7 @@ func (o StringNumber) Float64() (float64, error) {
 type StringInt64 string
 
 func (o StringInt64) Empty() bool {
-	return o == ""
+	return o == "" || o == "null"
 }
 
 func (o StringInt64) Exists() bool {
@@ -37,7 +37,7 @@ func (o StringInt64) Value() (int64, error) {
 type StringFloat64 string
 
 func (o StringFloat64) Empty() bool {
-	return o == ""
+	return o == "" || o == "null"
 }
 
 func (o StringFloat64) Exists() bool {
