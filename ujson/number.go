@@ -19,6 +19,11 @@ func (o Int64) Value() int64 {
 	return int64(o)
 }
 
+func (o Int64) Ptr() *int64 {
+	v := o.Value()
+	return &v
+}
+
 type Float64 float64
 
 func (o *Float64) UnmarshalJSON(b []byte) error {
@@ -31,6 +36,11 @@ func (o Float64) MarshalJSON() ([]byte, error) {
 
 func (o Float64) Value() float64 {
 	return float64(o)
+}
+
+func (o Float64) Ptr() *float64 {
+	v := o.Value()
+	return &v
 }
 
 func unmarshalNumber[N Int64 | Float64, T umath.Number](b []byte, parse func(string) (T, error), n *N) error {
