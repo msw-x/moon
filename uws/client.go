@@ -97,7 +97,7 @@ func (o *Client) WithOnDial(f func(string)) {
 	o.Events.OnDial = f
 }
 
-func (o *Client) WithOnDialError(f func(error)) {
+func (o *Client) WithOnDialError(f func(error) bool) {
 	o.Events.OnDialError = f
 }
 
@@ -187,8 +187,9 @@ func (o *Client) connectAndRun() {
 	err := o.dial(url)
 	if err != nil {
 		o.log.Error("dial:", err)
-		o.Events.callOnDialError(err)
-		o.job.Sleep(o.Options.ReDialInterval)
+		if !o.Events.callOnDialError(err) {
+			o.job.Sleep(o.Options.ReDialInterval)
+		}
 		return
 	}
 	defer o.onDisconnected()

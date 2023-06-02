@@ -6,7 +6,7 @@ type Events struct {
 	OnPing         func()
 	OnMessage      func(int, []byte)
 	OnDial         func(string)
-	OnDialError    func(error)
+	OnDialError    func(error) bool
 	OnConnected    func()
 	OnDisconnected func()
 	OnCloseError   func(error)
@@ -42,11 +42,12 @@ func (o *Events) callOnDial(s string) {
 	}
 }
 
-func (o *Events) callOnDialError(err error) {
+func (o *Events) callOnDialError(err error) bool {
 	f := o.OnDialError
 	if f != nil {
-		f(err)
+		return f(err)
 	}
+	return false
 }
 
 func (o *Events) callOnConnected() {
