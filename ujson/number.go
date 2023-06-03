@@ -46,6 +46,7 @@ func (o Float64) Ptr() *float64 {
 func unmarshalNumber[N Int64 | Float64, T umath.Number](b []byte, parse func(string) (T, error), n *N) error {
 	s := unquote(b)
 	if s == "" || s == "null" {
+		*n = 0
 		return nil
 	}
 	v, err := parse(s)
