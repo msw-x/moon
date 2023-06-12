@@ -41,3 +41,7 @@ func (o *Updater[T]) Update(v T) (columns []string, err error) {
 func (o *Updater[T]) Equal(v T) bool {
 	return Equal(o.last, v)
 }
+
+func (o *Updater[T]) Last() T {
+	return o.last
+}
