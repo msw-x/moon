@@ -116,6 +116,7 @@ func (o *Sync[Id, MapItem, DbItem]) AddNamed(name string, e DbItem) (Id, error) 
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Delete(id Id) error {
+	o.log.Debugf("delete[%v]", id)
 	e, err := o.Get(id)
 	if err == nil {
 		o.mutex.Lock()
@@ -130,7 +131,7 @@ func (o *Sync[Id, MapItem, DbItem]) Delete(id Id) error {
 		err = o.db.Delete(&v, onDelete)
 		if err == nil {
 			delete(o.m, id)
-			o.log.Info("delete id:", id)
+			o.log.Infof("delete[%v] completed", id)
 		}
 	}
 	return err
