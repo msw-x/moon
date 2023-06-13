@@ -130,6 +130,7 @@ func (o *Sync[Id, MapItem, DbItem]) Delete(id Id) error {
 		err = o.db.Delete(&v, onDelete)
 		if err == nil {
 			delete(o.m, id)
+			o.log.Info("delete id:", id)
 		}
 	}
 	return err

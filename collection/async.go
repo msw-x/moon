@@ -55,6 +55,10 @@ func (o *Async[Id, MapItem, DbItem]) Log() *ulog.Log {
 	return o.c.Log()
 }
 
+func (o *Async[Id, MapItem, DbItem]) LogUpdate(yes bool) {
+	o.c.LogUpdate(yes)
+}
+
 func (o *Async[Id, MapItem, DbItem]) Inited() bool {
 	return o.c.Inited()
 }

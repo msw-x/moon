@@ -42,6 +42,10 @@ func (o *AsyncPlain[Id, Item]) Log() *ulog.Log {
 	return o.c.Log()
 }
 
+func (o *AsyncPlain[Id, Item]) LogUpdate(yes bool) {
+	o.c.LogUpdate(yes)
+}
+
 func (o *AsyncPlain[Id, Item]) Inited() bool {
 	return o.c.Inited()
 }
