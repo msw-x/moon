@@ -1,6 +1,7 @@
 package utime
 
 import (
+	"fmt"
 	"strings"
 	"time"
 )
@@ -21,4 +22,8 @@ func ParseDuration(s string) (r time.Duration, err error) {
 		return
 	}
 	return time.ParseDuration(s)
+}
+
+func FixedZone(offset time.Duration) *time.Location {
+	return time.FixedZone(fmt.Sprintf("UTC%+d", int(offset.Hours())), int(offset.Seconds()))
 }
