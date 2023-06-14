@@ -221,7 +221,7 @@ func (o *Sync[Id, MapItem, DbItem]) Get(id Id) (MapItem, error) {
 	i, ok := o.m[id]
 	var err error
 	if !ok {
-		err = fmt.Errorf("%s get[%d]: not found", o.name, id)
+		err = fmt.Errorf("%s get[%v]: not found", o.name, id)
 	}
 	return i, err
 }
