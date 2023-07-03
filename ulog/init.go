@@ -40,7 +40,7 @@ func GenFilename(dir, app string) string {
 	const ext = ".log"
 	subDir := time.Now().Format("2006-01-02")
 	logDir := path.Join(dir, subDir)
-	basename := time.Now().Format("15-04-05") + "@" + app
+	basename := time.Now().Format("2006-01-02+15-04-05") + "@" + app
 	filename := path.Join(logDir, basename+ext)
 	if fs.Exist(filename) {
 		filename = path.Join(logDir, fmt.Sprintf("%s.%d%s", basename, os.Getpid(), ext))
