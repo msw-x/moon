@@ -93,6 +93,10 @@ func (o *Client) WithOnTextMessage(f func(string)) {
 	o.Events.SetOnTextMessage(f)
 }
 
+func (o *Client) WithOnPreDial(f func(string) string) {
+	o.Events.OnPreDial = f
+}
+
 func (o *Client) WithOnDial(f func(string)) {
 	o.Events.OnDial = f
 }
@@ -198,6 +202,7 @@ func (o *Client) connectAndRun() {
 }
 
 func (o *Client) dial(url string) (err error) {
+	url = o.Events.callOnPreDial(url)
 	o.Events.callOnDial(url)
 	dialer := websocket.Dialer{
 		HandshakeTimeout: o.Options.HandshakeTimeout,

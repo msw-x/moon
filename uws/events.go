@@ -5,6 +5,7 @@ import "github.com/gorilla/websocket"
 type Events struct {
 	OnPing         func()
 	OnMessage      func(int, []byte)
+	OnPreDial      func(string) string
 	OnDial         func(string)
 	OnDialError    func(error) bool
 	OnConnected    func()
@@ -33,6 +34,14 @@ func (o *Events) callOnMessage(messateType int, data []byte) {
 	if f != nil {
 		f(messateType, data)
 	}
+}
+
+func (o *Events) callOnPreDial(s string) string {
+	f := o.OnPreDial
+	if f != nil {
+		return f(s)
+	}
+	return s
 }
 
 func (o *Events) callOnDial(s string) {
