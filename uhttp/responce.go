@@ -28,6 +28,10 @@ func (o *Responce) BodyExists() bool {
 	return len(o.Body) > 0
 }
 
+func (o *Responce) Text() string {
+	return string(o.Body)
+}
+
 func (o *Responce) Json(v any) error {
 	return json.Unmarshal(o.Body, v)
 }
