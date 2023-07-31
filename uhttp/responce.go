@@ -60,15 +60,22 @@ func (o *Responce) RefineError(text string, err error) {
 	o.Error = fmt.Errorf("%s: %v", text, err)
 }
 
-func (o *Responce) Title() (s string) {
-	s = fmt.Sprintf("%s[%s]", o.Request.Method, o.Request.Url)
+func (o *Responce) Title() string {
+	s := fmt.Sprintf("%s[%s]", o.Request.Method, o.Request.Url)
+	l := []any{s}
 	if o.StatusCode != 0 {
-		s = ufmt.Join(s, o.Status, o.Time.Truncate(time.Millisecond), ufmt.ByteSizeDense(len(o.Body)))
+		l = append(l, o.Status)
+	}
+	if o.Time != 0 {
+		l = append(l, o.Time.Truncate(time.Millisecond))
+	}
+	if len(o.Body) != 0 {
+		l = append(l, ufmt.ByteSizeDense(len(o.Body)))
 	}
 	if o.Error != nil {
-		s = ufmt.Join(s, o.Error)
+		l = append(l, o.Error)
 	}
-	return
+	return ufmt.JoinSlice(l)
 }
 
 func (o *Responce) Format(f Format) string {
