@@ -18,6 +18,7 @@ type Router struct {
 	id                string
 	path              string
 	router            *mux.Router
+	xRemoteAddress    string
 	logRequest        bool
 	upgradeErrorLevel ulog.Level
 }
@@ -52,6 +53,11 @@ func (o *Router) WithUpgradeErrorLevel(level ulog.Level) *Router {
 	return o
 }
 
+func (o *Router) WithXremoteAddress(s string) *Router {
+	o.xRemoteAddress = s
+	return o
+}
+
 func (o *Router) IsRoot() bool {
 	return o.path == ""
 }
@@ -66,7 +72,7 @@ func (o *Router) Handle(method string, path string, onRequest OnRequest) {
 		o.log.Debug(RouteName(method, uri))
 	}
 	o.router.HandleFunc(uri, func(w http.ResponseWriter, r *http.Request) {
-		name := RequestName(r)
+		name := o.requestName(r)
 		defer uerr.Recover(func(err string) {
 			o.log.Error(name, err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -128,13 +134,13 @@ func (o *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 	o.log.Debug(WebSocketName(RouteName(method, o.uri(path))))
 	o.Handle(method, path, func(w http.ResponseWriter, r *http.Request) {
 		defer uerr.Recover(func(err string) {
-			o.log.Error(WebSocketName(RequestName(r)), err)
+			o.log.Error(WebSocketName(o.requestName(r)), err)
 		})
 		conn, err := up.Upgrade(w, r, nil)
 		if err == nil {
 			onWebsocket(conn)
 		} else {
-			o.log.Print(o.upgradeErrorLevel, WebSocketName(RequestName(r)), err)
+			o.log.Print(o.upgradeErrorLevel, WebSocketName(o.requestName(r)), err)
 		}
 	})
 }
@@ -164,15 +170,30 @@ func (o *Router) uri(path string) string {
 	return o.path + "/" + path
 }
 
+func (o *Router) requestName(r *http.Request) string {
+	return RequestNameX(r, o.xRemoteAddress)
+}
+
 func RouteName(method, uri string) string {
 	return ufmt.JoinWith(":", strings.ToUpper(method), uri)
 }
 
 func RequestName(r *http.Request) string {
+	return RequestNameX(r, "")
+}
+
+func RequestNameX(r *http.Request, xRemoteAddress string) string {
 	if r == nil {
 		return "?"
 	}
-	return ufmt.JoinWith("'", r.RemoteAddr, RouteName(r.Method, r.RequestURI))
+	var remoteAddress string
+	if xRemoteAddress != "" && r.Header != nil {
+		remoteAddress = r.Header.Get(xRemoteAddress)
+	}
+	if remoteAddress == "" {
+		remoteAddress = r.RemoteAddr
+	}
+	return ufmt.JoinWith("'", remoteAddress, RouteName(r.Method, r.RequestURI))
 }
 
 func WebSocketName(name string) string {
