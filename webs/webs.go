@@ -15,16 +15,17 @@ import (
 )
 
 type Server struct {
-	log         *ulog.Log
-	s           *http.Server
-	do          *usync.Do
-	timeout     timeout
-	certFile    string
-	keyFile     string
-	domains     []string
-	tlsman      *autocert.Manager
-	logRequests bool
-	logErrors   *ulog.Level
+	log            *ulog.Log
+	s              *http.Server
+	do             *usync.Do
+	timeout        timeout
+	certFile       string
+	keyFile        string
+	domains        []string
+	tlsman         *autocert.Manager
+	xRemoteAddress string
+	logRequests    bool
+	logErrors      *ulog.Level
 }
 
 func New() *Server {
@@ -83,6 +84,11 @@ func (o *Server) WithLogErrors(use bool) *Server {
 
 func (o *Server) WithLogErrorsLevel(level ulog.Level) *Server {
 	o.logErrors = &level
+	return o
+}
+
+func (o *Server) WithXRemoteAddress(s string) *Server {
+	o.xRemoteAddress = s
 	return o
 }
 
@@ -171,10 +177,11 @@ func (o *Server) IsTls() bool {
 
 func (o *Server) LogRequest(mux http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		o.log.Debugf("%v'%s:%s", r.RemoteAddr, r.Method, r.RequestURI)
+		name := RequestNameX(r, o.xRemoteAddress)
+		o.log.Debug(name)
 		tm := time.Now()
 		mux.ServeHTTP(w, r)
-		o.log.Debugf("%v'%s:%s %v", r.RemoteAddr, r.Method, r.RequestURI, time.Since(tm).Truncate(time.Millisecond))
+		o.log.Debug(name, time.Since(tm).Truncate(time.Millisecond))
 	})
 }
 

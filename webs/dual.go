@@ -55,6 +55,12 @@ func (o *DualServer) WithLogErrorsLevel(level ulog.Level) *DualServer {
 	return o
 }
 
+func (o *DualServer) WithXRemoteAddress(s string) *DualServer {
+	o.s.WithXRemoteAddress(s)
+	o.tls.WithXRemoteAddress(s)
+	return o
+}
+
 func (o *DualServer) WithRedirectToTls(use string) *DualServer {
 	o.tlsRedirect = use
 	return o
