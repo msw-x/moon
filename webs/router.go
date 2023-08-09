@@ -53,7 +53,7 @@ func (o *Router) WithUpgradeErrorLevel(level ulog.Level) *Router {
 	return o
 }
 
-func (o *Router) WithXremoteAddress(s string) *Router {
+func (o *Router) WithXRemoteAddress(s string) *Router {
 	o.xRemoteAddress = s
 	return o
 }
