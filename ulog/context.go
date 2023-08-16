@@ -32,10 +32,11 @@ func (o *context) init(opts Options) {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
 	opts.init()
-	if o.opts.File != opts.File || o.opts.Dir != opts.Dir {
-		o.openFile(opts, false)
-	}
+	openFile := o.opts.File != opts.File || o.opts.Dir != opts.Dir
 	o.opts = opts
+	if openFile {
+		o.openFile(false)
+	}
 	o.maxid = 2
 	o.mapid = make(map[int]bool)
 	o.inited = time.Now()
@@ -113,32 +114,53 @@ func (o *context) fmtGoroutineID(id int) string {
 	return sid
 }
 
-func (o *context) openFile(opts Options, rotate bool) {
+func (o *context) openFile(prolongation bool) {
 	o.fname = ""
 	if o.file != nil {
 		o.file.Close()
 		o.file = nil
 	}
-	o.fname = opts.File
-	if opts.useDir() {
-		appName := opts.AppName
+	o.fname = o.opts.File
+	if o.opts.useDir() {
+		appName := o.opts.AppName
 		if appName == "" {
 			appName = AppName()
 		}
-		if rotate {
+		if prolongation {
 			appName += ".~"
 		}
-		o.fname = GenFilename(opts.Dir, appName)
+		o.fname = GenFilename(o.opts.Dir, appName)
+		o.rotate()
 	}
 	if o.fname != "" {
-		o.file = OpenFile(o.fname, opts.Append)
+		o.file = OpenFile(o.fname, o.opts.Append)
 		o.fileSize = 0
 	}
 }
 
-func (o *context) rotate(nextMessageSize int) {
+func (o *context) trim(nextMessageSize int) {
 	if o.file != nil && o.opts.useDir() && o.opts.FileSizeLimit != 0 && (o.fileSize+uint64(nextMessageSize)) > o.opts.FileSizeLimit {
 		o.file.Close()
-		o.openFile(o.opts, true)
+		o.openFile(true)
+	}
+}
+
+func (o *context) rotateEnabled() bool {
+	return o.opts.DaysCountLimit > 0 ||
+		o.opts.TotalSizeLimit > 0
+}
+
+func (o *context) rotate() {
+	if o.rotateEnabled() {
+		dirs := scanDirs(o.opts.Dir)
+		if o.opts.DaysCountLimit > 0 && dirs.count() > o.opts.DaysCountLimit {
+			n := dirs.count() - o.opts.DaysCountLimit
+			dirs.removeByCount(n)
+		}
+		totalSizeLimit := int64(o.opts.TotalSizeLimit)
+		if totalSizeLimit > 0 && dirs.size() > totalSizeLimit {
+			n := dirs.size() - totalSizeLimit
+			dirs.removeBySize(n)
+		}
 	}
 }

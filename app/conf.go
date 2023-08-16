@@ -39,24 +39,30 @@ func LoadConf[Conf any](filename string) Conf {
 }
 
 type Conf struct {
-	LogLevel    string
-	LogDir      string
-	LogFile     string
-	LogConsole  bool
-	LogGoID     bool
-	LogFileSize string
+	LogLevel          string
+	LogDir            string
+	LogFile           string
+	LogConsole        bool
+	LogGoID           bool
+	LogFileSize       string
+	LogDaysCountLimit int
+	LogTotalSizeLimit string
 }
 
 func (o *Conf) Log() ulog.Options {
 	opts := ulog.Options{
-		Level:   ulog.ParseLevel(o.LogLevel),
-		Console: o.LogConsole,
-		File:    o.LogFile,
-		Dir:     o.LogDir,
-		GoID:    o.LogGoID,
+		Level:          ulog.ParseLevel(o.LogLevel),
+		Console:        o.LogConsole,
+		File:           o.LogFile,
+		Dir:            o.LogDir,
+		GoID:           o.LogGoID,
+		DaysCountLimit: o.LogDaysCountLimit,
 	}
 	if o.LogFileSize != "" {
 		opts.FileSizeLimit = parse.BytesCountStrict(o.LogFileSize)
+	}
+	if o.LogTotalSizeLimit != "" {
+		opts.TotalSizeLimit = parse.BytesCountStrict(o.LogTotalSizeLimit)
 	}
 	return opts
 }

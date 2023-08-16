@@ -8,16 +8,18 @@ import (
 )
 
 type Options struct {
-	Level         any
-	Console       bool
-	File          string
-	Dir           string
-	Append        bool
-	AppName       string
-	GoID          bool
-	CrtStdErr     bool
-	SplitArgs     any
-	FileSizeLimit uint64
+	Level          any
+	Console        bool
+	File           string
+	Dir            string
+	Append         bool
+	AppName        string
+	GoID           bool
+	CrtStdErr      bool
+	SplitArgs      any
+	FileSizeLimit  uint64
+	DaysCountLimit int
+	TotalSizeLimit uint64
 
 	level     Level
 	splitArgs bool
