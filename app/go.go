@@ -41,13 +41,14 @@ func (o *GoSwarm) WithLog(log *ulog.Log) *GoSwarm {
 	return o
 }
 
-func (o *GoSwarm) Add(fn func()) {
+func (o *GoSwarm) Add(fn func()) *GoSwarm {
 	o.wg.Add(1)
 	Go(func() {
 		defer o.log.Recover()
 		defer o.wg.Done()
 		fn()
 	})
+	return o
 }
 
 func (o *GoSwarm) Wait() {
