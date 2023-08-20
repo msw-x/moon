@@ -109,8 +109,12 @@ func (o *Db) Insert(model any) error {
 	return err
 }
 
+func (o *Db) NewSelect(model any) *bun.SelectQuery {
+	return o.db.NewSelect().Model(model)
+}
+
 func (o *Db) Select(model any, fn func(*bun.SelectQuery)) error {
-	q := o.db.NewSelect().Model(model)
+	q := o.NewSelect(model)
 	if fn != nil {
 		fn(q)
 	}
