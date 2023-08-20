@@ -163,18 +163,19 @@ func (o *Db) Upsert(model any) error {
 	return err
 }
 
-func (o *Db) Delete(model any, fn func(*bun.DeleteQuery)) error {
+func (o *Db) Delete(model any, fn func(*bun.DeleteQuery)) (int64, error) {
 	q := o.db.NewDelete().Model(model)
 	if fn == nil {
 		q.WherePK()
 	} else {
 		fn(q)
 	}
-	_, err := q.Exec(context.Background())
-	return err
+	res, err := q.Exec(context.Background())
+	num, _ := res.RowsAffected()
+	return num, err
 }
 
-func (o *Db) DeleteAll(model any) error {
+func (o *Db) DeleteAll(model any) (int64, error) {
 	return o.Delete(model, func(q *bun.DeleteQuery) {
 		q.Where("TRUE")
 	})
