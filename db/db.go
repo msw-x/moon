@@ -170,8 +170,11 @@ func (o *Db) Delete(model any, fn func(*bun.DeleteQuery)) (int64, error) {
 	} else {
 		fn(q)
 	}
+	var num int64
 	res, err := q.Exec(context.Background())
-	num, _ := res.RowsAffected()
+	if err == nil {
+		num, _ = res.RowsAffected()
+	}
 	return num, err
 }
 
