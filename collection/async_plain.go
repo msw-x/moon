@@ -34,6 +34,10 @@ func (o *AsyncPlain[Id, Item]) OnDelete(onDelete func(Item, *bun.DeleteQuery)) {
 	o.c.OnDelete(onDelete)
 }
 
+func (o *AsyncPlain[Id, Item]) HandleImmediate() {
+	o.c.HandleImmediate()
+}
+
 func (o *AsyncPlain[Id, Item]) Db() *db.Db {
 	return o.c.Db()
 }
