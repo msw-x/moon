@@ -40,17 +40,8 @@ func Waited(ts time.Time) time.Duration {
 	if t > time.Second {
 		return t.Truncate(time.Millisecond * 100)
 	}
-	if t > time.Millisecond*100 {
-		return t.Truncate(time.Millisecond * 10)
-	}
 	if t > time.Millisecond*10 {
 		return t.Truncate(time.Millisecond)
-	}
-	if t > time.Millisecond {
-		return t.Truncate(time.Nanosecond * 100)
-	}
-	if t > time.Nanosecond*100 {
-		return t.Truncate(time.Nanosecond * 10)
 	}
 	return t
 }
