@@ -11,9 +11,10 @@ import (
 )
 
 type Async[Id constraints.Ordered, MapItem any, DbItem any] struct {
-	c      Sync[Id, MapItem, DbItem]
-	job    *app.Job
-	handle func()
+	c               Sync[Id, MapItem, DbItem]
+	job             *app.Job
+	handle          func()
+	handleImmediate bool
 }
 
 func (o *Async[Id, MapItem, DbItem]) Open(name string, log *ulog.Log, db *db.Db, dbItemId func(DbItem) Id, interval time.Duration, handle func()) {
@@ -45,6 +46,10 @@ func (o *Async[Id, MapItem, DbItem]) OnSelect(onSelect func(*bun.SelectQuery)) {
 
 func (o *Async[Id, MapItem, DbItem]) OnDelete(onDelete func(MapItem, *bun.DeleteQuery)) {
 	o.c.OnDelete(onDelete)
+}
+
+func (o *Async[Id, MapItem, DbItem]) HandleImmediate() {
+	o.handleImmediate = true
 }
 
 func (o *Async[Id, MapItem, DbItem]) Db() *db.Db {
@@ -133,12 +138,19 @@ func (o *Async[Id, MapItem, DbItem]) Get(id Id) (MapItem, error) {
 
 func (o *Async[Id, MapItem, DbItem]) process() {
 	if o.Inited() {
-		if o.handle == nil {
-			o.job.Cancel()
-		} else {
-			o.handle()
-		}
+		o.processHandle()
 	} else {
 		o.c.Init()
+		if o.handleImmediate && o.Inited() {
+			o.processHandle()
+		}
+	}
+}
+
+func (o *Async[Id, MapItem, DbItem]) processHandle() {
+	if o.handle == nil {
+		o.job.Cancel()
+	} else {
+		o.handle()
 	}
 }
