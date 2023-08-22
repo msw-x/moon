@@ -33,5 +33,24 @@ func Wait(log *ulog.Log, fn func() bool, timeout time.Duration) time.Duration {
 }
 
 func Waited(ts time.Time) time.Duration {
-	return time.Now().Sub(ts).Truncate(time.Millisecond * 100)
+	t := time.Now().Sub(ts)
+	if t > time.Second*10 {
+		return t.Truncate(time.Second)
+	}
+	if t > time.Second {
+		return t.Truncate(time.Millisecond * 100)
+	}
+	if t > time.Millisecond*100 {
+		return t.Truncate(time.Millisecond * 10)
+	}
+	if t > time.Millisecond*10 {
+		return t.Truncate(time.Millisecond)
+	}
+	if t > time.Millisecond {
+		return t.Truncate(time.Nanosecond * 100)
+	}
+	if t > time.Nanosecond*100 {
+		return t.Truncate(time.Nanosecond * 10)
+	}
+	return t
 }
