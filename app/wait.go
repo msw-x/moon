@@ -21,7 +21,7 @@ func Wait(log *ulog.Log, fn func() bool, timeout time.Duration) time.Duration {
 		if fn() {
 			break
 		}
-		time.Sleep(time.Millisecond * 100)
+		time.Sleep(time.Millisecond)
 	}
 	waited := Waited(ts)
 	if exceed {
