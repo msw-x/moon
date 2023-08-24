@@ -54,6 +54,10 @@ func (o *AlertBot) Send(message string) {
 	}
 }
 
+func (o *AlertBot) Sendf(f string, v ...any) {
+	o.Send(fmt.Sprintf(f, v...))
+}
+
 func (o *AlertBot) Startup() {
 	o.send("🚀 ***Startup***\n`v" + o.version + "`")
 }
