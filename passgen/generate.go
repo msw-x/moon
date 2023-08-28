@@ -16,7 +16,10 @@ func init() {
 }
 
 func Valid(password string, withLetters bool, withNumbers bool, withSymbols bool) bool {
-	has := func(chars string) bool {
+	has := func(chars string, enable bool) bool {
+		if !enable {
+			return true
+		}
 		for _, r := range []rune(chars) {
 			if slices.Contains([]rune(password), r) {
 				return true
@@ -24,7 +27,7 @@ func Valid(password string, withLetters bool, withNumbers bool, withSymbols bool
 		}
 		return false
 	}
-	return has(letters) && has(numbers) && has(symbols)
+	return has(letters, withLetters) && has(numbers, withNumbers) && has(symbols, withSymbols)
 }
 
 func Generate(length int, withNumbers bool, withSymbols bool) string {
