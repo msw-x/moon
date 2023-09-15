@@ -22,3 +22,11 @@ func (o *TimeMs) UnmarshalJSON(b []byte) error {
 func (o TimeMs) Std() time.Time {
 	return time.Time(o)
 }
+
+func (o TimeMs) Ptr() *time.Time {
+	tm := o.Std()
+	if tm.IsZero() {
+		return nil
+	}
+	return &tm
+}
