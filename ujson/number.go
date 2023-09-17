@@ -24,6 +24,17 @@ func (o Int64) Ptr() *int64 {
 	return &v
 }
 
+func (o Int64) IsZero() bool {
+	return o.Value() == 0
+}
+
+func (o Int64) NilIfZero() *int64 {
+	if o.IsZero() {
+		return nil
+	}
+	return o.Ptr()
+}
+
 func (o *Int64) Set(v int64) {
 	*o = Int64(v)
 }
@@ -45,6 +56,17 @@ func (o Float64) Value() float64 {
 func (o Float64) Ptr() *float64 {
 	v := o.Value()
 	return &v
+}
+
+func (o Float64) IsZero() bool {
+	return o.Value() == 0
+}
+
+func (o Float64) NilIfZero() *float64 {
+	if o.IsZero() {
+		return nil
+	}
+	return o.Ptr()
 }
 
 func (o *Float64) Set(v float64) {
