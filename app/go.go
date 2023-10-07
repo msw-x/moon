@@ -64,13 +64,12 @@ func (o *GoSwarm) Wait() {
 
 type GoSwarmLimit struct {
 	log *ulog.Log
-	fns chan func()
+	fns []func()
 }
 
 func NewGoSwarmLimit() *GoSwarmLimit {
 	o := new(GoSwarmLimit)
 	o.log = ulog.New("")
-	o.fns = make(chan func())
 	return o
 }
 
@@ -80,19 +79,24 @@ func (o *GoSwarmLimit) WithLog(log *ulog.Log) *GoSwarmLimit {
 }
 
 func (o *GoSwarmLimit) Add(fn func()) *GoSwarmLimit {
-	o.fns <- fn
+	o.fns = append(o.fns, fn)
 	return o
 }
 
 func (o *GoSwarmLimit) Execute(limit int) {
+	fns := make(chan func(), len(o.fns)+1)
+	for _, fn := range o.fns {
+		fns <- fn
+	}
 	GoGroupWithLog(limit, o.log, func() {
 		for {
 			select {
-			case fn := <-o.fns:
+			case fn := <-fns:
 				fn()
 			default:
 				return
 			}
 		}
 	})
+	close(fns)
 }
