@@ -25,6 +25,13 @@ func GoGroup(n int, fn func()) {
 	wg.Wait()
 }
 
+func GoGroupWithLog(n int, log *ulog.Log, fn func()) {
+	GoGroup(n, func() {
+		defer log.Recover()
+		fn()
+	})
+}
+
 type GoSwarm struct {
 	log *ulog.Log
 	wg  sync.WaitGroup
@@ -53,4 +60,39 @@ func (o *GoSwarm) Add(fn func()) *GoSwarm {
 
 func (o *GoSwarm) Wait() {
 	o.wg.Wait()
+}
+
+type GoSwarmLimit struct {
+	log *ulog.Log
+	fns chan func()
+}
+
+func NewGoSwarmLimit() *GoSwarmLimit {
+	o := new(GoSwarmLimit)
+	o.log = ulog.New("")
+	o.fns = make(chan func())
+	return o
+}
+
+func (o *GoSwarmLimit) WithLog(log *ulog.Log) *GoSwarmLimit {
+	o.log = log
+	return o
+}
+
+func (o *GoSwarmLimit) Add(fn func()) *GoSwarmLimit {
+	o.fns <- fn
+	return o
+}
+
+func (o *GoSwarmLimit) Execute(limit int) {
+	GoGroupWithLog(limit, o.log, func() {
+		for {
+			select {
+			case fn := <-o.fns:
+				fn()
+			default:
+				return
+			}
+		}
+	})
 }
