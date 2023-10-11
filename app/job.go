@@ -14,6 +14,7 @@ type Job struct {
 	onInit   func() error
 	onStart  func()
 	onFinish func()
+	onNotRun func()
 }
 
 func NewJob() *Job {
@@ -65,6 +66,11 @@ func (o *Job) OnFinish(fn func()) *Job {
 	return o
 }
 
+func (o *Job) OnNotRun(fn func()) *Job {
+	o.onNotRun = fn
+	return o
+}
+
 func (o *Job) WithLog(log *ulog.Log) *Job {
 	o.log = log
 	return o
@@ -84,6 +90,8 @@ func (o *Job) Run(fn func()) {
 			defer o.finish()
 			if o.Do() {
 				fn()
+			} else {
+				o.notRun()
 			}
 		}
 	}()
@@ -145,4 +153,12 @@ func (o *Job) finish() {
 		o.onFinish()
 	}
 	o.logPrint("finished")
+}
+
+func (o *Job) notRun() {
+	if o.onNotRun != nil {
+		o.logPrint("not run")
+		o.onNotRun()
+	}
+	o.logPrint("not runned")
 }
