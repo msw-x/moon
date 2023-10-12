@@ -25,9 +25,8 @@ func Empty() *Log {
 }
 
 func (o *Log) Init(opts Options) *Log {
-	c := &context{}
-	c.init(opts)
-	o.ctx = c
+	o.ctx = ctx.clone()
+	o.ctx.init(opts)
 	return o
 }
 
@@ -167,4 +166,8 @@ func (o *Log) Recover() {
 
 func (o *Log) Query(f Filter) (lines []string, err error) {
 	return o.ctx.query(f)
+}
+
+func (o *Log) Timezone() (string, int) {
+	return o.ctx.now().Zone()
 }

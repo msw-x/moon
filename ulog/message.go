@@ -28,7 +28,7 @@ func NewMessage(ctx *context, level Level, v ...any) Message {
 		text = fmt.Sprint(v...)
 	}
 	return Message{
-		Time:  time.Now(),
+		Time:  ctx.now(),
 		GoID:  ctx.goroutineID(),
 		Level: level,
 		Text:  text,

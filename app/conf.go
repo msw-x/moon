@@ -44,6 +44,7 @@ type Conf struct {
 	LogFile           string
 	LogConsole        bool
 	LogGoID           bool
+	LogTimezone       string
 	LogFileSize       string
 	LogDaysCountLimit int
 	LogTotalSizeLimit string
@@ -56,6 +57,7 @@ func (o *Conf) Log() ulog.Options {
 		File:           o.LogFile,
 		Dir:            o.LogDir,
 		GoID:           o.LogGoID,
+		Timezone:       o.LogTimezone,
 		DaysCountLimit: o.LogDaysCountLimit,
 	}
 	if o.LogFileSize != "" {

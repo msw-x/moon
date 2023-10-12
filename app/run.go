@@ -1,9 +1,12 @@
 package app
 
 import (
+	"fmt"
 	"os"
+	"time"
 
 	"github.com/msw-x/moon"
+	"github.com/msw-x/moon/hw"
 	"github.com/msw-x/moon/uerr"
 	"github.com/msw-x/moon/ulog"
 )
@@ -65,6 +68,11 @@ func run(version string, opts ulog.Options, fn any) {
 	log.Info("pid:", Pid())
 	log.Info("os:", OS())
 	log.Info("arch:", Arch())
+	hws := hw.GetStatus()
+	log.Info("cpu:", hws.Cpu())
+	log.Info("ram:", hws.Ram())
+	log.Info("disk:", hws.Disk())
+	logTimezone(log)
 	log.Info("name:", Name())
 	log.Info("path:", Dir())
 	switch f := fn.(type) {
@@ -75,4 +83,14 @@ func run(version string, opts ulog.Options, fn any) {
 	default:
 		panic("app run: invalid callback")
 	}
+}
+
+func logTimezone(log *ulog.Log) {
+	tzName, tzOffset := time.Now().Zone()
+	logTzName, logTzOffset := log.Timezone()
+	var tz string
+	if tzOffset != logTzOffset {
+		tz = fmt.Sprintf(" => %s (%+d)", logTzName, logTzOffset/(60*60))
+	}
+	log.Infof("timezone: %s (%+d)%s", tzName, tzOffset/(60*60), tz)
 }

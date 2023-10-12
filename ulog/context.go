@@ -20,6 +20,7 @@ type context struct {
 	file     *os.File
 	fileSize uint64
 	fname    string
+	timeLoc  *time.Location
 	maxid    int
 	mapid    map[int]bool
 	hook     func(Message)
@@ -37,6 +38,11 @@ func (o *context) init(opts Options) {
 	if openFile {
 		o.openFile(false)
 	}
+	if opts.Timezone == "" {
+		o.timeLoc = nil
+	} else {
+		o.timeLoc, _ = moon.TimezoneLocation(opts.Timezone)
+	}
 	o.maxid = 2
 	o.mapid = make(map[int]bool)
 	o.inited = time.Now()
@@ -48,6 +54,12 @@ func (o *context) close() {
 	if o.file != nil {
 		o.file.Close()
 		o.file = nil
+	}
+}
+
+func (o *context) clone() *context {
+	return &context{
+		timeLoc: o.timeLoc,
 	}
 }
 
@@ -97,6 +109,14 @@ func (o *context) goroutineID() int {
 	return -1
 }
 
+func (o *context) now() time.Time {
+	now := time.Now()
+	if o.timeLoc != nil {
+		now = now.In(o.timeLoc)
+	}
+	return now
+}
+
 func (o *context) fmtTime(ts time.Time) string {
 	ms := ts.Sub(ts.Truncate(time.Second)).Milliseconds()
 	return fmt.Sprintf("%s.%03d", ts.Format("2006-Jan-02 15:04:05"), ms)
@@ -129,7 +149,7 @@ func (o *context) openFile(prolongation bool) {
 		if prolongation {
 			appName += ".~"
 		}
-		o.fname = GenFilename(o.opts.Dir, appName)
+		o.fname = GenFilename(o.now(), o.opts.Dir, appName)
 		o.rotate()
 	}
 	if o.fname != "" {

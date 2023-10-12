@@ -115,3 +115,10 @@ func FormatDurationMs(d time.Duration) string {
 func FormatDurationDays(d time.Duration) string {
 	return DurationToTime(d).FormatDays()
 }
+
+func TimezoneLocation(s string) (*time.Location, error) {
+	if s == "MSK" {
+		s = "Europe/Moscow"
+	}
+	return time.LoadLocation(s)
+}

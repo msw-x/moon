@@ -15,6 +15,7 @@ type Options struct {
 	Append         bool
 	AppName        string
 	GoID           bool
+	Timezone       string
 	CrtStdErr      bool
 	SplitArgs      any
 	FileSizeLimit  uint64
