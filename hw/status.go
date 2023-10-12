@@ -25,10 +25,11 @@ type Status struct {
 }
 
 func (o Status) Cpu() string {
+	s := fmt.Sprintf("%d %%", o.CpuUsedPercent)
 	if o.Temperature > 0 {
-		return fmt.Sprintf("%d %% / %d ℃ - %d core(s)", o.CpuUsedPercent, o.Temperature, runtime.NumCPU())
+		s = fmt.Sprintf("%s / %d ℃", s, o.Temperature)
 	}
-	return fmt.Sprintf("%d %%", o.CpuUsedPercent)
+	return fmt.Sprintf("%s - %d core(s)", s, runtime.NumCPU())
 }
 
 func (o Status) Ram() string {
