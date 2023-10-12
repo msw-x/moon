@@ -57,12 +57,6 @@ func (o *context) close() {
 	}
 }
 
-func (o *context) clone() *context {
-	return &context{
-		timeLoc: o.timeLoc,
-	}
-}
-
 func (o *context) statistics() string {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()

@@ -25,7 +25,7 @@ func Empty() *Log {
 }
 
 func (o *Log) Init(opts Options) *Log {
-	o.ctx = ctx.clone()
+	o.ctx = &context{}
 	o.ctx.init(opts)
 	return o
 }
