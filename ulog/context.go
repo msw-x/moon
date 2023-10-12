@@ -35,13 +35,13 @@ func (o *context) init(opts Options) {
 	opts.init()
 	openFile := o.opts.File != opts.File || o.opts.Dir != opts.Dir
 	o.opts = opts
-	if openFile {
-		o.openFile(false)
-	}
 	if opts.Timezone == "" {
 		o.timeLoc = nil
 	} else {
 		o.timeLoc, _ = moon.TimezoneLocation(opts.Timezone)
+	}
+	if openFile {
+		o.openFile(false)
 	}
 	o.maxid = 2
 	o.mapid = make(map[int]bool)
