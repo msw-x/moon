@@ -84,22 +84,22 @@ func (o *SyncPlain[Id, Item]) Replace(e Item) error {
 	return o.c.Replace(e)
 }
 
-func (o *SyncPlain[Id, Item]) Upsert(e Item) error {
+func (o *SyncPlain[Id, Item]) Upsert(e Item) (bool, error) {
 	id := o.c.fn.dbItemId(e)
 	if o.Exist(id) {
-		return o.Replace(e)
+		return true, o.Replace(e)
 	}
 	_, err := o.Add(e)
-	return err
+	return false, err
 }
 
-func (o *SyncPlain[Id, Item]) UpsertNamed(name string, e Item) error {
+func (o *SyncPlain[Id, Item]) UpsertNamed(name string, e Item) (bool, error) {
 	id := o.c.fn.dbItemId(e)
 	if o.Exist(id) {
-		return o.Replace(e)
+		return true, o.Replace(e)
 	}
 	_, err := o.AddNamed(name, e)
-	return err
+	return false, err
 }
 
 func (o *SyncPlain[Id, Item]) ForEach(fn func(Item)) {
