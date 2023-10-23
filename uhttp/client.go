@@ -75,6 +75,10 @@ func (o *Client) WithTraceFormat(log *ulog.Log, f Format) *Client {
 	return o.WithTrace(TraceFormat(log, f))
 }
 
+func (o *Client) WithTraceTwinFormat(log *ulog.Log, f Format, fe Format) *Client {
+	return o.WithTrace(TraceTwinFormat(log, f, fe))
+}
+
 func (o *Client) Timeout() time.Duration {
 	return o.c.Timeout
 }
