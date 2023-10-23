@@ -136,6 +136,10 @@ func (o *Async[Id, MapItem, DbItem]) Get(id Id) (MapItem, error) {
 	return o.c.Get(id)
 }
 
+func (o *Async[Id, MapItem, DbItem]) GetIfExists(id Id) (MapItem, bool) {
+	return o.c.GetIfExists(id)
+}
+
 func (o *Async[Id, MapItem, DbItem]) process() {
 	if o.Inited() {
 		o.processHandle()

@@ -125,3 +125,7 @@ func (o *SyncPlain[Id, Item]) Exist(id Id) bool {
 func (o *SyncPlain[Id, Item]) Get(id Id) (Item, error) {
 	return o.c.Get(id)
 }
+
+func (o *SyncPlain[Id, Item]) GetIfExists(id Id) (Item, bool) {
+	return o.c.GetIfExists(id)
+}

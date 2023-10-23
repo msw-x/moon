@@ -226,6 +226,13 @@ func (o *Sync[Id, MapItem, DbItem]) Get(id Id) (MapItem, error) {
 	return i, err
 }
 
+func (o *Sync[Id, MapItem, DbItem]) GetIfExists(id Id) (MapItem, bool) {
+	o.mutex.Lock()
+	defer o.mutex.Unlock()
+	o.check()
+	return o.m[id]
+}
+
 func (o *Sync[Id, MapItem, DbItem]) add(action string, e DbItem) (Id, error) {
 	o.log.Debug(action)
 	err := o.InitError()

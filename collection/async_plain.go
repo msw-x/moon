@@ -117,3 +117,7 @@ func (o *AsyncPlain[Id, Item]) Exist(id Id) bool {
 func (o *AsyncPlain[Id, Item]) Get(id Id) (Item, error) {
 	return o.c.Get(id)
 }
+
+func (o *AsyncPlain[Id, Item]) GetIfExists(id Id) (Item, bool) {
+	return o.c.GetIfExists(id)
+}
