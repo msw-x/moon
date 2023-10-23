@@ -230,7 +230,8 @@ func (o *Sync[Id, MapItem, DbItem]) GetIfExists(id Id) (MapItem, bool) {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
 	o.check()
-	return o.m[id]
+	i, ok := o.m[id]
+	return i, ok
 }
 
 func (o *Sync[Id, MapItem, DbItem]) add(action string, e DbItem) (Id, error) {
