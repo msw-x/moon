@@ -15,7 +15,7 @@ func Bool(s string) (bool, error) {
 	case "1", "true", "yes", "on", "enable":
 		return true, nil
 	}
-	return false, fmt.Errorf("parse bool: %S", s)
+	return false, fmt.Errorf("parse bool: %s", s)
 }
 
 func BoolStrict(s string) bool {

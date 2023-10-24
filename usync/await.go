@@ -35,5 +35,4 @@ func (o *Await) WaitTimeout(timeout time.Duration) bool {
 	case <-time.After(timeout):
 		return false
 	}
-	return false
 }

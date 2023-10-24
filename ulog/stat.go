@@ -10,20 +10,20 @@ type Statistics struct {
 	Critical uint
 }
 
-func (this *Statistics) Push(level Level, size int) {
-	this.Size += uint(size)
+func (o *Statistics) Push(level Level, size int) {
+	o.Size += uint(size)
 	switch level {
 	case LevelTrace:
-		this.Trace++
+		o.Trace++
 	case LevelDebug:
-		this.Debug++
+		o.Debug++
 	case LevelInfo:
-		this.Info++
+		o.Info++
 	case LevelWarning:
-		this.Warning++
+		o.Warning++
 	case LevelError:
-		this.Error++
+		o.Error++
 	case LevelCritical:
-		this.Critical++
+		o.Critical++
 	}
 }

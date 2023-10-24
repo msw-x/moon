@@ -27,7 +27,8 @@ func QueryFromFile(filename string, f Filter) (ret []string, err error) {
 	count := len(ret)
 	overflow := count - f.Last - 1
 	if f.Last > 0 && overflow > 0 {
-		ret = ret[overflow:len(ret)]
+		l := len(ret)
+		ret = ret[overflow:l]
 	}
 	return ret, err
 }
