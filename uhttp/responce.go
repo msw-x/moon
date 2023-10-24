@@ -80,16 +80,23 @@ func (o *Responce) Title() string {
 
 func (o *Responce) Format(f Format) string {
 	l := []string{o.Title()}
-	push := func(ok bool, name string, value string) {
+	push := func(ok bool, limit int, trim bool, name string, value string) {
 		if ok && value != "" {
+			if limit != 0 && len(value) > limit {
+				if trim {
+					value = value[0:limit]
+				} else {
+					value = fmt.Sprintf("trace limit exceeded: %s / %s", ufmt.ByteSize(len(value)), ufmt.ByteSize(limit))
+				}
+			}
 			l = append(l, fmt.Sprintf("%s: %s", name, value))
 		}
 	}
-	push(f.RequestParams, "request-params", o.Request.ParamsString())
-	push(f.RequestHeader, "request-header", o.Request.HeaderString())
-	push(f.RequestBody, "request-body", o.Request.BodyString())
-	push(f.ResponceHeader, "responce-header", o.HeaderString())
-	push(f.ResponceBody, "responce-body", string(o.Body))
+	push(f.RequestParams, 0, false, "request-params", o.Request.ParamsString())
+	push(f.RequestHeader, 0, false, "request-header", o.Request.HeaderString())
+	push(f.RequestBody, f.RequestBodyLimit, f.RequestBodyTrim, "request-body", o.Request.BodyString())
+	push(f.ResponceHeader, 0, false, "responce-header", o.HeaderString())
+	push(f.ResponceBody, f.ResponceBodyLimit, f.ResponceBodyTrim, "responce-body", string(o.Body))
 	return ufmt.NotableJoinSliceWith("\n", l)
 }
 
