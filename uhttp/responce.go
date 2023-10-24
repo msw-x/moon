@@ -83,10 +83,11 @@ func (o *Responce) Format(f Format) string {
 	push := func(ok bool, limit int, trim bool, name string, value string) {
 		if ok && value != "" {
 			if limit != 0 && len(value) > limit {
+				m := fmt.Sprintf("trace limit exceeded: %s / %s", ufmt.ByteSize(len(value)), ufmt.ByteSize(limit))
 				if trim {
-					value = value[0:limit]
+					value = value[0:limit] + "...\n" + m
 				} else {
-					value = fmt.Sprintf("trace limit exceeded: %s / %s", ufmt.ByteSize(len(value)), ufmt.ByteSize(limit))
+					value = m
 				}
 			}
 			l = append(l, fmt.Sprintf("%s: %s", name, value))
