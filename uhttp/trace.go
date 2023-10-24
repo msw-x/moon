@@ -6,6 +6,7 @@ type Tracer struct {
 	log         *ulog.Log
 	format      Format
 	formatError Format
+	validate    func(Responce) bool
 }
 
 func NewTracer(log *ulog.Log) *Tracer {
@@ -25,28 +26,19 @@ func (o *Tracer) WithFormatError(f Format) *Tracer {
 	return o
 }
 
+func (o *Tracer) WithValidate(f func(Responce) bool) *Tracer {
+	o.validate = f
+	return o
+}
+
 func (o *Tracer) Trace(r Responce) {
-	if r.Ok() {
+	ok := r.Ok()
+	if o.validate != nil {
+		ok = o.validate(r)
+	}
+	if ok {
 		o.log.Debug(r.Format(o.format))
 	} else {
 		o.log.Error(r.Format(o.formatError))
 	}
-}
-
-func TraceFormat(log *ulog.Log, format Format) func(Responce) {
-	t := NewTracer(log).WithFormat(format)
-	return func(r Responce) {
-		t.Trace(r)
-	}
-}
-
-func TraceTwinFormat(log *ulog.Log, format Format, formatError Format) func(Responce) {
-	t := NewTracer(log).WithFormat(format).WithFormatError(formatError)
-	return func(r Responce) {
-		t.Trace(r)
-	}
-}
-
-func Trace(log *ulog.Log) func(Responce) {
-	return TraceFormat(log, Format{})
 }
