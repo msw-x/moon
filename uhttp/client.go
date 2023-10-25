@@ -21,9 +21,16 @@ func NewClient() *Client {
 	return o
 }
 
-func (o *Client) Clone() *Client {
+func (o *Client) Copy() *Client {
 	c := *o
 	return &c
+}
+
+func (o *Client) Transport() *http.Transport {
+	if o.c.Transport == nil {
+		return nil
+	}
+	return o.c.Transport.(*http.Transport)
 }
 
 func (o *Client) WithBase(base string) *Client {
@@ -40,6 +47,11 @@ func (o *Client) WithAppendPath(path string) *Client {
 	return o.WithPath(UrlJoin(o.path, path))
 }
 
+func (o *Client) WithTransport(transport *http.Transport) *Client {
+	o.c.Transport = transport
+	return o
+}
+
 func (o *Client) WithProxy(proxy string) *Client {
 	if proxy == "" {
 		return o.WithProxyUrl(nil)
@@ -50,14 +62,22 @@ func (o *Client) WithProxy(proxy string) *Client {
 }
 
 func (o *Client) WithProxyUrl(url *url.URL) *Client {
+	transport := o.Transport()
 	if url == nil {
-		o.c.Transport = nil
-	} else {
-		o.c.Transport = &http.Transport{
-			Proxy: http.ProxyURL(url),
+		if transport != nil {
+			transport = transport.Clone()
+			transport.Proxy = nil
 		}
+	} else {
+		if transport == nil {
+			transport = new(http.Transport)
+			//transport = http.DefaultTransport.(*http.Transport).Clone()
+		} else {
+			transport = transport.Clone()
+		}
+		transport.Proxy = http.ProxyURL(url)
 	}
-	return o
+	return o.WithTransport(transport)
 }
 
 func (o *Client) WithTimeout(timeout time.Duration) *Client {
