@@ -9,6 +9,7 @@ import (
 
 	"github.com/msw-x/moon/refl"
 	"github.com/msw-x/moon/ujson"
+	"github.com/msw-x/moon/ulog"
 	"github.com/msw-x/moon/ustring"
 )
 
@@ -34,7 +35,9 @@ func (o *Performer) Do() (r Responce) {
 			r.Body, err = io.ReadAll(responce.Body)
 			if err != nil {
 				ok := err.Error() == "context deadline exceeded (Client.Timeout or context cancellation while reading body)" && len(r.Body) > 0
-				if !ok {
+				if ok {
+					ulog.Trace("read body: context deadline exceeded")
+				} else {
 					r.RefineError("read body", err)
 				}
 			}
