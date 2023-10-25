@@ -70,8 +70,7 @@ func (o *Client) WithProxyUrl(url *url.URL) *Client {
 		}
 	} else {
 		if transport == nil {
-			transport = new(http.Transport)
-			//transport = http.DefaultTransport.(*http.Transport).Clone()
+			transport = http.DefaultTransport.(*http.Transport).Clone()
 		} else {
 			transport = transport.Clone()
 		}
