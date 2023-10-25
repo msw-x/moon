@@ -54,11 +54,11 @@ func (o *Client) WithTransport(transport *http.Transport) *Client {
 
 func (o *Client) WithProxy(proxy string) *Client {
 	if proxy == "" {
-		return o.WithProxyUrl2(nil)
+		return o.WithProxyUrlLegacy(nil)
 	}
 	proxyUrl, err := url.Parse(proxy)
 	uerr.Strictf(err, "parse proxy url: %s", proxy)
-	return o.WithProxyUrl2(proxyUrl)
+	return o.WithProxyUrlLegacy(proxyUrl)
 }
 
 func (o *Client) WithProxyUrl(url *url.URL) *Client {
@@ -79,7 +79,7 @@ func (o *Client) WithProxyUrl(url *url.URL) *Client {
 	return o.WithTransport(transport)
 }
 
-func (o *Client) WithProxyUrl2(url *url.URL) *Client {
+func (o *Client) WithProxyUrlLegacy(url *url.URL) *Client {
 	if url == nil {
 		o.c.Transport = nil
 	} else {
