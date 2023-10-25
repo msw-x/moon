@@ -32,7 +32,7 @@ func (o *Performer) Do() (r Responce) {
 			r.Status = responce.Status
 			r.StatusCode = responce.StatusCode
 			r.Body, err = io.ReadAll(responce.Body)
-			if err != nil {
+			if err != nil && len(r.Body) == 0 {
 				r.RefineError("read body", err)
 			}
 		} else {
