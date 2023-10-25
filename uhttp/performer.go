@@ -32,8 +32,11 @@ func (o *Performer) Do() (r Responce) {
 			r.Status = responce.Status
 			r.StatusCode = responce.StatusCode
 			r.Body, err = io.ReadAll(responce.Body)
-			if err != nil && len(r.Body) == 0 {
-				r.RefineError("read body", err)
+			if err != nil {
+				ok := err.Error() == "context deadline exceeded (Client.Timeout or context cancellation while reading body)" && len(r.Body) > 0
+				if !ok {
+					r.RefineError("read body", err)
+				}
 			}
 		} else {
 			r.RefineError("do request", err)
