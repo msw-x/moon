@@ -85,7 +85,8 @@ func (o *Client) WithProxyUrl2(url *url.URL) *Client {
 		o.c.Transport = nil
 	} else {
 		o.c.Transport = &http.Transport{
-			Proxy: http.ProxyURL(url),
+			Proxy:               http.ProxyURL(url),
+			MaxIdleConnsPerHost: 10,
 		}
 	}
 	return o
