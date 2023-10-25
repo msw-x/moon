@@ -80,6 +80,17 @@ func (o *Client) WithProxyUrl(url *url.URL) *Client {
 	return o.WithTransport(transport)
 }
 
+func (o *Client) WithProxyUrl2(url *url.URL) *Client {
+	if url == nil {
+		o.c.Transport = nil
+	} else {
+		o.c.Transport = &http.Transport{
+			Proxy: http.ProxyURL(url),
+		}
+	}
+	return o
+}
+
 func (o *Client) WithTimeout(timeout time.Duration) *Client {
 	o.c.Timeout = timeout
 	return o
