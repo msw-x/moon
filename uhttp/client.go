@@ -9,10 +9,11 @@ import (
 )
 
 type Client struct {
-	c     *http.Client
-	base  string
-	path  string
-	trace func(Responce)
+	c      *http.Client
+	base   string
+	path   string
+	trace  func(Responce)
+	errors OnErrors
 }
 
 func NewClient() *Client {
@@ -104,6 +105,21 @@ func (o *Client) Timeout() time.Duration {
 	return o.c.Timeout
 }
 
+func (o *Client) WithOnInitRequestError(f OnError) *Client {
+	o.errors.InitRequest = f
+	return o
+}
+
+func (o *Client) WithOnDoRequestError(f OnError) *Client {
+	o.errors.DoRequest = f
+	return o
+}
+
+func (o *Client) WithOnReadBodyError(f OnError) *Client {
+	o.errors.ReadBody = f
+	return o
+}
+
 func (o *Client) Url(url string) string {
 	return UrlJoin(o.base, o.path, url)
 }
@@ -114,8 +130,9 @@ func (o *Client) Request(method string, url string) *Performer {
 			Method: method,
 			Url:    o.Url(url),
 		},
-		c:     o.c,
-		trace: o.trace,
+		c:      o.c,
+		trace:  o.trace,
+		errors: o.errors,
 	}
 }
 

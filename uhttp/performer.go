@@ -17,6 +17,7 @@ type Performer struct {
 	Request Request
 	c       *http.Client
 	trace   func(Responce)
+	errors  OnErrors
 }
 
 func (o *Performer) Do() (r Responce) {
@@ -34,18 +35,13 @@ func (o *Performer) Do() (r Responce) {
 			r.StatusCode = responce.StatusCode
 			r.Body, err = io.ReadAll(responce.Body)
 			if err != nil {
-				ok := err.Error() == "context deadline exceeded (Client.Timeout or context cancellation while reading body)" && len(r.Body) > 0
-				if ok {
-					ulog.Trace("read body: context deadline exceeded")
-				} else {
-					r.RefineError("read body", err)
-				}
+				o.errors.readBody(err, r.RefineError)
 			}
 		} else {
-			r.RefineError("do request", err)
+			o.errors.doRequest(err, r.RefineError)
 		}
 	} else {
-		r.RefineError("init request", err)
+		o.errors.initRequest(err, r.RefineError)
 	}
 	r.Time = time.Since(ts)
 	if o.trace != nil {
@@ -108,6 +104,21 @@ func (o *Performer) Trace(trace func(Responce)) *Performer {
 	return o
 }
 
+func (o *Performer) OnInitRequestError(f OnError) *Performer {
+	o.errors.InitRequest = f
+	return o
+}
+
+func (o *Performer) OnDoRequestError(f OnError) *Performer {
+	o.errors.DoRequest = f
+	return o
+}
+
+func (o *Performer) OnReadBodyError(f OnError) *Performer {
+	o.errors.ReadBody = f
+	return o
+}
+
 func (o *Performer) param(name string, value any, omitempty bool) *Performer {
 	if o.Request.Params == nil {
 		o.Request.Params = make(url.Values)
@@ -127,4 +138,27 @@ func (o *Performer) header(name string, value any, omitempty bool) *Performer {
 		o.Request.Header.Set(name, v)
 	}
 	return o
+}
+
+func traceReadAll(r io.Reader) ([]byte, error) {
+	l := make([]time.Duration, 100)
+	b := make([]byte, 0, 512)
+	for {
+		t := time.Now()
+		n, err := r.Read(b[len(b):cap(b)])
+		l = append(l, time.Since(t))
+		b = b[:len(b)+n]
+		if err != nil {
+			if err == io.EOF {
+				err = nil
+			}
+			if err.Error() == "context deadline exceeded (Client.Timeout or context cancellation while reading body)" {
+				ulog.Trace("read body timeout:", l)
+			}
+			return b, err
+		}
+		if len(b) == cap(b) {
+			b = append(b, 0)[:len(b)]
+		}
+	}
 }
