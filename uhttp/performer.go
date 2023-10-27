@@ -21,6 +21,7 @@ type Performer struct {
 }
 
 func (o *Performer) Do() (r Responce) {
+	o.errors.init(&r)
 	r.Request = o.Request
 	ts := time.Now()
 	r.Request.RefineUrl()
@@ -35,13 +36,13 @@ func (o *Performer) Do() (r Responce) {
 			r.StatusCode = responce.StatusCode
 			r.Body, err = io.ReadAll(responce.Body)
 			if err != nil {
-				o.errors.readBody(err, r.RefineError)
+				o.errors.readBody(err)
 			}
 		} else {
-			o.errors.doRequest(err, r.RefineError)
+			o.errors.doRequest(err)
 		}
 	} else {
-		o.errors.initRequest(err, r.RefineError)
+		o.errors.initRequest(err)
 	}
 	r.Time = time.Since(ts)
 	if o.trace != nil {

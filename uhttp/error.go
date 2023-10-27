@@ -1,31 +1,36 @@
 package uhttp
 
-type OnError func(error) error
-type OnRefineError func(string, error)
+type OnError func(error, *Responce) error
 
 type OnErrors struct {
 	InitRequest OnError
 	DoRequest   OnError
 	ReadBody    OnError
+
+	r *Responce
 }
 
-func (o *OnErrors) initRequest(err error, f OnRefineError) {
-	o.call(o.InitRequest, "init request", err, f)
+func (o *OnErrors) init(r *Responce) {
+	o.r = r
 }
 
-func (o *OnErrors) doRequest(err error, f OnRefineError) {
-	o.call(o.DoRequest, "do request", err, f)
+func (o *OnErrors) initRequest(err error) {
+	o.call(o.InitRequest, "init request", err)
 }
 
-func (o *OnErrors) readBody(err error, f OnRefineError) {
-	o.call(o.ReadBody, "read body", err, f)
+func (o *OnErrors) doRequest(err error) {
+	o.call(o.DoRequest, "do request", err)
 }
 
-func (o *OnErrors) call(on OnError, name string, err error, f OnRefineError) {
+func (o *OnErrors) readBody(err error) {
+	o.call(o.ReadBody, "read body", err)
+}
+
+func (o *OnErrors) call(on OnError, name string, err error) {
 	if on != nil {
-		err = on(err)
+		err = on(err, o.r)
 	}
 	if err != nil {
-		f(name, err)
+		o.r.RefineError(name, err)
 	}
 }
