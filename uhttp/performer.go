@@ -30,11 +30,11 @@ func (o *Performer) Do() (r Responce) {
 	if err == nil {
 		responce, err := o.c.Do(request)
 		if err == nil {
+			defer responce.Body.Close()
 			r.Header = responce.Header
 			r.Status = responce.Status
 			r.StatusCode = responce.StatusCode
 			r.Body, err = io.ReadAll(responce.Body)
-			responce.Body.Close()
 			if err != nil {
 				o.errors.readBody(err)
 			}
