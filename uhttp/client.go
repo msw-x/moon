@@ -85,7 +85,8 @@ func (o *Client) WithProxyUrlLegacy(url *url.URL) *Client {
 		o.c.Transport = nil
 	} else {
 		o.c.Transport = &http.Transport{
-			Proxy: http.ProxyURL(url),
+			Proxy:             http.ProxyURL(url),
+			DisableKeepAlives: true,
 		}
 	}
 	return o
