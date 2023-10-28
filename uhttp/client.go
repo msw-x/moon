@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/msw-x/moon/uerr"
-	"github.com/msw-x/moon/ulog"
 )
 
 type Client struct {
@@ -28,11 +27,11 @@ func (o *Client) Copy() *Client {
 	return &c
 }
 
-func (o *Client) Transport() *http.Transport {
+func (o *Client) Transport() http.RoundTripper {
 	if o.c.Transport == nil {
 		return nil
 	}
-	return o.c.Transport.(*http.Transport)
+	return o.c.Transport
 }
 
 func (o *Client) WithBase(base string) *Client {
@@ -49,7 +48,7 @@ func (o *Client) WithAppendPath(path string) *Client {
 	return o.WithPath(UrlJoin(o.path, path))
 }
 
-func (o *Client) WithTransport(transport *http.Transport) *Client {
+func (o *Client) WithTransport(transport http.RoundTripper) *Client {
 	o.c.Transport = transport
 	return o
 }
@@ -64,30 +63,15 @@ func (o *Client) WithProxy(proxy string) *Client {
 }
 
 func (o *Client) WithProxyUrl(url *url.URL) *Client {
-	ulog.Trace("1", url)
-	transport := o.Transport()
 	if url == nil {
-		ulog.Trace("2")
-		if transport != nil {
-			ulog.Trace("3")
-			transport = transport.Clone()
-			transport.Proxy = nil
-		}
-		ulog.Trace("4")
+		o.c.Transport = nil
 	} else {
-		ulog.Trace("5")
-		if transport == nil {
-			ulog.Trace("5")
-			transport = http.DefaultTransport.(*http.Transport).Clone()
-		} else {
-			ulog.Trace("7")
-			transport = transport.Clone()
+		o.c.Transport = &http.Transport{
+			Proxy:             http.ProxyURL(url),
+			DisableKeepAlives: true,
 		}
-		ulog.Trace("8")
-		transport.Proxy = http.ProxyURL(url)
 	}
-	ulog.Trace("9")
-	return o.WithTransport(transport)
+	return o
 }
 
 func (o *Client) WithTimeout(timeout time.Duration) *Client {
