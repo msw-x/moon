@@ -63,14 +63,11 @@ func (o *Client) WithProxy(proxy string) *Client {
 }
 
 func (o *Client) WithProxyUrl(url *url.URL) *Client {
-	if url == nil {
-		o.c.Transport = nil
-	} else {
-		o.c.Transport = &http.Transport{
-			Proxy:             http.ProxyURL(url),
-			DisableKeepAlives: true,
-		}
+	t := http.DefaultTransport.(*http.Transport).Clone()
+	if url != nil {
+		t.Proxy = http.ProxyURL(url)
 	}
+	o.WithTransport(t)
 	return o
 }
 
