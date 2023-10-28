@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/msw-x/moon/uerr"
+	"github.com/msw-x/moon/ulog"
 )
 
 type Client struct {
@@ -63,20 +64,29 @@ func (o *Client) WithProxy(proxy string) *Client {
 }
 
 func (o *Client) WithProxyUrl(url *url.URL) *Client {
+	ulog.Trace("1", url)
 	transport := o.Transport()
 	if url == nil {
+		ulog.Trace("2")
 		if transport != nil {
+			ulog.Trace("3")
 			transport = transport.Clone()
 			transport.Proxy = nil
 		}
+		ulog.Trace("4")
 	} else {
+		ulog.Trace("5")
 		if transport == nil {
+			ulog.Trace("5")
 			transport = http.DefaultTransport.(*http.Transport).Clone()
 		} else {
+			ulog.Trace("7")
 			transport = transport.Clone()
 		}
+		ulog.Trace("8")
 		transport.Proxy = http.ProxyURL(url)
 	}
+	ulog.Trace("9")
 	return o.WithTransport(transport)
 }
 
