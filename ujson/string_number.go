@@ -87,6 +87,6 @@ func (o *StringFloat64) Set(v float64) {
 	*o = StringFloat64(fmt.Sprint(v))
 }
 
-func (o *StringFloat64) SetWithPrecison(v float64, precison int) {
+func (o *StringFloat64) SetWithPrecision(v float64, precison int) {
 	*o = StringFloat64(ufmt.Float64(v, precison))
 }
