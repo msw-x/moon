@@ -1,6 +1,11 @@
 package ujson
 
-import "github.com/msw-x/moon/parse"
+import (
+	"fmt"
+
+	"github.com/msw-x/moon/parse"
+	"github.com/msw-x/moon/ufmt"
+)
 
 type StringNumber string
 
@@ -42,6 +47,10 @@ func (o StringInt64) ValueOr(v int64) int64 {
 	return v
 }
 
+func (o *StringInt64) Set(v int64) {
+	*o = StringInt64(fmt.Sprint(v))
+}
+
 func (o StringInt64) ValueOrDefault() int64 {
 	var v int64
 	return o.ValueOr(v)
@@ -72,4 +81,12 @@ func (o StringFloat64) ValueOr(v float64) float64 {
 func (o StringFloat64) ValueOrDefault() float64 {
 	var v float64
 	return o.ValueOr(v)
+}
+
+func (o *StringFloat64) Set(v float64) {
+	*o = StringFloat64(fmt.Sprint(v))
+}
+
+func (o *StringFloat64) SetWithPrecison(v float64, precison int) {
+	*o = StringFloat64(ufmt.Float64(v, precison))
 }
