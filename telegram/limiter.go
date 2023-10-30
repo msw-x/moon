@@ -43,6 +43,14 @@ func (o *Limiter) WithPrePop(prepop func(func() (string, bool)) (string, bool)) 
 	return o
 }
 
+func (o *Limiter) Capacity() int {
+	return cap(o.messages)
+}
+
+func (o *Limiter) Size() int {
+	return len(o.messages)
+}
+
 func (o *Limiter) Close() {
 	o.job.Stop()
 }
