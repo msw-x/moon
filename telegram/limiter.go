@@ -51,6 +51,10 @@ func (o *Limiter) Size() int {
 	return len(o.messages)
 }
 
+func (o *Limiter) Reset() {
+	o.WithCapacity(cap(o.messages))
+}
+
 func (o *Limiter) Close() {
 	o.job.Stop()
 }
