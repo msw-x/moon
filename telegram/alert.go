@@ -15,7 +15,7 @@ type AlertBot struct {
 	token   string
 	chatId  int64
 	version string
-	limiter *Limiter
+	limiter *Limiter[string]
 }
 
 func NewAlertBot(token string, chatId string, version string) *AlertBot {
