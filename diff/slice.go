@@ -35,3 +35,7 @@ func (o Slice[T]) find(s []T, what T, byCurr bool) bool {
 	}
 	return false
 }
+
+func Compare[T comparable](a, b T) bool {
+	return a == b
+}
