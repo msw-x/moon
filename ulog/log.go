@@ -20,8 +20,12 @@ func New(prefix string) *Log {
 	}
 }
 
+func Global() *Log {
+	return New("")
+}
+
 func Empty() *Log {
-	return New("").Enable(false)
+	return Global().Enable(false)
 }
 
 func (o *Log) Init(opts Options) *Log {
@@ -45,6 +49,10 @@ func (o *Log) Enabled() bool {
 
 func (o *Log) IsGloabl() bool {
 	return o.ctx == &ctx
+}
+
+func (o *Log) Options() Options {
+	return o.ctx.opts
 }
 
 func (o *Log) SetHook(hook func(Message)) {
