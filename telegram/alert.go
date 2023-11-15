@@ -3,10 +3,12 @@ package telegram
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	botapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/msw-x/moon/parse"
 	"github.com/msw-x/moon/ulog"
+	"github.com/msw-x/moon/utime"
 )
 
 type AlertBot struct {
@@ -62,8 +64,13 @@ func (o *AlertBot) Startup() {
 	o.send("🚀 ***Startup***\n`v" + o.version + "`")
 }
 
-func (o *AlertBot) Shutdown() {
-	o.send("🏁 ***Shutdown***\n`" + ulog.Stat() + "`")
+func (o *AlertBot) Shutdown(ts time.Duration) {
+	s := ""
+	if ts > 0 {
+		ts = utime.PrettyTruncate(ts)
+		s = fmt.Sprintf(" %v", ts)
+	}
+	o.send("🏁 ***Shutdown***" + s + "\n`" + ulog.Stat() + "`")
 }
 
 func (o *AlertBot) SendLog(m ulog.Message) {
