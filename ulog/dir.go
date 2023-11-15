@@ -64,7 +64,7 @@ func (o dirs) removeByCount(n int) {
 
 func (o dirs) removeBySize(n int64) {
 	for _, d := range o {
-		if d.size() <= 0 {
+		if n <= 0 {
 			break
 		}
 		n -= d.size()
