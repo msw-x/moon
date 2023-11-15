@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/msw-x/moon/ulog"
+	"github.com/msw-x/moon/utime"
 )
 
 func Wait(log *ulog.Log, fn func() bool, timeout time.Duration) time.Duration {
@@ -33,15 +34,5 @@ func Wait(log *ulog.Log, fn func() bool, timeout time.Duration) time.Duration {
 }
 
 func Waited(ts time.Time) time.Duration {
-	t := time.Now().Sub(ts)
-	if t > time.Second*10 {
-		return t.Truncate(time.Second)
-	}
-	if t > time.Second {
-		return t.Truncate(time.Millisecond * 100)
-	}
-	if t > time.Millisecond {
-		return t.Truncate(time.Millisecond)
-	}
-	return t
+	return utime.PrettyTruncate(time.Now().Sub(ts))
 }
