@@ -4,6 +4,7 @@ import (
 	"path"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/msw-x/moon/parse"
 	"github.com/msw-x/moon/uerr"
@@ -39,15 +40,16 @@ func LoadConf[Conf any](filename string) Conf {
 }
 
 type Conf struct {
-	LogLevel          string
-	LogDir            string
-	LogFile           string
-	LogConsole        bool
-	LogGoID           bool
-	LogTimezone       string
-	LogFileSize       string
-	LogDaysCountLimit int
-	LogTotalSizeLimit string
+	LogLevel     string
+	LogDir       string
+	LogFile      string
+	LogConsole   bool
+	LogGoID      bool
+	LogTimezone  string
+	LogFileSize  string
+	LogFileTime  string
+	LogDaysCount int
+	LogTotalSize string
 }
 
 func (o *Conf) Log() ulog.Options {
@@ -58,13 +60,16 @@ func (o *Conf) Log() ulog.Options {
 		Dir:            o.LogDir,
 		GoID:           o.LogGoID,
 		Timezone:       o.LogTimezone,
-		DaysCountLimit: o.LogDaysCountLimit,
+		DaysCountLimit: o.LogDaysCount,
 	}
 	if o.LogFileSize != "" {
 		opts.FileSizeLimit = parse.BytesCountStrict(o.LogFileSize)
 	}
-	if o.LogTotalSizeLimit != "" {
-		opts.TotalSizeLimit = parse.BytesCountStrict(o.LogTotalSizeLimit)
+	if o.LogFileTime != "" {
+		opts.FileTimeLimit, _ = time.ParseDuration(o.LogFileTime)
+	}
+	if o.LogTotalSize != "" {
+		opts.TotalSizeLimit = parse.BytesCountStrict(o.LogTotalSize)
 	}
 	return opts
 }

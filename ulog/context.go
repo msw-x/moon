@@ -19,6 +19,7 @@ type context struct {
 	stat     Statistics
 	file     *os.File
 	fileSize uint64
+	fileTime time.Time
 	fname    string
 	timeLoc  *time.Location
 	maxid    int
@@ -149,14 +150,23 @@ func (o *context) openFile(prolongation bool) {
 	if o.fname != "" {
 		o.file = OpenFile(o.fname, o.opts.Append)
 		o.fileSize = 0
+		o.fileTime = time.Now()
 	}
 }
 
 func (o *context) trim(nextMessageSize int) {
-	if o.file != nil && o.opts.useDir() && o.opts.FileSizeLimit != 0 && (o.fileSize+uint64(nextMessageSize)) > o.opts.FileSizeLimit {
+	if o.file != nil && o.opts.useDir() && (o.fileSizeExceeded(nextMessageSize) || o.fileTimeExceeded()) {
 		o.file.Close()
 		o.openFile(true)
 	}
+}
+
+func (o *context) fileSizeExceeded(nextMessageSize int) bool {
+	return o.opts.FileSizeLimit != 0 && (o.fileSize+uint64(nextMessageSize)) > o.opts.FileSizeLimit
+}
+
+func (o *context) fileTimeExceeded() bool {
+	return o.opts.FileTimeLimit != 0 && time.Since(o.fileTime) > o.opts.FileTimeLimit
 }
 
 func (o *context) rotateEnabled() bool {

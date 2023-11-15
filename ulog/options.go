@@ -2,6 +2,7 @@ package ulog
 
 import (
 	"reflect"
+	"time"
 
 	"github.com/msw-x/moon/parse"
 	"github.com/msw-x/moon/uerr"
@@ -19,6 +20,7 @@ type Options struct {
 	CrtStdErr      bool
 	SplitArgs      any
 	FileSizeLimit  uint64
+	FileTimeLimit  time.Duration
 	DaysCountLimit int
 	TotalSizeLimit uint64
 
