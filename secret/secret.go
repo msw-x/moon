@@ -18,8 +18,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/msw-x/moon/fs"
 	"github.com/msw-x/moon/uerr"
+	"github.com/msw-x/moon/ufs"
 )
 
 func Ensure(certPath string, keyPath string) {
@@ -128,7 +128,7 @@ func (o Gen) Generate(certPath string, keyPath string) error {
 		return fmt.Errorf("failed to create certificate: %v", err)
 	}
 
-	fs.MakeDir(filepath.Dir(certPath))
+	ufs.MakeDir(filepath.Dir(certPath))
 	certOut, err := os.Create(certPath)
 	if err != nil {
 		return fmt.Errorf("failed to open %s for writing: %v", certPath, err)
@@ -136,7 +136,7 @@ func (o Gen) Generate(certPath string, keyPath string) error {
 	pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 	certOut.Close()
 
-	fs.MakeDir(filepath.Dir(keyPath))
+	ufs.MakeDir(filepath.Dir(keyPath))
 	keyOut, err := os.OpenFile(keyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to open %s for writing: %v", keyPath, err)
@@ -147,7 +147,7 @@ func (o Gen) Generate(certPath string, keyPath string) error {
 }
 
 func (o Gen) Ensure(certPath string, keyPath string) {
-	if !fs.Exist(certPath) || !fs.Exist(keyPath) {
+	if !ufs.Exist(certPath) || !ufs.Exist(keyPath) {
 		err := o.Generate(certPath, keyPath)
 		uerr.Strict(err, "certificate generation")
 	}

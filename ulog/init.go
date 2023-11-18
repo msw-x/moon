@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/msw-x/moon/fs"
+	"github.com/msw-x/moon/ufs"
 )
 
 func Init(opts Options) {
@@ -42,7 +42,7 @@ func GenFilename(ts time.Time, dir, app string) string {
 	logDir := path.Join(dir, subDir)
 	basename := ts.Format("2006-01-02--15-04-05") + "@" + app
 	filename := path.Join(logDir, basename+ext)
-	if fs.Exist(filename) {
+	if ufs.Exist(filename) {
 		filename = path.Join(logDir, fmt.Sprintf("%s.%d%s", basename, os.Getpid(), ext))
 	}
 	return filename

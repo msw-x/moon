@@ -1,4 +1,4 @@
-package fs
+package ufs
 
 import (
 	"io/ioutil"

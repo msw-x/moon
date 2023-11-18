@@ -1,4 +1,4 @@
-package fs
+package ufs
 
 import "github.com/msw-x/moon/uerr"
 

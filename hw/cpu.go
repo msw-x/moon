@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/msw-x/moon/fs"
 	"github.com/msw-x/moon/proc"
+	"github.com/msw-x/moon/ufs"
 )
 
 func ThermalZoneFile(zone int) string {
@@ -38,7 +38,7 @@ func ThermalZone(zone int) (temp int, err error) {
 
 func CpuTemp() int {
 	for i := 8; i != 0; i-- {
-		if fs.Exist(ThermalZoneFile(i)) {
+		if ufs.Exist(ThermalZoneFile(i)) {
 			temp, err := ThermalZone(i)
 			if err == nil && temp > -50 && temp < 200 {
 				return temp
@@ -58,7 +58,7 @@ func CpuID() (id string) {
 			}
 		}
 	}
-	find(fs.ReadStringStrict("/proc/cpuinfo"), `Serial\t*: (.*)`)
+	find(ufs.ReadStringStrict("/proc/cpuinfo"), `Serial\t*: (.*)`)
 	find(proc.ReadStdoutStrict("dmidecode", "--type", "processor"), `ID: (.*)`)
 	find(proc.ReadStdoutStrict("lshw"), `serial: (.*)`)
 	id = strings.ReplaceAll(id, " ", "")

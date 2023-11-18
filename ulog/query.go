@@ -1,7 +1,7 @@
 package ulog
 
 import (
-	"github.com/msw-x/moon/fs"
+	"github.com/msw-x/moon/ufs"
 )
 
 type Filter struct {
@@ -11,7 +11,7 @@ type Filter struct {
 
 func QueryFromFile(filename string, f Filter) (ret []string, err error) {
 	var concatenate bool
-	err = fs.ForEachLine(filename, func(line string) {
+	err = ufs.ForEachLine(filename, func(line string) {
 		l := selectLevel(line)
 		if l == "" {
 			if concatenate {

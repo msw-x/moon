@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"runtime"
 
-	"github.com/msw-x/moon/fs"
 	"github.com/msw-x/moon/uerr"
+	"github.com/msw-x/moon/ufs"
 )
 
 func Executable() string {
@@ -18,7 +18,7 @@ func Executable() string {
 }
 
 func Name() string {
-	return fs.RemoveExt(filepath.Base(Executable()))
+	return ufs.RemoveExt(filepath.Base(Executable()))
 }
 
 func Dir() string {
