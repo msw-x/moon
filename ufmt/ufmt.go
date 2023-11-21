@@ -44,6 +44,10 @@ func UpDown(v bool) string {
 	return Bool(v, "up", "down")
 }
 
+func CheckBox(v bool) string {
+	return Bool(v, "[x]", "[ ]")
+}
+
 func Hex(buf []byte) string {
 	return hex.EncodeToString(buf)
 }
