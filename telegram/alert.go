@@ -65,12 +65,18 @@ func (o *AlertBot) Startup() {
 }
 
 func (o *AlertBot) Shutdown(ts time.Duration) {
+	o.limiter.Close()
+	n := o.limiter.Size()
+	q := ""
+	if n > 0 {
+		q = fmt.Sprintf("\nmessage queue: ***%d***", n)
+	}
 	s := ""
 	if ts > 0 {
 		ts = utime.PrettyTruncate(ts)
 		s = fmt.Sprintf(" %v", ts)
 	}
-	o.send("🏁 ***Shutdown***" + s + "\n`" + ulog.Stat() + "`")
+	o.send("🏁 ***Shutdown***" + s + "\n`" + ulog.Stat() + "`" + q)
 }
 
 func (o *AlertBot) SendLog(m ulog.Message) {
