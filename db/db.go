@@ -95,6 +95,10 @@ func (o *Db) Await(timeout time.Duration) time.Duration {
 	return app.Wait(o.log, o.Ok, timeout)
 }
 
+func (o *Db) Migrator() *Migrator {
+	return NewMigrator(o)
+}
+
 func (o *Db) Format(query string, arg ...any) string {
 	return o.db.Formatter().FormatQuery(query, arg...)
 }
