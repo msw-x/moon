@@ -139,7 +139,7 @@ func (o *Sync[Id, MapItem, DbItem]) Delete(id Id) error {
 
 func (o *Sync[Id, MapItem, DbItem]) DeleteAll() error {
 	o.log.Debug("delete all")
-	_, err := db.DeleteAll[DbItem]()
+	_, err := db.DeleteAll[DbItem](o.db)
 	return err
 }
 
