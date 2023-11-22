@@ -1,6 +1,7 @@
 package collection
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"sort"
@@ -137,10 +138,14 @@ func (o *Sync[Id, MapItem, DbItem]) Delete(id Id) error {
 	return err
 }
 
-func (o *Sync[Id, MapItem, DbItem]) DeleteAll() error {
+func (o *Sync[Id, MapItem, DbItem]) DeleteAll() (err error) {
 	o.log.Debug("delete all")
-	_, err := db.DeleteAll[DbItem](o.db)
-	return err
+	if o.onDelete == nil {
+		_, err = db.DeleteAll[DbItem](o.db)
+	} else {
+		err = errors.New("collection: delete all not implemented if onDelete defined")
+	}
+	return
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Remove(id Id, fn func(e MapItem) MapItem) error {
