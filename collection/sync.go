@@ -141,7 +141,12 @@ func (o *Sync[Id, MapItem, DbItem]) Delete(id Id) error {
 func (o *Sync[Id, MapItem, DbItem]) DeleteAll() (err error) {
 	o.log.Debug("delete all")
 	if o.onDelete == nil {
+		o.mutex.Lock()
+		defer o.mutex.Unlock()
 		_, err = db.DeleteAll[DbItem](o.db)
+		if err == nil {
+			o.m = make(map[Id]MapItem)
+		}
 	} else {
 		err = errors.New("collection: delete all not implemented if onDelete defined")
 	}
