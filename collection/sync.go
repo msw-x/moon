@@ -137,6 +137,11 @@ func (o *Sync[Id, MapItem, DbItem]) Delete(id Id) error {
 	return err
 }
 
+func (o *Sync[Id, MapItem, DbItem]) DeleteAll() error {
+	o.log.Debug("delete all")
+	return o.db.Truncate((*DbItem)())
+}
+
 func (o *Sync[Id, MapItem, DbItem]) Remove(id Id, fn func(e MapItem) MapItem) error {
 	return o.update(true, id, fn)
 }

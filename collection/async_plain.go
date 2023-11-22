@@ -82,6 +82,10 @@ func (o *AsyncPlain[Id, Item]) Delete(id Id) error {
 	return o.c.Delete(id)
 }
 
+func (o *AsyncPlain[Id, Item]) DeleteAll() error {
+	return o.c.DeleteAll()
+}
+
 func (o *AsyncPlain[Id, Item]) Remove(id Id, fn func(e Item) Item) error {
 	return o.c.Remove(id, fn)
 }

@@ -96,6 +96,10 @@ func (o *Async[Id, MapItem, DbItem]) Delete(id Id) error {
 	return o.c.Delete(id)
 }
 
+func (o *Async[Id, MapItem, DbItem]) DeleteAll() error {
+	return o.c.DeleteAll()
+}
+
 func (o *Async[Id, MapItem, DbItem]) Remove(id Id, fn func(e MapItem) MapItem) error {
 	return o.c.Remove(id, fn)
 }
