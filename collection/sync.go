@@ -23,6 +23,7 @@ type Sync[Id constraints.Ordered, MapItem any, DbItem any] struct {
 	onSelect  func(*bun.SelectQuery)
 	onDelete  func(MapItem, *bun.DeleteQuery)
 	mutex     sync.Mutex
+	inited    bool
 	logUpdate bool
 }
 
@@ -69,7 +70,7 @@ func (o *Sync[Id, MapItem, DbItem]) LogUpdate(yes bool) {
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Inited() bool {
-	return o.m != nil
+	return o.inited
 }
 
 func (o *Sync[Id, MapItem, DbItem]) InitError() error {
@@ -105,6 +106,7 @@ func (o *Sync[Id, MapItem, DbItem]) Init() bool {
 		o.put(e)
 	}
 	o.log.Info("inited. count:", o.Count())
+	o.inited = true
 	return true
 }
 
