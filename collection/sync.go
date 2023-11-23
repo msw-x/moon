@@ -105,8 +105,8 @@ func (o *Sync[Id, MapItem, DbItem]) Init() bool {
 	for _, e := range list {
 		o.put(e)
 	}
-	o.log.Info("inited. count:", o.Count())
 	o.inited = true
+	o.log.Info("inited. count:", o.Count())
 	return true
 }
 
