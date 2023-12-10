@@ -24,6 +24,12 @@ type Status struct {
 	DiskUsedPercent int
 }
 
+func (o Status) Enrich() Status {
+	o.RamUsedPercent = umath.Percent(o.RamUsed, o.RamTotal)
+	o.DiskUsedPercent = umath.Percent(o.DiskUsed, o.DiskTotal)
+	return o
+}
+
 func (o Status) Cpu() string {
 	s := fmt.Sprintf("%d %%", o.CpuUsedPercent)
 	if o.Temperature > 0 {
@@ -46,14 +52,12 @@ func GetStatus() Status {
 	diskStat, _ := disk.Usage("/")
 	uptime, _ := host.Uptime()
 	return Status{
-		Uptime:          uptime,
-		Temperature:     CpuTemp(),
-		CpuUsedPercent:  int(cpuPercent[0]),
-		RamTotal:        vmStat.Total,
-		RamUsed:         vmStat.Used,
-		RamUsedPercent:  umath.Percent(vmStat.Used, vmStat.Total),
-		DiskTotal:       diskStat.Total,
-		DiskUsed:        diskStat.Used,
-		DiskUsedPercent: umath.Percent(diskStat.Used, diskStat.Total),
-	}
+		Uptime:         uptime,
+		Temperature:    CpuTemp(),
+		CpuUsedPercent: int(cpuPercent[0]),
+		RamTotal:       vmStat.Total,
+		RamUsed:        vmStat.Used,
+		DiskTotal:      diskStat.Total,
+		DiskUsed:       diskStat.Used,
+	}.Enrich()
 }
