@@ -25,7 +25,7 @@ func Name(s string) (name string, comment string, isUp bool, isTx bool, ok bool)
 	if ok {
 		isTx = strings.HasSuffix(s, txSuffix)
 		if isTx {
-			strings.TrimSuffix(s, txSuffix)
+			s = strings.TrimSuffix(s, txSuffix)
 		}
 		name, comment = ustring.SplitPair(s, "_")
 	}
