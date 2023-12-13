@@ -28,6 +28,7 @@ func NewMigrator(db *bun.DB) *Migrator {
 	o.db = db
 	o.splitter = "\n\n"
 	o.tableName = "migrations"
+	o.saveDownSql = true
 	o.autoDownSql = true
 	return o
 }
