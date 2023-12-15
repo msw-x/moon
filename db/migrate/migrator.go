@@ -30,6 +30,7 @@ func NewMigrator(db *bun.DB) *Migrator {
 	o.tableName = "migrations"
 	o.saveDownSql = true
 	o.autoDownSql = true
+	o.rollbackLost = true
 	return o
 }
 
@@ -122,10 +123,27 @@ func (o *Migrator) AppliedMigrations() (l Migrations) {
 
 func (o *Migrator) UnappliedMigrations() (l Migrations) {
 	for _, m := range o.l {
-		if !m.IsApplied() {
+		if !m.IsApplied() && !m.Lost() {
 			l = append(l, m)
 		}
 	}
+	return
+}
+
+func (o *Migrator) RolledbackMigrations() (l Migrations) {
+	if !o.saveDownSql || !o.rollbackLost {
+		return
+	}
+	a := o.AppliedMigrations()
+	slices.Reverse(a)
+	for _, m := range a {
+		if m.Lost() {
+			l = append(l, m)
+		} else {
+			break
+		}
+	}
+	slices.Reverse(l)
 	return
 }
 
@@ -141,7 +159,19 @@ func (o *Migrator) UnappliedMigrationsCount() int {
 	return len(o.UnappliedMigrations())
 }
 
+func (o *Migrator) RolledbackMigrationsCount() int {
+	return len(o.RolledbackMigrations())
+}
+
+func (o *Migrator) HasIncompleteMigrations() bool {
+	return o.RolledbackMigrationsCount() != 0 || o.UnappliedMigrationsCount() != 0
+}
+
 func (o *Migrator) Migrate() (err error) {
+	err = o.rollback(o.RolledbackMigrations())
+	if err != nil {
+		return
+	}
 	groupId := o.l.LastGroupId() + 1
 	for _, m := range o.UnappliedMigrations() {
 		err = m.Up()
@@ -156,19 +186,8 @@ func (o *Migrator) Migrate() (err error) {
 	return
 }
 
-func (o *Migrator) Rollback() (err error) {
-	l := o.l.LastGroup()
-	slices.Reverse(l)
-	for _, m := range l {
-		err = m.Down()
-		if err == nil {
-			o.markUnapplied(m)
-			m.SetUnapplied()
-		} else {
-			break
-		}
-	}
-	return
+func (o *Migrator) Rollback() error {
+	return o.rollback(o.l.LastGroup())
 }
 
 func (o *Migrator) RollbackLast() (err error) {
@@ -206,6 +225,9 @@ func (o *Migrator) Status() string {
 		w.Write(m.Name, m.Comment, group, migratedAt, strings.Join(notes, ", "))
 	}
 	s := fmt.Sprintf("migrations: applied[%d/%d]", o.AppliedMigrationsCount(), o.MigrationsCount())
+	if o.RolledbackMigrationsCount() > 0 {
+		s = fmt.Sprintf("%s rolledback[%d]", s, o.RolledbackMigrationsCount())
+	}
 	if o.UnappliedMigrationsCount() > 0 {
 		s = fmt.Sprintf("%s unapplied[%d]", s, o.UnappliedMigrationsCount())
 	}
@@ -235,5 +257,19 @@ func (o *Migrator) markUnapplied(m *Migration) (err error) {
 		ModelTableExpr(o.tableName).
 		Where("id = ?", m.Id).
 		Exec(context.Background())
+	return
+}
+
+func (o *Migrator) rollback(l Migrations) (err error) {
+	slices.Reverse(l)
+	for _, m := range l {
+		err = m.Down()
+		if err == nil {
+			o.markUnapplied(m)
+			m.SetUnapplied()
+		} else {
+			break
+		}
+	}
 	return
 }

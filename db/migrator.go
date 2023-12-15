@@ -80,9 +80,7 @@ func (o *Migrator) load(fs fs.FS) bool {
 }
 
 func (o *Migrator) migrate() bool {
-	if o.m.UnappliedMigrationsCount() == 0 {
-		o.log.Info("no unapplied migrations")
-	} else {
+	if o.m.HasIncompleteMigrations() {
 		o.log.Info("migrate")
 		err := o.m.Migrate()
 		if err == nil {
@@ -92,6 +90,8 @@ func (o *Migrator) migrate() bool {
 			o.log.Error("migrate:", err)
 			return false
 		}
+	} else {
+		o.log.Info("migrations are relevant")
 	}
 	return true
 }
