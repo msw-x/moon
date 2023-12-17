@@ -8,7 +8,7 @@ import (
 )
 
 func Handle[RequestData any, ResponceData any](
-	ctx Context,
+	ctx *Context,
 	method string,
 	url string,
 	header func(http.Header, *Responce[ResponceData]),
@@ -64,18 +64,34 @@ func Handle[RequestData any, ResponceData any](
 	})
 }
 
-func Get[RequestData any, ResponceData any](ctx Context, url string, handle func(Request[RequestData], *Responce[ResponceData])) {
+func Get[RequestData any, ResponceData any](
+	ctx *Context,
+	url string,
+	handle func(Request[RequestData], *Responce[ResponceData]),
+) {
 	Handle(ctx, http.MethodGet, url, nil, handle)
 }
 
-func Post[RequestData any, ResponceData any](ctx Context, url string, handle func(Request[RequestData], *Responce[ResponceData])) {
+func Post[RequestData any, ResponceData any](
+	ctx *Context,
+	url string,
+	handle func(Request[RequestData], *Responce[ResponceData]),
+) {
 	Handle(ctx, http.MethodPost, url, nil, handle)
 }
 
-func Put[RequestData any, ResponceData any](ctx Context, url string, handle func(Request[RequestData], *Responce[ResponceData])) {
+func Put[RequestData any, ResponceData any](
+	ctx *Context,
+	url string,
+	handle func(Request[RequestData], *Responce[ResponceData]),
+) {
 	Handle(ctx, http.MethodPut, url, nil, handle)
 }
 
-func Delete[RequestData any, ResponceData any](ctx Context, url string, handle func(Request[RequestData], *Responce[ResponceData])) {
+func Delete[RequestData any, ResponceData any](
+	ctx *Context,
+	url string,
+	handle func(Request[RequestData], *Responce[ResponceData]),
+) {
 	Handle(ctx, http.MethodDelete, url, nil, handle)
 }

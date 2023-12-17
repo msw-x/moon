@@ -7,7 +7,7 @@ import (
 	"github.com/msw-x/moon/uhttp"
 )
 
-func Trace[RequestData any, ResponceData any](ctx Context, r Request[RequestData], w Responce[ResponceData], tm time.Duration) {
+func Trace[RequestData any, ResponceData any](ctx *Context, r Request[RequestData], w Responce[ResponceData], tm time.Duration) {
 	ctx.Trace(uhttp.FormatProvider{
 		Title: func() string {
 			name := ctx.router.RequestName(r.r)
