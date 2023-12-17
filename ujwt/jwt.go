@@ -8,64 +8,64 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
-type Jwt[Account any, SessionId any] struct {
+type Jwt[Account any, Session any] struct {
 	opts Options
 }
 
-func New[Account any, SessionId any](opts Options) *Jwt {
-	return &Jwt[Account, SessionId]{
+func New[Account any, Session any](opts Options) *Jwt[Account, Session] {
+	return &Jwt[Account, Session]{
 		opts: opts,
 	}
 }
 
-func (o *Jwt[Account, SessionId]) NewAccess(account Account, sessionId SessionId) (string, error) {
-	return o.new(AccessClaims{
+func (o *Jwt[Account, Session]) NewAccess(account Account, session Session) (string, error) {
+	return o.new(AccessClaims[Account, Session]{
 		RegisteredClaims: registeredClaims(o.opts.ExpirationTime),
 		Account:          account,
-		SessionId:        sessionId,
+		Session:          session,
 	})
 }
 
-func (o *Jwt[Account, SessionId]) NewRefresh(sessionId SessionId) (string, error) {
-	return o.new(RefreshClaims{
+func (o *Jwt[Account, Session]) NewRefresh(session Session) (string, error) {
+	return o.new(RefreshClaims[Session]{
 		RegisteredClaims: registeredClaims(o.opts.RefreshExpirationTime),
-		SessionId:        sessionId,
+		Session:          session,
 	})
 }
 
-func (o *Jwt[Account, SessionId]) New(account Account, sessionId SessionId) (token string, refreshToken string, err error) {
-	token, err = o.NewAccess(account, sessionId)
+func (o *Jwt[Account, Session]) New(account Account, session Session) (token string, refreshToken string, err error) {
+	token, err = o.NewAccess(account, session)
 	if err == nil {
-		refreshToken, err = o.NewRefresh(sessionId)
+		refreshToken, err = o.NewRefresh(session)
 	}
 	return
 }
 
-func (o *Jwt[Account, SessionId]) ParseAccess(token string) (claims AccessClaims, err error) {
+func (o *Jwt[Account, Session]) ParseAccess(token string) (claims AccessClaims[Account, Session], err error) {
 	err = o.parse(token, &claims)
 	return
 }
 
-func (o *Jwt[Account, SessionId]) ParseRefresh(token string) (claims RefreshClaims, err error) {
+func (o *Jwt[Account, Session]) ParseRefresh(token string) (claims RefreshClaims[Session], err error) {
 	err = o.parse(token, &claims)
 	return
 }
 
-func (o *Jwt[Account, SessionId]) ParseRefreshSessionId(token string) (SessionId, error) {
+func (o *Jwt[Account, Session]) ParseRefreshSession(token string) (Session, error) {
 	claims, err := o.ParseRefresh(token)
-	return claims.SessionId, err
+	return claims.Session, err
 }
 
-func (o *Jwt[Account, SessionId]) Options() Options {
+func (o *Jwt[Account, Session]) Options() Options {
 	return o.opts
 }
 
-func (o *Jwt[Account, SessionId]) new(claims jwt.Claims) (string, error) {
+func (o *Jwt[Account, Session]) new(claims jwt.Claims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(o.opts.KeyBytes())
 }
 
-func (o *Jwt[Account, SessionId]) parse(token string, claims jwt.Claims) (err error) {
+func (o *Jwt[Account, Session]) parse(token string, claims jwt.Claims) (err error) {
 	err = emptyRestrict(token)
 	if err == nil {
 		_, err = jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (any, error) {
