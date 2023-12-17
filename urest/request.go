@@ -1,21 +1,38 @@
 package urest
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"net"
 	"net/http"
+	"reflect"
 	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/msw-x/moon/parse"
+	"github.com/msw-x/moon/uhttp"
 )
 
 type Request[T any] struct {
 	Data T
 
-	r  *http.Request
-	ca string
+	r    *http.Request
+	ca   string
+	body []byte
+}
+
+func (o Request[T]) EmptyData() bool {
+	return reflect.TypeOf(o.Data).Size() == 0
+}
+
+func (o Request[T]) HasBody() bool {
+	return len(o.body) > 0
+}
+
+func (o Request[T]) HeaderString() string {
+	return uhttp.HeaderString(o.r.Header)
 }
 
 func (o Request[T]) RemoteAddr() string {
@@ -103,10 +120,19 @@ func (o *Request[T]) DataFromParams() error {
 	return o.Params(&o.Data)
 }
 
+func (o *Request[T]) DataFromJson() error {
+	return json.Unmarshal(o.body, &o.Data)
+}
+
+func (o *Request[T]) readBody() (err error) {
+	o.body, err = ioutil.ReadAll(o.r.Body)
+	return
+}
+
 func hostFromAddress(s string) string {
 	host, _, err := net.SplitHostPort(s)
 	if err == nil {
 		return host
 	}
-	return v
+	return s
 }

@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/msw-x/moon/parse"
-	"github.com/msw-x/moon/ufmt"
 )
 
 type Responce struct {
@@ -61,46 +60,24 @@ func (o *Responce) RefineError(text string, err error) {
 }
 
 func (o *Responce) Title() string {
-	s := fmt.Sprintf("%s[%s]", o.Request.Method, o.Request.Url)
-	l := []any{s}
-	if o.StatusCode != 0 {
-		l = append(l, o.Status)
-	}
-	if o.Time != 0 {
-		l = append(l, o.Time.Truncate(time.Millisecond))
-	}
-	if len(o.Body) != 0 {
-		l = append(l, ufmt.ByteSizeDense(len(o.Body)))
-	}
-	if o.Error != nil {
-		l = append(l, o.Error)
-	}
-	return ufmt.JoinSlice(l)
+	return Title(ClientRequestName(o.Request), o.StatusCode, o.Status, o.Time, len(o.Body), o.Error)
 }
 
 func (o *Responce) Format(f Format) string {
-	l := []string{o.Title()}
-	push := func(ok bool, limit int, trim bool, name string, value string) {
-		if ok && value != "" {
-			if limit != 0 && len(value) > limit {
-				m := fmt.Sprintf("trace limit exceeded: %s / %s", ufmt.ByteSize(len(value)), ufmt.ByteSize(limit))
-				if trim {
-					value = value[0:limit] + "...\n" + m
-				} else {
-					value = m
-				}
-			}
-			l = append(l, fmt.Sprintf("%s: %s", name, value))
-		}
-	}
-	push(f.RequestParams, 0, false, "request-params", o.Request.ParamsString())
-	push(f.RequestHeader, 0, false, "request-header", o.Request.HeaderString())
-	push(f.RequestBody, f.RequestBodyLimit, f.RequestBodyTrim, "request-body", o.Request.BodyString())
-	push(f.ResponceHeader, 0, false, "responce-header", o.HeaderString())
-	push(f.ResponceBody, f.ResponceBodyLimit, f.ResponceBodyTrim, "responce-body", string(o.Body))
-	return ufmt.NotableJoinSliceWith("\n", l)
+	return FormatProvider{
+		Title:          o.Title,
+		RequestParams:  o.Request.ParamsString,
+		RequestHeader:  o.Request.HeaderString,
+		RequestBody:    o.Request.BodyString,
+		ResponceHeader: o.HeaderString,
+		ResponceBody:   o.BodyString,
+	}.Format(f)
 }
 
 func (o *Responce) HeaderString() string {
 	return HeaderString(o.Header)
+}
+
+func (o *Responce) BodyString() string {
+	return string(o.Body)
 }

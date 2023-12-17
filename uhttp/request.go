@@ -29,11 +29,7 @@ func (o *Request) Uri() string {
 }
 
 func (o *Request) ParamsString() string {
-	s := o.Params.Encode()
-	if s != "" {
-		s = "?" + s
-	}
-	return s
+	return ParamsString(o.Params)
 }
 
 func (o *Request) HeaderString() string {

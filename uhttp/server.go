@@ -25,7 +25,7 @@ type Server struct {
 	logErrors *ulog.Level
 }
 
-func New() *Server {
+func NewServer() *Server {
 	return &Server{
 		timeouts: timeouts{
 			write: 15 * time.Second,
@@ -123,13 +123,7 @@ func (o *Server) Run(addr string, handler http.Handler) {
 			return o.tlsman.GetCertificate(hello)
 		}
 	}
-	o.job = app.NewJob().WithLog(o.log).OnFinish(func() {
-		ctx, cancel := context.WithTimeout(context.Background(), o.timeouts.close)
-		defer cancel()
-		s := o.s
-		o.s = nil
-		s.Shutdown(ctx)
-	})
+	o.job = app.NewJob().WithLog(o.log)
 	o.job.Run(func() {
 		var err error
 		if o.IsTls() {
@@ -145,6 +139,11 @@ func (o *Server) Run(addr string, handler http.Handler) {
 
 func (o *Server) Close() {
 	if o.s != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), o.timeouts.close)
+		defer cancel()
+		s := o.s
+		o.s = nil
+		s.Shutdown(ctx)
 		o.job.Stop()
 	}
 }
