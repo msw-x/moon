@@ -16,14 +16,11 @@ func InitNilArray(v any) {
 }
 
 func initNilArray(v reflect.Value) {
-	if v.Kind() == reflect.Ptr {
-		if v.IsNil() {
-			return
-		} else {
-			v = v.Elem()
-		}
-	}
 	switch v.Kind() {
+	case reflect.Ptr, reflect.Interface:
+		if !v.IsNil() {
+			initNilArray(v.Elem())
+		}
 	case reflect.Struct:
 		for i := 0; i < v.NumField(); i++ {
 			fv := v.Field(i)
@@ -33,10 +30,21 @@ func initNilArray(v reflect.Value) {
 			}
 		}
 	case reflect.Slice:
-		if v.IsNil() && v.CanSet() {
-			elemType := v.Type().Elem()
-			s := reflect.MakeSlice(reflect.SliceOf(elemType), 0, 0)
-			v.Set(s)
+		if v.IsNil() {
+			if v.CanSet() {
+				elemType := v.Type().Elem()
+				s := reflect.MakeSlice(reflect.SliceOf(elemType), 0, 0)
+				v.Set(s)
+			}
+		}
+		fallthrough
+	case reflect.Array:
+		for i := 0; i < v.Len(); i++ {
+			initNilArray(v.Index(i))
+		}
+	case reflect.Map:
+		for _, e := range v.MapKeys() {
+			initNilArray(v.MapIndex(e))
 		}
 	}
 }

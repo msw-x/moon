@@ -118,8 +118,8 @@ func (o *Responce[T]) makeContent() {
 				o.body = v.Data
 			default:
 				o.contentType = "application/json"
-				ujson.InitNilArray(&v)
-				o.body, _ = ujson.MarshalLowerCase(v)
+				ujson.InitNilArray(&o.Data)
+				o.body, _ = ujson.MarshalLowerCase(o.Data)
 			}
 		}
 	} else {
