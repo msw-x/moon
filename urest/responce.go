@@ -69,6 +69,14 @@ func (o *Responce[T]) SetNotAcceptable() {
 	o.Status = http.StatusNotAcceptable
 }
 
+func (o *Responce[T]) SetNotImplemented() {
+	o.Status = http.StatusNotImplemented
+}
+
+func (o *Responce[T]) SetServiceUnavailable() {
+	o.Status = http.StatusServiceUnavailable
+}
+
 func (o *Responce[T]) BadRequest(s string) {
 	o.SetBadRequest()
 	o.Error = errors.New(s)
@@ -89,6 +97,16 @@ func (o *Responce[T]) NotAcceptable(s string) {
 	o.Error = errors.New(s)
 }
 
+func (o *Responce[T]) NotImplemented(s string) {
+	o.SetNotImplemented()
+	o.Error = errors.New(s)
+}
+
+func (o *Responce[T]) ServiceUnavailable(s string) {
+	o.SetServiceUnavailable()
+	o.Error = errors.New(s)
+}
+
 func (o *Responce[T]) BadRequestf(s string, args ...any) {
 	o.BadRequest(fmt.Sprintf(s, args...))
 }
@@ -103,6 +121,14 @@ func (o *Responce[T]) Unauthorizedf(s string, args ...any) {
 
 func (o *Responce[T]) NotAcceptablef(s string, args ...any) {
 	o.NotAcceptable(fmt.Sprintf(s, args...))
+}
+
+func (o *Responce[T]) NotImplementedf(s string, args ...any) {
+	o.NotImplemented(fmt.Sprintf(s, args...))
+}
+
+func (o *Responce[T]) ServiceUnavailablef(s string, args ...any) {
+	o.ServiceUnavailable(fmt.Sprintf(s, args...))
 }
 
 func (o *Responce[T]) makeContent() {
