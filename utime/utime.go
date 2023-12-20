@@ -28,7 +28,7 @@ func FixedZone(offset time.Duration) *time.Location {
 	return time.FixedZone(fmt.Sprintf("UTC%+d", int(offset.Hours())), int(offset.Seconds()))
 }
 
-func ShiftLocation(v time.Time, loc *time.Location) time.Time {
+func SetLocation(v time.Time, loc *time.Location) time.Time {
 	_, src := v.Zone()
 	_, dst := time.Now().In(loc).Zone()
 	return v.In(loc).Add(time.Second * time.Duration(src-dst))
