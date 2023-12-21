@@ -19,6 +19,7 @@ type Db struct {
 	log *ulog.Log
 	db  *bun.DB
 	job *app.Job
+	ro  bool
 	ok  bool
 }
 
@@ -64,6 +65,10 @@ func New(opt Options) *Db {
 	if opt.LogErrors || opt.LogQueries {
 		o.db.AddQueryHook(newLog(o.log, opt.LogErrors && !opt.LogQueries))
 	}
+	if opt.ReadOnly {
+		o.log.Info("readonly")
+	}
+	o.ro = opt.ReadOnly
 	o.job = app.NewJob().WithLog(o.log).OnFinish(o.close)
 	o.job.RunTicks(o.checkConnection, time.Second)
 	return o
@@ -104,6 +109,9 @@ func (o *Db) Format(query string, arg ...any) string {
 }
 
 func (o *Db) Exec(query string, arg ...any) error {
+	if o.ro {
+		return nil
+	}
 	_, err := o.db.Exec(o.Format(query, arg...))
 	return err
 }
@@ -140,6 +148,9 @@ func (o *Db) SelectAll(model any) error {
 }
 
 func (o *Db) Update(model any, fn func(*bun.UpdateQuery)) error {
+	if o.ro {
+		return nil
+	}
 	q := o.db.NewUpdate().Model(model)
 	if fn == nil {
 		q.WherePK()
@@ -163,6 +174,9 @@ func (o *Db) UpdateAll(model any) error {
 }
 
 func (o *Db) Upsert(model any) error {
+	if o.ro {
+		return nil
+	}
 	pk, err := PkName(model)
 	if err == nil {
 		on := fmt.Sprintf("CONFLICT (%s) DO UPDATE", pk)
@@ -172,6 +186,9 @@ func (o *Db) Upsert(model any) error {
 }
 
 func (o *Db) Delete(model any, fn func(*bun.DeleteQuery)) (int64, error) {
+	if o.ro {
+		return 0, nil
+	}
 	q := o.db.NewDelete().Model(model)
 	if fn == nil {
 		q.WherePK()
@@ -187,12 +204,18 @@ func (o *Db) Delete(model any, fn func(*bun.DeleteQuery)) (int64, error) {
 }
 
 func (o *Db) DeleteAll(model any) (int64, error) {
+	if o.ro {
+		return 0, nil
+	}
 	return o.Delete(model, func(q *bun.DeleteQuery) {
 		q.Where("TRUE")
 	})
 }
 
 func (o *Db) Truncate(model any) error {
+	if o.ro {
+		return nil
+	}
 	_, err := o.db.NewTruncateTable().Model(model).Exec(context.Background())
 	return err
 }

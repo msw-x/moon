@@ -14,4 +14,5 @@ type Options struct {
 	Insecure      bool
 	LogErrors     bool
 	LogQueries    bool
+	ReadOnly      bool
 }
