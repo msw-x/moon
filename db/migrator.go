@@ -42,9 +42,6 @@ func (o *Migrator) WithMarkAppliedOnSuccess(v bool) *Migrator {
 }
 
 func (o *Migrator) Exec(fs fs.FS, lock bool, rollbackLast bool, previewDown bool) (ok bool) {
-	if o.ro {
-		lock = true
-	}
 	err := o.m.Init()
 	if err == nil {
 		if o.load(fs) {
@@ -53,6 +50,9 @@ func (o *Migrator) Exec(fs fs.FS, lock bool, rollbackLast bool, previewDown bool
 				ok = true
 			} else {
 				o.log.Info(o.m.Status())
+				if o.ro {
+					ok = true
+				}
 				if lock {
 					o.log.Info("locked")
 				} else {
