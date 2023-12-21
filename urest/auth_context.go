@@ -3,6 +3,8 @@ package urest
 import (
 	"errors"
 	"net/http"
+
+	"github.com/msw-x/moon/uhttp"
 )
 
 type AuthContext[Account any, Session any] struct {
@@ -14,6 +16,10 @@ func NewAuthContext[Account any, Session any](base *Context, auth func(h http.He
 	return (&AuthContext[Account, Session]{
 		Base: base,
 	}).AppendAuth(auth)
+}
+
+func (o AuthContext[Account, Session]) Router() *uhttp.Router {
+	return o.Base.Router()
 }
 
 func (o AuthContext[Account, Session]) Branch(name string) *AuthContext[Account, Session] {

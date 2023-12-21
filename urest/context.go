@@ -20,6 +20,10 @@ func NewContext(router *uhttp.Router) *Context {
 	}
 }
 
+func (o *Context) Router() *uhttp.Router {
+	return o.router
+}
+
 func (o Context) Branch(name string) *Context {
 	o.router = o.router.Branch(name)
 	return &o

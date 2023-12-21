@@ -100,6 +100,10 @@ func (o *Client) WithOnReadBodyError(f OnError) *Client {
 	return o
 }
 
+func (o *Client) Base() string {
+	return o.base
+}
+
 func (o *Client) Url(url string) string {
 	return UrlJoin(o.base, o.path, url)
 }
