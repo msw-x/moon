@@ -121,6 +121,9 @@ func (o *Db) Count(model any) (int, error) {
 }
 
 func (o *Db) Insert(model any) error {
+	if o.ro {
+		return nil
+	}
 	_, err := o.db.NewInsert().Model(model).Exec(context.Background())
 	return err
 }
