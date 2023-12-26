@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -126,6 +124,7 @@ func (o *Router) Files(files fs.FS) {
 }
 
 func (o *Router) WebSocket(path string, onWebsocket OnWebsocket) {
+	o.init()
 	up := websocket.Upgrader{
 		ReadBufferSize:  0,
 		WriteBufferSize: 0,
@@ -148,37 +147,8 @@ func (o *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 	})
 }
 
-func (o *Router) ReverseProxy0(path string, destination string, onRewrite func(*httputil.ProxyRequest), onRequest OnRequest) {
-	target, err := url.Parse(destination)
-	if err != nil {
-		o.log.Errorf("proxy url[%s]: %v", destination, err)
-		return
-	}
-	uri := o.uri(path)
-	o.log.Debugf("PROXY:%s->%s", uri, destination)
-	var proxy *httputil.ReverseProxy
-	if onRewrite == nil {
-		proxy = httputil.NewSingleHostReverseProxy(target)
-	} else {
-		proxy = &httputil.ReverseProxy{
-			Rewrite: func(r *httputil.ProxyRequest) {
-				onRewrite(r)
-				r.SetURL(target)
-			},
-		}
-	}
-	o.HandleFunc(uri+"{target:.*}", func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = mux.Vars(r)["target"]
-		if onRequest != nil {
-			onRequest(w, r)
-		}
-		if r.URL.Path != "" {
-			proxy.ServeHTTP(w, r)
-		}
-	})
-}
-
 func (o *Router) ReverseProxy(r *ReverseProxy) {
+	o.init()
 	r.Connect(o)
 }
 
