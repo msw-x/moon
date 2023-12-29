@@ -13,3 +13,7 @@ func Bold(v any) string {
 func Monospace(v any) string {
 	return fmt.Sprintf("```%```", v)
 }
+
+func Ref(v any, url string) string {
+	return fmt.Sprintf("[%v](%s)", v, url)
+}
