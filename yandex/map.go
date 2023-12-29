@@ -2,6 +2,8 @@ package yandex
 
 import (
 	"net/url"
+	"strconv"
+	"strings"
 
 	"github.com/msw-x/moon/ufmt"
 )
@@ -26,7 +28,7 @@ func (o Location) Empty() bool {
 }
 
 func (o Location) String() string {
-	return o.Longitude + "," + o.Latitude
+	return ufmt.JoinWith(",", o.Longitude, o.Latitude)
 }
 
 type Points []Location
@@ -36,7 +38,7 @@ func (o Points) Empty() bool {
 }
 
 func (o Points) String() string {
-	ufmt.JoinSliceWith("~", o)
+	return ufmt.JoinSliceWith("~", o)
 }
 
 type Map struct {
@@ -44,6 +46,7 @@ type Map struct {
 	Traffic bool
 	Scale   int // 1-19
 	Center  Location
+	Point   Location
 	Points  Points
 }
 
@@ -56,11 +59,16 @@ func (o Map) Url() string {
 	if !o.Center.Empty() {
 		q.Set("ll", o.Center.String())
 	}
-	if !o.Points.Empty() {
-		q.Set("pt", o.Points.String())
+	var points Points
+	if !o.Point.Empty() {
+		points = append(points, o.Point)
+	}
+	points = append(points, o.Points...)
+	if !points.Empty() {
+		q.Set("pt", points.String())
 	}
 	if o.Scale != 0 {
-		q.Set("z", o.Scale)
+		q.Set("z", strconv.Itoa(o.Scale))
 	}
 	var l []MapType
 	if o.Type != "" {
@@ -70,8 +78,8 @@ func (o Map) Url() string {
 		l = append(l, MapTraffic)
 	}
 	if len(l) != 0 {
-		q.Set("l", o.Type)
+		q.Set("l", ufmt.JoinSliceWith(",", l))
 	}
 	u.RawQuery = q.Encode()
-	return u.String()
+	return strings.ReplaceAll(u.String(), "%2C", ",")
 }
