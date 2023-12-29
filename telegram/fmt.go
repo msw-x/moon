@@ -1,13 +1,15 @@
 package telegram
 
-func Italic(s string) string {
-	return "___" + s + "___"
+import "fmt"
+
+func Italic(v any) string {
+	return fmt.Sprintf("***%v***", v)
 }
 
-func Bold(s string) string {
-	return "***" + s + "***"
+func Bold(v any) string {
+	return fmt.Sprintf("___%v___", v)
 }
 
-func Monospace(s string) string {
-	return "```" + s + "```"
+func Monospace(v any) string {
+	return fmt.Sprintf("```%```", v)
 }
