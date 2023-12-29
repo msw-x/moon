@@ -1,0 +1,77 @@
+package yandex
+
+import (
+	"net/url"
+
+	"github.com/msw-x/moon/ufmt"
+)
+
+type MapType string
+
+const (
+	MapShema     MapType = "map"
+	MapSatellite MapType = "sat"
+	MapHybrid    MapType = "skl"
+)
+
+const MapTraffic MapType = "trf"
+
+type Location struct {
+	Latitude  float32
+	Longitude float32
+}
+
+func (o Location) Empty() bool {
+	return o.Latitude == 0 || o.Longitude == 0
+}
+
+func (o Location) String() string {
+	return o.Longitude + "," + o.Latitude
+}
+
+type Points []Location
+
+func (o Points) Empty() bool {
+	return len(o) == 0
+}
+
+func (o Points) String() string {
+	ufmt.JoinSliceWith("~", o)
+}
+
+type Map struct {
+	Type    MapType
+	Traffic bool
+	Scale   int // 1-19
+	Center  Location
+	Points  Points
+}
+
+func (o Map) Url() string {
+	var u url.URL
+	u.Scheme = "https"
+	u.Host = "yandex.ru"
+	u.Path = "maps"
+	q := u.Query()
+	if !o.Center.Empty() {
+		q.Set("ll", o.Center.String())
+	}
+	if !o.Points.Empty() {
+		q.Set("pt", o.Points.String())
+	}
+	if o.Scale != 0 {
+		q.Set("z", o.Scale)
+	}
+	var l []MapType
+	if o.Type != "" {
+		l = append(l, o.Type)
+	}
+	if o.Traffic {
+		l = append(l, MapTraffic)
+	}
+	if len(l) != 0 {
+		q.Set("l", o.Type)
+	}
+	u.RawQuery = q.Encode()
+	return u.String()
+}
