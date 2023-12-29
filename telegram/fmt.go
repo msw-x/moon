@@ -2,11 +2,11 @@ package telegram
 
 import "fmt"
 
-func Italic(v any) string {
+func Bold(v any) string {
 	return fmt.Sprintf("***%v***", v)
 }
 
-func Bold(v any) string {
+func Italic(v any) string {
 	return fmt.Sprintf("___%v___", v)
 }
 
