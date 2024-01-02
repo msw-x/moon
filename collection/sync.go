@@ -186,8 +186,9 @@ func (o *Sync[Id, MapItem, DbItem]) ForEachSwarm(fn func(MapItem)) {
 	o.check()
 	swarm := app.NewGoSwarm().WithLog(o.log)
 	for _, e := range o.m {
+		v := e
 		swarm.Add(func() {
-			fn(e)
+			fn(v)
 		})
 	}
 	swarm.Wait()
