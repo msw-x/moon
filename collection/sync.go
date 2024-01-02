@@ -7,6 +7,7 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/msw-x/moon/app"
 	"github.com/msw-x/moon/db"
 	"github.com/msw-x/moon/uerr"
 	"github.com/msw-x/moon/ulog"
@@ -177,6 +178,19 @@ func (o *Sync[Id, MapItem, DbItem]) ForEach(fn func(MapItem)) {
 	for _, e := range o.m {
 		fn(e)
 	}
+}
+
+func (o *Sync[Id, MapItem, DbItem]) ForEachSwarm(fn func(MapItem)) {
+	o.mutex.Lock()
+	defer o.mutex.Unlock()
+	o.check()
+	swarm := app.NewGoSwarm().WithLog(o.log)
+	for _, e := range o.m {
+		swarm.Add(func() {
+			fn(e)
+		})
+	}
+	swarm.Wait()
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Walk(fn func(MapItem) bool) bool {

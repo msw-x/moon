@@ -102,6 +102,10 @@ func (o *AsyncPlain[Id, Item]) ForEach(fn func(Item)) {
 	o.c.ForEach(fn)
 }
 
+func (o *AsyncPlain[Id, Item]) ForEachSwarm(fn func(Item)) {
+	o.c.ForEachSwarm(fn)
+}
+
 func (o *AsyncPlain[Id, Item]) Walk(fn func(Item) bool) bool {
 	return o.c.Walk(fn)
 }
