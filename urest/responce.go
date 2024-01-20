@@ -144,7 +144,7 @@ func (o *Responce[T]) makeContent() {
 				o.body = v.Data
 			default:
 				o.contentType = "application/json"
-				ujson.InitNilArray(&o.Data)
+				ujson.InitNilSlice(&o.Data)
 				o.body, _ = ujson.MarshalLowerCase(o.Data)
 			}
 		}
