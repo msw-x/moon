@@ -96,6 +96,7 @@ func (o *Performer) Body(body []byte) *Performer {
 
 func (o *Performer) Json(v any) *Performer {
 	o.ContentTypeJson()
+	ujson.InitNilSlice(&v)
 	body, _ := ujson.MarshalLowerCase(v)
 	return o.Body(body)
 }
