@@ -1,6 +1,7 @@
 package ujson
 
 import (
+	"encoding/json"
 	"reflect"
 )
 
@@ -11,40 +12,64 @@ func NullArray(bytes []byte) []byte {
 	return bytes
 }
 
-func InitNilArray(v any) {
-	initNilArray(reflect.ValueOf(v))
+func InitNilSlice(v any) {
+	initNilSlice(reflect.ValueOf(v))
 }
 
-func initNilArray(v reflect.Value) {
+func InitNilSliceFlat(i any) {
+	v := reflect.ValueOf(i)
+	if v.Kind() == reflect.Ptr || v.Kind() == reflect.Interface {
+		if v.IsNil() {
+			return
+		}
+		v = v.Elem()
+	}
+	if v.Kind() == reflect.Slice {
+		caseSlice(v)
+	}
+}
+
+func initNilSlice(v reflect.Value) {
 	switch v.Kind() {
 	case reflect.Ptr, reflect.Interface:
 		if !v.IsNil() {
-			initNilArray(v.Elem())
+			initNilSlice(v.Elem())
 		}
 	case reflect.Struct:
 		for i := 0; i < v.NumField(); i++ {
 			fv := v.Field(i)
 			ft := v.Type().Field(i)
 			if ft.IsExported() {
-				initNilArray(fv)
+				initNilSlice(fv)
 			}
 		}
 	case reflect.Slice:
-		if v.IsNil() {
-			if v.CanSet() {
+		caseSlice(v)
+		fallthrough
+	case reflect.Array:
+		for i := 0; i < v.Len(); i++ {
+			initNilSlice(v.Index(i))
+		}
+	case reflect.Map:
+		for _, e := range v.MapKeys() {
+			initNilSlice(v.MapIndex(e))
+		}
+	}
+}
+
+func isRaw(v reflect.Value) bool {
+	var r json.RawMessage
+	return v.Type() == reflect.TypeOf(r)
+}
+
+func caseSlice(v reflect.Value) {
+	if v.IsNil() {
+		if v.CanSet() {
+			if !isRaw(v) {
 				elemType := v.Type().Elem()
 				s := reflect.MakeSlice(reflect.SliceOf(elemType), 0, 0)
 				v.Set(s)
 			}
-		}
-		fallthrough
-	case reflect.Array:
-		for i := 0; i < v.Len(); i++ {
-			initNilArray(v.Index(i))
-		}
-	case reflect.Map:
-		for _, e := range v.MapKeys() {
-			initNilArray(v.MapIndex(e))
 		}
 	}
 }
