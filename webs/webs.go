@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/msw-x/moon/app"
@@ -53,7 +54,7 @@ func (o *Server) WithSecretDir(dir string) *Server {
 func (o *Server) WithAutoSecret(dir string, domains ...string) *Server {
 	o.certFile = ""
 	o.keyFile = ""
-	o.domains = domains[:]
+	o.domains = splitDomains(domains[:])
 	if len(o.domains) > 0 && o.domains[0] != "" {
 		o.tlsman = &autocert.Manager{
 			Cache:      autocert.DirCache(dir),
@@ -190,4 +191,11 @@ type timeout struct {
 	read  time.Duration
 	idle  time.Duration
 	close time.Duration
+}
+
+func splitDomains(l []string) (r []string) {
+	for _, s := range l {
+		r = append(r, strings.Split(s, " ")...)
+	}
+	return
 }
