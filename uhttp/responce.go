@@ -2,11 +2,13 @@ package uhttp
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/msw-x/moon/parse"
+	"github.com/msw-x/moon/ufmt"
 )
 
 type Responce struct {
@@ -21,6 +23,20 @@ type Responce struct {
 
 func (o *Responce) Ok() bool {
 	return o.StatusCode == http.StatusOK && o.Error == nil
+}
+
+func (o *Responce) NotOkError() error {
+	if o.Ok() {
+		return nil
+	}
+	if o.Error == nil {
+		return errors.New(o.StatusLabel())
+	}
+	return o.Error
+}
+
+func (o *Responce) StatusLabel() string {
+	return ufmt.NotableJoin(o.StatusCode, o.Status)
 }
 
 func (o *Responce) BodyExists() bool {
