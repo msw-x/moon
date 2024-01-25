@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/msw-x/moon/parse"
-	"github.com/msw-x/moon/ufmt"
 )
 
 type Responce struct {
@@ -30,13 +30,16 @@ func (o *Responce) NotOkError() error {
 		return nil
 	}
 	if o.Error == nil {
-		return errors.New(o.StatusLabel())
+		return errors.New(o.GetStatus())
 	}
 	return o.Error
 }
 
-func (o *Responce) StatusLabel() string {
-	return ufmt.NotableJoin(o.StatusCode, o.Status)
+func (o *Responce) GetStatus() string {
+	if o.Status == "" {
+		return strconv.Itoa(o.StatusCode)
+	}
+	return o.Status
 }
 
 func (o *Responce) BodyExists() bool {
