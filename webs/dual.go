@@ -10,9 +10,10 @@ import (
 )
 
 type DualServer struct {
-	s           *Server
-	tls         *Server
-	tlsRedirect string
+	s               *Server
+	tls             *Server
+	tlsRedirect     string
+	tlsAutoRedirect bool
 }
 
 func NewDual() *DualServer {
@@ -66,11 +67,16 @@ func (o *DualServer) WithRedirectToTls(use string) *DualServer {
 	return o
 }
 
+func (o *DualServer) WithAutoRedirectToTls() *DualServer {
+	o.tlsAutoRedirect = true
+	return o
+}
+
 func (o *DualServer) Run(addr string, addrTls string, handler http.Handler) error {
 	if !o.tls.IsTls() {
 		return errors.New("dual-server: tls secret not defined")
 	}
-	if o.tlsRedirect == "" {
+	if o.tlsRedirect == "" && !o.tlsAutoRedirect {
 		o.s.Run(addr, handler)
 	} else {
 		_, port, err := net.SplitHostPort(addrTls)
@@ -78,7 +84,11 @@ func (o *DualServer) Run(addr string, addrTls string, handler http.Handler) erro
 			return nil
 		}
 		o.s.Run(addr, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			url := fmt.Sprintf("https://%s:%s%s", o.tlsRedirect, port, r.RequestURI)
+			host := o.tlsRedirect
+			if o.tlsAutoRedirect {
+				host = r.Host
+			}
+			url := fmt.Sprintf("https://%s:%s%s", host, port, r.RequestURI)
 			http.Redirect(w, r, url, http.StatusMovedPermanently)
 		}))
 	}
