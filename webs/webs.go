@@ -59,7 +59,7 @@ func (o *Server) WithAutoSecret(dir string, domains ...string) *Server {
 		o.tlsman = &autocert.Manager{
 			Cache:      autocert.DirCache(dir),
 			Prompt:     autocert.AcceptTOS,
-			HostPolicy: autocert.HostWhitelist(domains...),
+			HostPolicy: autocert.HostWhitelist(o.domains...),
 		}
 	} else {
 		o.WithSecretDir(dir)
