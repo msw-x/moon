@@ -7,6 +7,7 @@ type Tracer struct {
 	format      Format
 	formatError Format
 	validate    func(Responce) bool
+	filter      func(Responce) bool
 }
 
 func NewTracer(log *ulog.Log) *Tracer {
@@ -31,7 +32,17 @@ func (o *Tracer) WithValidate(f func(Responce) bool) *Tracer {
 	return o
 }
 
+func (o *Tracer) WithFilter(f func(Responce) bool) *Tracer {
+	o.filter = f
+	return o
+}
+
 func (o *Tracer) Trace(r Responce) {
+	if o.filter != nil {
+		if !o.filter(r) {
+			return
+		}
+	}
 	ok := r.Ok()
 	if o.validate != nil {
 		ok = o.validate(r)
