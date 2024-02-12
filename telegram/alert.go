@@ -17,7 +17,8 @@ type AlertBot struct {
 	token   string
 	chatId  int64
 	version string
-	limiter *Limiter[string]
+	limiter LimiterIf[string]
+	closeAt time.Time
 }
 
 func NewAlertBot(token string, chatId string, version string) *AlertBot {
@@ -33,7 +34,7 @@ func NewAlertBot(token string, chatId string, version string) *AlertBot {
 			o.bot, err = botapi.NewBotAPI(token)
 			if err == nil {
 				o.log.Info("authorized on account:", o.bot.Self.UserName)
-				o.limiter = NewLimiter(o.send)
+				o.limiter = NewLimiter[string](o.send)
 			}
 		}
 		if err != nil {
@@ -43,9 +44,36 @@ func NewAlertBot(token string, chatId string, version string) *AlertBot {
 	return o
 }
 
+func (o *AlertBot) Close() {
+	var t time.Duration
+	if !o.closeAt.IsZero() {
+		t = time.Since(o.closeAt)
+	}
+	o.Shutdown(t)
+}
+
+func (o *AlertBot) Closing() {
+	o.closeAt = time.Now()
+}
+
+func (o *AlertBot) SetQueue(queue QueueIf[string]) {
+	if o.limiter != nil {
+		o.limiter.SetQueue(queue)
+	}
+}
+
+func (o *AlertBot) QueueSize() int {
+	if o.limiter == nil {
+		return 0
+	}
+	return o.limiter.Queue().Size()
+}
+
 func (o *AlertBot) Send(message string) {
 	if o.limiter != nil {
-		o.limiter.Push(message)
+		if !o.limiter.Push(message) {
+			o.log.Tracef("limiter overloaded, the message is lost")
+		}
 	}
 }
 
@@ -91,6 +119,7 @@ func (o *AlertBot) pureSend(text string) {
 		msg.ParseMode = botapi.ModeMarkdown
 		_, err := o.bot.Send(msg)
 		if err != nil {
+			o.log.Errorf("send[%d]: %v", o.chatId, err)
 			o.log.Tracef("send[%d]: %v; text: %s", o.chatId, err, text)
 		}
 	}
@@ -99,7 +128,7 @@ func (o *AlertBot) pureSend(text string) {
 func (o *AlertBot) predictiveSend(text string, queueSizeLimit int) {
 	n := o.limiter.Queue().Size()
 	if n > queueSizeLimit {
-		o.pureSend(text + fmt.Sprintf("\nmessage queue: ***%d***", n))
+		o.pureSend(text + fmt.Sprintf("\n📩 ***%d***", n))
 	} else {
 		o.pureSend(text)
 	}
