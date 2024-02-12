@@ -43,13 +43,6 @@ func NewAlertBot(token string, chatId string, version string) *AlertBot {
 	return o
 }
 
-func (o *AlertBot) WithPrePop(prepop func(func() (string, bool)) (string, bool)) *AlertBot {
-	if o.limiter != nil {
-		o.limiter.WithPrePop(prepop)
-	}
-	return o
-}
-
 func (o *AlertBot) Send(message string) {
 	if o.limiter != nil {
 		o.limiter.Push(message)
@@ -67,17 +60,12 @@ func (o *AlertBot) Startup() {
 func (o *AlertBot) Shutdown(ts time.Duration) {
 	if o.limiter != nil {
 		o.limiter.Close()
-		n := o.limiter.Size()
-		q := ""
-		if n > 0 {
-			q = fmt.Sprintf("\nmessage queue: ***%d***", n)
-		}
 		s := ""
 		if ts > 0 {
 			ts = utime.PrettyTruncate(ts)
 			s = fmt.Sprintf(" %v", ts)
 		}
-		o.send("🏁 ***Shutdown***" + s + "\n`" + ulog.Stat() + "`" + q)
+		o.predictiveSend("🏁 ***Shutdown***"+s+"\n`"+ulog.Stat()+"`", 0)
 	}
 }
 
@@ -97,7 +85,7 @@ func (o *AlertBot) SendLog(m ulog.Message) {
 	o.Send(fmt.Sprintf("%s`%s`", icon, text))
 }
 
-func (o *AlertBot) send(text string) {
+func (o *AlertBot) pureSend(text string) {
 	if o.bot != nil {
 		msg := botapi.NewMessage(o.chatId, text)
 		msg.ParseMode = botapi.ModeMarkdown
@@ -106,4 +94,17 @@ func (o *AlertBot) send(text string) {
 			o.log.Tracef("send[%d]: %v; text: %s", o.chatId, err, text)
 		}
 	}
+}
+
+func (o *AlertBot) predictiveSend(text string, queueSizeLimit int) {
+	n := o.limiter.Queue().Size()
+	if n > queueSizeLimit {
+		o.pureSend(text + fmt.Sprintf("\nmessage queue: ***%d***", n))
+	} else {
+		o.pureSend(text)
+	}
+}
+
+func (o *AlertBot) send(text string) {
+	o.predictiveSend(text, 10)
 }
