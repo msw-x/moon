@@ -108,6 +108,10 @@ func (o *Db) Format(query string, arg ...any) string {
 	return o.db.Formatter().FormatQuery(query, arg...)
 }
 
+func (o *Db) Scan(model any, query string, arg ...any) error {
+	return o.db.NewRaw(query, arg...).Scan(o.ctx(), model)
+}
+
 func (o *Db) Exec(query string, arg ...any) error {
 	if o.ro {
 		return nil
@@ -117,14 +121,14 @@ func (o *Db) Exec(query string, arg ...any) error {
 }
 
 func (o *Db) Count(model any) (int, error) {
-	return o.db.NewSelect().Model(model).Count(context.Background())
+	return o.db.NewSelect().Model(model).Count(o.ctx())
 }
 
 func (o *Db) Insert(model any) error {
 	if o.ro {
 		return nil
 	}
-	_, err := o.db.NewInsert().Model(model).Exec(context.Background())
+	_, err := o.db.NewInsert().Model(model).Exec(o.ctx())
 	return err
 }
 
@@ -137,7 +141,7 @@ func (o *Db) Select(model any, fn func(*bun.SelectQuery)) error {
 	if fn != nil {
 		fn(q)
 	}
-	return q.Scan(context.Background())
+	return q.Scan(o.ctx())
 }
 
 func (o *Db) SelectIn(model any, ids any) error {
@@ -160,7 +164,7 @@ func (o *Db) Update(model any, fn func(*bun.UpdateQuery)) error {
 	} else {
 		fn(q)
 	}
-	_, err := q.Exec(context.Background())
+	_, err := q.Exec(o.ctx())
 	return err
 }
 
@@ -183,7 +187,7 @@ func (o *Db) Upsert(model any) error {
 	pk, err := PkName(model)
 	if err == nil {
 		on := fmt.Sprintf("CONFLICT (%s) DO UPDATE", pk)
-		_, err = o.db.NewInsert().Model(model).On(on).Exec(context.Background())
+		_, err = o.db.NewInsert().Model(model).On(on).Exec(o.ctx())
 	}
 	return err
 }
@@ -199,7 +203,7 @@ func (o *Db) Delete(model any, fn func(*bun.DeleteQuery)) (int64, error) {
 		fn(q)
 	}
 	var num int64
-	res, err := q.Exec(context.Background())
+	res, err := q.Exec(o.ctx())
 	if err == nil {
 		num, _ = res.RowsAffected()
 	}
@@ -219,7 +223,7 @@ func (o *Db) Truncate(model any) error {
 	if o.ro {
 		return nil
 	}
-	_, err := o.db.NewTruncateTable().Model(model).Exec(context.Background())
+	_, err := o.db.NewTruncateTable().Model(model).Exec(o.ctx())
 	return err
 }
 
@@ -230,7 +234,7 @@ func (o *Db) Exists(model any, fn func(*bun.SelectQuery)) (bool, error) {
 	} else {
 		fn(q)
 	}
-	return q.Exists(context.Background())
+	return q.Exists(o.ctx())
 }
 
 func (o *Db) ExistsPk(model any) (bool, error) {
@@ -247,6 +251,10 @@ func (o *Db) GetIfExists(model any, fn func(*bun.SelectQuery)) (bool, error) {
 
 func (o *Db) GetIfExistsPk(model any) (bool, error) {
 	return o.GetIfExists(model, nil)
+}
+
+func (o *Db) ctx() context.Context {
+	return context.Background()
 }
 
 func (o *Db) checkConnection() {
