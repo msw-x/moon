@@ -48,6 +48,14 @@ func Generate(length int, withNumbers bool, withSymbols bool) string {
 	return password
 }
 
+func GenerateHard(length int) string {
+	return Generate(length, true, true)
+}
+
+func GenerateMild(length int) string {
+	return Generate(length, true, false)
+}
+
 func generate(length int, chars string) string {
 	password := ""
 	for i := 0; i < length; i++ {
