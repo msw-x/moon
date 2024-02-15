@@ -93,6 +93,7 @@ func (o *AlertBot) Shutdown(ts time.Duration) {
 		if ts > 0 {
 			ts = utime.PrettyTruncate(ts)
 			s = fmt.Sprintf(" %v", ts)
+			s = EscapeMarkdownV2(s)
 		}
 		o.predictiveSend("🏁 *Shutdown*"+s+"\n`"+ulog.Stat()+"`", 0)
 	}
