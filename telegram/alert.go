@@ -7,6 +7,7 @@ import (
 
 	botapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/msw-x/moon/parse"
+	"github.com/msw-x/moon/ufmt"
 	"github.com/msw-x/moon/ulog"
 	"github.com/msw-x/moon/utime"
 )
@@ -109,8 +110,18 @@ func (o *AlertBot) SendLog(m ulog.Message) {
 	default:
 		return
 	}
-	text := strings.ReplaceAll(m.Text, "`", "'")
-	o.Send(fmt.Sprintf("%s`%s`", icon, text))
+	tail := ""
+	text := m.Text
+	limit := 4000
+	n := len(text)
+	if n > limit {
+		text = text[0:limit]
+		tail = fmt.Sprintf("\nmessage length limit exceeded: *%s / %s*",
+			EscapeMarkdownV2(ufmt.ByteSize(n)),
+			EscapeMarkdownV2(ufmt.ByteSize(limit)))
+	}
+	text = strings.ReplaceAll(text, "`", "'")
+	o.Send(fmt.Sprintf("%s`%s`%s", icon, text, tail))
 }
 
 func (o *AlertBot) pureSend(text string) {
