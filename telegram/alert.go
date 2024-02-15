@@ -82,7 +82,7 @@ func (o *AlertBot) Sendf(f string, v ...any) {
 }
 
 func (o *AlertBot) Startup() {
-	o.send("🚀 ***Startup***\n`v" + o.version + "`")
+	o.send("🚀 *Startup*\n`v" + o.version + "`")
 }
 
 func (o *AlertBot) Shutdown(ts time.Duration) {
@@ -93,7 +93,7 @@ func (o *AlertBot) Shutdown(ts time.Duration) {
 			ts = utime.PrettyTruncate(ts)
 			s = fmt.Sprintf(" %v", ts)
 		}
-		o.predictiveSend("🏁 ***Shutdown***"+s+"\n`"+ulog.Stat()+"`", 0)
+		o.predictiveSend("🏁 *Shutdown*"+s+"\n`"+ulog.Stat()+"`", 0)
 	}
 }
 
@@ -116,7 +116,7 @@ func (o *AlertBot) SendLog(m ulog.Message) {
 func (o *AlertBot) pureSend(text string) {
 	if o.bot != nil {
 		msg := botapi.NewMessage(o.chatId, text)
-		msg.ParseMode = botapi.ModeMarkdown
+		msg.ParseMode = botapi.ModeMarkdownV2
 		_, err := o.bot.Send(msg)
 		if err != nil {
 			o.log.Errorf("send[%d]: %v", o.chatId, err)
@@ -128,7 +128,7 @@ func (o *AlertBot) pureSend(text string) {
 func (o *AlertBot) predictiveSend(text string, queueSizeLimit int) {
 	n := o.limiter.Queue().Size()
 	if n > queueSizeLimit {
-		o.pureSend(text + fmt.Sprintf("\n📩 ***%d***", n))
+		o.pureSend(text + fmt.Sprintf("\n📩 *%d*", n))
 	} else {
 		o.pureSend(text)
 	}
