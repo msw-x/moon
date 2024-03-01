@@ -19,7 +19,7 @@ type Server struct {
 	log            *ulog.Log
 	s              *http.Server
 	do             *usync.Do
-	timeout        timeout
+	timeout        Timeout
 	certFile       string
 	keyFile        string
 	domains        []string
@@ -31,11 +31,11 @@ type Server struct {
 
 func New() *Server {
 	return &Server{
-		timeout: timeout{
-			write: 15 * time.Second,
-			read:  15 * time.Second,
-			idle:  60 * time.Second,
-			close: 5 * time.Second,
+		timeout: Timeout{
+			Write: 15 * time.Second,
+			Read:  15 * time.Second,
+			Idle:  60 * time.Second,
+			Close: 5 * time.Second,
 		},
 	}
 }
@@ -93,6 +93,11 @@ func (o *Server) WithXRemoteAddress(s string) *Server {
 	return o
 }
 
+func (o *Server) WithTimeout(timeout Timeout) *Server {
+	o.timeout = timeout
+	return o
+}
+
 func (o *Server) Run(addr string, handler http.Handler) {
 	if addr == "" {
 		return
@@ -119,9 +124,9 @@ func (o *Server) Run(addr string, handler http.Handler) {
 	o.s = &http.Server{
 		Addr:         addr,
 		Handler:      handler,
-		WriteTimeout: o.timeout.write,
-		ReadTimeout:  o.timeout.read,
-		IdleTimeout:  o.timeout.idle,
+		WriteTimeout: o.timeout.Write,
+		ReadTimeout:  o.timeout.Read,
+		IdleTimeout:  o.timeout.Idle,
 		ErrorLog: ulog.StdBridge(func(m string) {
 			if o.logErrors != nil {
 				level := *o.logErrors
@@ -161,7 +166,7 @@ func (o *Server) Run(addr string, handler http.Handler) {
 
 func (o *Server) Shutdown() {
 	if o.s != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), o.timeout.close)
+		ctx, cancel := context.WithTimeout(context.Background(), o.timeout.Close)
 		defer cancel()
 		o.log.Info("shutdown")
 		s := o.s
@@ -184,13 +189,6 @@ func (o *Server) LogRequest(mux http.Handler) http.Handler {
 		mux.ServeHTTP(w, r)
 		o.log.Debug(name, time.Since(tm).Truncate(time.Millisecond))
 	})
-}
-
-type timeout struct {
-	write time.Duration
-	read  time.Duration
-	idle  time.Duration
-	close time.Duration
 }
 
 func splitDomains(l []string) (r []string) {
