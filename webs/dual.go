@@ -72,6 +72,12 @@ func (o *DualServer) WithAutoRedirectToTls() *DualServer {
 	return o
 }
 
+func (o *DualServer) WithTimeout(t Timeout) *DualServer {
+	o.s.WithTimeout(t)
+	o.tls.WithTimeout(t)
+	return o
+}
+
 func (o *DualServer) Run(addr string, addrTls string, handler http.Handler) error {
 	if !o.tls.IsTls() {
 		return errors.New("dual-server: tls secret not defined")
