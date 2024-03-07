@@ -21,6 +21,9 @@ func impl(refOld, refNew reflect.Value, tag string) []string {
 		fieldOld := refOld.Field(i)
 		fieldNew := refNew.Field(i)
 		f := refOld.Type().Field(i)
+		if !f.IsExported() {
+			continue
+		}
 		if f.Anonymous && f.Type.Kind() == reflect.Struct {
 			names = append(names, impl(fieldOld, fieldNew, tag)...)
 			continue
