@@ -13,20 +13,22 @@ import (
 )
 
 type AlertBot struct {
-	log     *ulog.Log
-	bot     *botapi.BotAPI
-	token   string
-	chatId  int64
-	version string
-	limiter LimiterIf[string]
-	closeAt time.Time
+	log         *ulog.Log
+	bot         *botapi.BotAPI
+	token       string
+	chatId      int64
+	version     string
+	limiter     LimiterIf[string]
+	closeAt     time.Time
+	logMsgLimit int
 }
 
 func NewAlertBot(token string, chatId string, version string) *AlertBot {
 	o := &AlertBot{
-		log:     ulog.New("alert-bot"),
-		token:   token,
-		version: version,
+		log:         ulog.New("alert-bot"),
+		token:       token,
+		version:     version,
+		logMsgLimit: 1024,
 	}
 	if chatId != "" {
 		var err error
@@ -55,6 +57,10 @@ func (o *AlertBot) Close() {
 
 func (o *AlertBot) Closing() {
 	o.closeAt = time.Now()
+}
+
+func (o *AlertBot) SetLogMessageLimit(limit int) {
+	o.logMsgLimit = limit
 }
 
 func (o *AlertBot) SetQueue(queue QueueIf[string]) {
@@ -113,7 +119,7 @@ func (o *AlertBot) SendLog(m ulog.Message) {
 	}
 	tail := ""
 	text := m.Text
-	limit := 4000
+	limit := o.logMsgLimit
 	n := len(text)
 	if n > limit {
 		text = text[0:limit]
