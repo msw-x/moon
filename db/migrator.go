@@ -50,9 +50,6 @@ func (o *Migrator) Exec(fs fs.FS, lock bool, rollbackLast bool, previewDown bool
 				ok = true
 			} else {
 				o.log.Info(o.m.Status())
-				if o.ro {
-					ok = true
-				}
 				if lock {
 					o.log.Info("locked")
 				} else {
@@ -86,6 +83,9 @@ func (o *Migrator) load(fs fs.FS) bool {
 
 func (o *Migrator) migrate() bool {
 	if o.m.HasIncompleteMigrations() {
+		if o.ro {
+			return true
+		}
 		o.log.Info("migrate")
 		err := o.m.Migrate()
 		if err == nil {
@@ -102,6 +102,9 @@ func (o *Migrator) migrate() bool {
 }
 
 func (o *Migrator) rollbackLast() {
+	if o.ro {
+		return
+	}
 	if o.m.UnappliedMigrationsCount() == 0 {
 		err := o.m.RollbackLast()
 		if err == nil {
