@@ -11,6 +11,7 @@ type Job struct {
 	do       *usync.Do
 	log      *ulog.Log
 	level    ulog.Level
+	running  bool
 	onInit   func() error
 	onStart  func()
 	onFinish func()
@@ -29,6 +30,10 @@ func (o *Job) Do() bool {
 	return o.do.Do()
 }
 
+func (o *Job) Running() bool {
+	return o.running
+}
+
 func (o *Job) Wait() {
 	o.logPrint("wait")
 	for o.Do() {
@@ -38,9 +43,13 @@ func (o *Job) Wait() {
 }
 
 func (o *Job) Stop() {
-	o.logPrint("stop")
-	o.do.Stop()
-	o.logPrint("stopped")
+	if o.Running() {
+		o.logPrint("stop")
+		o.do.Stop()
+		o.logPrint("stopped")
+	} else {
+		o.logPrint("stop: not running")
+	}
 }
 
 func (o *Job) Cancel() {
@@ -82,9 +91,11 @@ func (o *Job) WithLogLevel(level ulog.Level) *Job {
 }
 
 func (o *Job) Run(fn func()) {
+	o.running = true
 	go func() {
 		defer o.recover()
 		defer o.do.Notify()
+		defer o.stop()
 		if o.init() {
 			o.start()
 			defer o.finish()
@@ -145,6 +156,10 @@ func (o *Job) start() {
 		o.onStart()
 	}
 	o.logPrint("started")
+}
+
+func (o *Job) stop() {
+	o.running = false
 }
 
 func (o *Job) finish() {
