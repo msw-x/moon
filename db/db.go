@@ -121,7 +121,7 @@ func (o *Db) Exec(query string, arg ...any) error {
 }
 
 func (o *Db) Count(model any) (int, error) {
-	return o.db.NewSelect().Model(model).Count(o.ctx())
+	return o.NewSelect(model).Count(o.ctx())
 }
 
 func (o *Db) Insert(model any) error {
@@ -141,6 +141,12 @@ func (o *Db) Select(model any, fn func(*bun.SelectQuery)) error {
 	if fn != nil {
 		fn(q)
 	}
+	return q.Scan(o.ctx())
+}
+
+func (o *Db) SelectPk(model any) error {
+	q := o.NewSelect(model)
+	q.WherePK()
 	return q.Scan(o.ctx())
 }
 
@@ -228,7 +234,7 @@ func (o *Db) Truncate(model any) error {
 }
 
 func (o *Db) Exists(model any, fn func(*bun.SelectQuery)) (bool, error) {
-	q := o.db.NewSelect().Model(model)
+	q := o.NewSelect(model)
 	if fn == nil {
 		q.WherePK()
 	} else {
@@ -244,7 +250,11 @@ func (o *Db) ExistsPk(model any) (bool, error) {
 func (o *Db) GetIfExists(model any, fn func(*bun.SelectQuery)) (bool, error) {
 	ok, err := o.Exists(model, fn)
 	if ok {
-		err = o.Select(model, fn)
+		if fn == nil {
+			err = o.SelectPk(model)
+		} else {
+			err = o.Select(model, fn)
+		}
 	}
 	return ok, err
 }
