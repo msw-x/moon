@@ -174,6 +174,10 @@ func (o *Db) Update(model any, fn func(*bun.UpdateQuery)) error {
 	return err
 }
 
+func (o *Db) UpdatePk(model any) error {
+	return o.Update(model, nil)
+}
+
 func (o *Db) UpdateIn(model any, ids any) error {
 	return o.Update(model, func(q *bun.UpdateQuery) {
 		q.Where("id IN (?)", bun.In(ids))
