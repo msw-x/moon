@@ -119,6 +119,10 @@ func (o *Migrator) rollbackLast() {
 }
 
 func (o *Migrator) previewDown() {
-	last := o.m.Migrations().Last()
-	o.log.Infof("preview migration[%s] down:\n%s", last.String(), last.PreviewDown())
+	name, down, err := o.m.Migrations().PreviewDown()
+	if err == nil {
+		o.log.Infof("preview migration[%s] down:\n%s", name, down)
+	} else {
+		o.log.Error(err)
+	}
 }
