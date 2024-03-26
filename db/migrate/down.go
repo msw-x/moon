@@ -1,6 +1,7 @@
 package migrate
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 )
@@ -42,6 +43,7 @@ func NewDownGenerator() *DownGenerator {
 }
 
 func (o *DownGenerator) add(token string, f func(string) bool) {
+	fmt.Println(token)
 	if f == nil {
 		token = trimNameTail(token)
 	}
@@ -89,7 +91,7 @@ func (o *DownGenerator) alter(token string) (r bool) {
 	v := strings.ToUpper(token)
 	switch v {
 	case "ADD":
-		o.add("DROP", o.alter)
+		o.add("DROP", o.name)
 	case "COLUMN":
 		o.add(v, o.alter)
 	default:
@@ -104,7 +106,6 @@ func (o *DownGenerator) alter(token string) (r bool) {
 }
 
 func (o *DownGenerator) name(token string) (r bool) {
-
 	v := strings.ToUpper(token)
 	switch v {
 	case "IF", "NOT", "EXISTS":
