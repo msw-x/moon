@@ -1,7 +1,6 @@
 package migrate
 
 import (
-	"fmt"
 	"slices"
 	"strings"
 )
@@ -43,7 +42,6 @@ func NewDownGenerator() *DownGenerator {
 }
 
 func (o *DownGenerator) add(token string, f func(string) bool) {
-	fmt.Println(token)
 	if f == nil {
 		token = trimNameTail(token)
 	}
