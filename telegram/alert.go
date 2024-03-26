@@ -15,7 +15,6 @@ import (
 type AlertBot struct {
 	log         *ulog.Log
 	bot         *botapi.BotAPI
-	token       string
 	chatId      int64
 	version     string
 	limiter     LimiterIf[string]
@@ -26,7 +25,6 @@ type AlertBot struct {
 func NewAlertBot(token string, chatId string, version string) *AlertBot {
 	o := &AlertBot{
 		log:         ulog.New("alert-bot"),
-		token:       token,
 		version:     version,
 		logMsgLimit: 1024,
 	}
@@ -144,11 +142,13 @@ func (o *AlertBot) pureSend(text string) {
 }
 
 func (o *AlertBot) predictiveSend(text string, queueSizeLimit int) {
-	n := o.limiter.Queue().Size()
-	if n > queueSizeLimit {
-		o.pureSend(text + fmt.Sprintf("\n📩 *%d*", n))
-	} else {
-		o.pureSend(text)
+	if o.limiter != nil {
+		n := o.limiter.Queue().Size()
+		if n > queueSizeLimit {
+			o.pureSend(text + fmt.Sprintf("\n📩 *%d*", n))
+		} else {
+			o.pureSend(text)
+		}
 	}
 }
 
