@@ -17,6 +17,7 @@ const (
 )
 
 const MapTraffic MapType = "trf"
+const MapPanoramas MapType = "stv"
 
 type Location struct {
 	Latitude  float32
@@ -42,12 +43,14 @@ func (o Points) String() string {
 }
 
 type Map struct {
-	Type    MapType
-	Traffic bool
-	Scale   int // 1-19
-	Center  Location
-	Point   Location
-	Points  Points
+	Type      MapType
+	Traffic   bool
+	Panoramas bool
+	Scale     int // 1-19
+	Center    Location
+	Point     Location
+	Points    Points
+	Text      string
 }
 
 func (o Map) Url() string {
@@ -59,13 +62,17 @@ func (o Map) Url() string {
 	if !o.Center.Empty() {
 		q.Set("ll", o.Center.String())
 	}
-	var points Points
-	if !o.Point.Empty() {
-		points = append(points, o.Point)
-	}
-	points = append(points, o.Points...)
-	if !points.Empty() {
-		q.Set("pt", points.String())
+	if o.Text == "" {
+		var points Points
+		if !o.Point.Empty() {
+			points = append(points, o.Point)
+		}
+		points = append(points, o.Points...)
+		if !points.Empty() {
+			q.Set("pt", points.String())
+		}
+	} else {
+		q.Set("text", o.Text)
 	}
 	if o.Scale != 0 {
 		q.Set("z", strconv.Itoa(o.Scale))
@@ -76,6 +83,9 @@ func (o Map) Url() string {
 	}
 	if o.Traffic {
 		l = append(l, MapTraffic)
+	}
+	if o.Panoramas {
+		l = append(l, MapPanoramas)
 	}
 	if len(l) != 0 {
 		q.Set("l", ufmt.JoinSliceWith(",", l))
