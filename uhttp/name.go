@@ -10,6 +10,20 @@ import (
 	"github.com/msw-x/moon/utime"
 )
 
+func ClientAddress(r *http.Request, xRemoteAddress string) string {
+	if r == nil {
+		return ""
+	}
+	var remoteAddress string
+	if xRemoteAddress != "" && r.Header != nil {
+		remoteAddress = r.Header.Get(xRemoteAddress)
+	}
+	if remoteAddress == "" {
+		remoteAddress = r.RemoteAddr
+	}
+	return remoteAddress
+}
+
 func ClientRequestName(r Request) string {
 	return fmt.Sprintf("%s[%s]", r.Method, r.Url)
 }
@@ -26,14 +40,7 @@ func ProxyRequestName(r *http.Request, xRemoteAddress string) string {
 	if r == nil {
 		return "?"
 	}
-	var remoteAddress string
-	if xRemoteAddress != "" && r.Header != nil {
-		remoteAddress = r.Header.Get(xRemoteAddress)
-	}
-	if remoteAddress == "" {
-		remoteAddress = r.RemoteAddr
-	}
-	return ufmt.JoinWith("'", remoteAddress, RouteName(r.Method, r.URL.Path))
+	return ufmt.JoinWith("'", ClientAddress(r, xRemoteAddress), RouteName(r.Method, r.URL.Path))
 }
 
 func WebSocketName(name string) string {

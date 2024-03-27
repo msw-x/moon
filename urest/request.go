@@ -19,7 +19,6 @@ type Request[T any] struct {
 	Data T
 
 	r    *http.Request
-	ca   string
 	body []byte
 }
 
@@ -44,10 +43,7 @@ func (o Request[T]) RemoteHost() string {
 }
 
 func (o Request[T]) ClientAddr() string {
-	if o.ca == "" {
-		return o.RemoteAddr()
-	}
-	return o.ca
+	return uhttp.ClientAddress(o.r, uhttp.XForwardedFor)
 }
 
 func (o Request[T]) ClientHost() string {

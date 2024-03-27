@@ -29,7 +29,7 @@ type OnWebsocket func(*websocket.Conn)
 func NewRouter() *Router {
 	return &Router{
 		router:         mux.NewRouter(),
-		xRemoteAddress: "X-Forwarded-For",
+		xRemoteAddress: XForwardedFor,
 		wsErrorLevel:   ulog.LevelError,
 	}
 }
