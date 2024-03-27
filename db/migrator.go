@@ -4,6 +4,7 @@ import (
 	"io/fs"
 
 	"github.com/msw-x/moon/db/migrate"
+	"github.com/msw-x/moon/ufmt"
 	"github.com/msw-x/moon/ulog"
 )
 
@@ -17,7 +18,7 @@ func NewMigrator(d *Db) *Migrator {
 	o := new(Migrator)
 	o.log = d.log.Branch("migrator")
 	o.ro = d.ro
-	o.m = migrate.NewMigrator(d.db)
+	o.m = migrate.NewMigrator(d.db).WithReadonly(o.ro)
 	return o
 }
 
@@ -41,7 +42,7 @@ func (o *Migrator) WithMarkAppliedOnSuccess(v bool) *Migrator {
 	return o
 }
 
-func (o *Migrator) Exec(fs fs.FS, lock bool, rollbackLast bool, previewDown bool) (ok bool) {
+func (o *Migrator) Exec(fs fs.FS, lock bool, rollbackLast bool, previewDown bool, repairDown bool) (ok bool) {
 	err := o.m.Init()
 	if err == nil {
 		if o.load(fs) {
@@ -58,6 +59,8 @@ func (o *Migrator) Exec(fs fs.FS, lock bool, rollbackLast bool, previewDown bool
 						o.rollbackLast()
 					case previewDown:
 						o.previewDown()
+					case repairDown:
+						o.repairDown()
 					default:
 						ok = o.migrate()
 					}
@@ -122,6 +125,20 @@ func (o *Migrator) previewDown() {
 	name, down, err := o.m.Migrations().PreviewDown()
 	if err == nil {
 		o.log.Infof("preview migration[%s] down:\n%s", name, down)
+	} else {
+		o.log.Error(err)
+	}
+}
+
+func (o *Migrator) repairDown() {
+	o.log.Info("repair down")
+	l, err := o.m.RepairDown()
+	if err == nil {
+		s := ufmt.JoinSlice(l)
+		if s == "" {
+			s = "no"
+		}
+		o.log.Info("repaired down:", s)
 	} else {
 		o.log.Error(err)
 	}

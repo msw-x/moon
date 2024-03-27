@@ -118,7 +118,8 @@ func (o *DownGenerator) alter(token string) (r bool) {
 	v := strings.ToUpper(token)
 	switch v {
 	case "ADD":
-		o.add("DROP", o.name)
+		o.add("DROP", nil)
+		o.add("COLUMN", o.name)
 	case "COLUMN":
 		o.add(v, o.alter)
 	default:

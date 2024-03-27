@@ -20,6 +20,7 @@ type Migrator struct {
 	autoDownSql          bool
 	rollbackLost         bool
 	markAppliedOnSuccess bool
+	ro                   bool
 	l                    Migrations
 }
 
@@ -31,6 +32,11 @@ func NewMigrator(db *bun.DB) *Migrator {
 	o.saveDownSql = true
 	o.autoDownSql = true
 	o.rollbackLost = true
+	return o
+}
+
+func (o *Migrator) WithReadonly(ro bool) *Migrator {
+	o.ro = ro
 	return o
 }
 
@@ -65,6 +71,9 @@ func (o *Migrator) WithMarkAppliedOnSuccess(v bool) *Migrator {
 }
 
 func (o *Migrator) Init() (err error) {
+	if o.ro {
+		return
+	}
 	_, err = o.db.NewCreateTable().
 		Model((*Migration)(nil)).
 		ModelTableExpr(o.tableName).
@@ -83,6 +92,9 @@ func (o *Migrator) Reset() (err error) {
 }
 
 func (o *Migrator) Forget() (err error) {
+	if o.ro {
+		return
+	}
 	_, err = o.db.NewTruncateTable().TableExpr(o.tableName).Exec(context.Background())
 	return
 }
@@ -200,6 +212,10 @@ func (o *Migrator) RollbackLast() (err error) {
 	return nil
 }
 
+func (o *Migrator) RepairDown() ([]string, error) {
+	return o.l.RepairDown(o.updateApplied)
+}
+
 func (o *Migrator) Status() string {
 	w := tabtable.New()
 	w.Write("name", "comment", "group", "migrated")
@@ -240,21 +256,42 @@ func (o *Migrator) Status() string {
 	return s
 }
 
-func (o *Migrator) markApplied(m *Migration) (err error) {
+func (o *Migrator) writeApplied(m *Migration, update bool) (err error) {
+	if o.ro {
+		return
+	}
 	var downSql string
 	if !o.saveDownSql {
 		downSql, m.DownSql = m.DownSql, downSql
 	}
-	_, err = o.db.NewInsert().Model(m).
-		ModelTableExpr(o.tableName).
-		Exec(context.Background())
+	if update {
+		_, err = o.db.NewUpdate().Model(m).
+			ModelTableExpr(o.tableName).
+			Where("id = ?", m.Id).
+			Exec(context.Background())
+	} else {
+		_, err = o.db.NewInsert().Model(m).
+			ModelTableExpr(o.tableName).
+			Exec(context.Background())
+	}
 	if !o.saveDownSql {
 		downSql, m.DownSql = m.DownSql, downSql
 	}
 	return
 }
 
+func (o *Migrator) updateApplied(m *Migration) error {
+	return o.writeApplied(m, true)
+}
+
+func (o *Migrator) markApplied(m *Migration) error {
+	return o.writeApplied(m, false)
+}
+
 func (o *Migrator) markUnapplied(m *Migration) (err error) {
+	if o.ro {
+		return
+	}
 	_, err = o.db.NewDelete().
 		Model(m).
 		ModelTableExpr(o.tableName).
