@@ -93,3 +93,7 @@ func (o Map) Url() string {
 	u.RawQuery = q.Encode()
 	return strings.ReplaceAll(u.String(), "%2C", ",")
 }
+
+func (o Map) UrlWithSpaces() string {
+	return strings.ReplaceAll(o.Url(), "+", " ")
+}
