@@ -25,7 +25,7 @@ func (o *Schema) DromTable(name string) error {
 	return uerr.Unimplemented()
 }
 
-func (o *Schema) AddColumn(tableName, columnName, columnType string) error {
+func (o *Schema) AddColumn(tableName, columnName, columnType, columnConstraints string) error {
 	t, err := o.Table(tableName)
 	if err != nil {
 		return err
@@ -35,8 +35,9 @@ func (o *Schema) AddColumn(tableName, columnName, columnType string) error {
 		return fmt.Errorf("column[%s] already exists", columnName)
 	}
 	t.Columns = append(t.Columns, Column{
-		Name: columnName,
-		Type: columnType,
+		Name:        columnName,
+		Type:        columnType,
+		Constraints: columnConstraints,
 	})
 	return nil
 }
@@ -74,11 +75,12 @@ func (o *Schema) Column(tableName, columnName string) (r *Column, err error) {
 	return
 }
 
-func (o *Schema) ColumnType(tableName, columnName string) (s string, err error) {
+func (o *Schema) ColumnType(tableName, columnName string) (columnType string, columnConstraints string, err error) {
 	var c *Column
 	c, err = o.Column(tableName, columnName)
 	if err == nil {
-		s = c.Type
+		columnType = c.Type
+		columnConstraints = c.Constraints
 	}
 	return
 }
@@ -117,6 +119,7 @@ func (o *Table) column(name string) (r *Column) {
 }
 
 type Column struct {
-	Name string
-	Type string
+	Name        string
+	Type        string
+	Constraints string
 }

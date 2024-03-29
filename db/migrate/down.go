@@ -120,8 +120,14 @@ func (o *DownGenerator) alter(token string) (r bool) {
 	case "ADD":
 		o.add("DROP", nil)
 		o.add("COLUMN", o.name)
-	case "COLUMN":
+	case "DROP":
 		o.add(v, o.alter)
+	case "COLUMN":
+		if o.lastIs("DROP") {
+			o.add("ADD", o.name)
+		} else {
+			o.add(v, o.alter)
+		}
 	default:
 		if o.lastIs("COLUMN") {
 			o.add(token, o.column)
@@ -139,7 +145,7 @@ func (o *DownGenerator) column(token string) (r bool) {
 		o.add(v, o.column)
 	default:
 		if o.lastIs("TYPE") {
-			columnType, err := o.c.schema.ColumnType(o.l[2], o.l[5])
+			columnType, _, err := o.c.schema.ColumnType(o.l[2], o.l[5])
 			if err == nil {
 				o.add(columnType, nil)
 			} else {
@@ -156,8 +162,20 @@ func (o *DownGenerator) name(token string) (r bool) {
 	switch v {
 	case "IF", "NOT", "EXISTS":
 	default:
+		lastIsAdd := o.lastIs("ADD")
 		o.add(token, nil)
 		r = true
+		if lastIsAdd {
+			columnType, columnConstraints, err := o.c.schema.ColumnType(o.l[2], o.l[5])
+			if err == nil {
+				o.add(columnType, nil)
+				if columnConstraints != "" {
+					o.add(columnConstraints, nil)
+				}
+			} else {
+				o.Error = err
+			}
+		}
 	}
 	return
 }
