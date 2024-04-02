@@ -113,6 +113,7 @@ func (o *Router) Options(path string, onRequest OnRequest) {
 }
 
 func (o *Router) Files(files fs.FS) {
+	o.init()
 	uri := o.uri("")
 	o.log.Debugf("%s[files]", RouteName(http.MethodGet, uri))
 	fs := http.FileServer(http.FS(files))
