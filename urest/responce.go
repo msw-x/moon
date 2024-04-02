@@ -1,6 +1,7 @@
 package urest
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -142,6 +143,9 @@ func (o *Responce[T]) makeContent() {
 			case Image:
 				o.contentType = "image/" + v.Type
 				o.body = v.Data
+			case json.RawMessage:
+				o.contentType = "application/json"
+				o.body = v
 			default:
 				o.contentType = "application/json"
 				ujson.InitNilSlice(&o.Data)
