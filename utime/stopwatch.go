@@ -25,5 +25,5 @@ func (o *Stopwatch) PrettyTime() time.Duration {
 }
 
 func (o Stopwatch) String() string {
-	return o.PrettyTime().String()
+	return Pretty(o.Time())
 }
