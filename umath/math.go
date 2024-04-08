@@ -20,6 +20,13 @@ func Rand(min, max int) int {
 	return rand.Intn(max-min) + min
 }
 
-func NormalFloatDegree[T constraints.Float](v T) int {
-	return int(math.Floor(math.Log10(float64(v))))
+func Order[T constraints.Float](v T) int {
+	if v == 0 {
+		return 0
+	}
+	n := int(math.Floor(math.Log10(float64(v))))
+	if v > 1 {
+		n++
+	}
+	return n
 }
