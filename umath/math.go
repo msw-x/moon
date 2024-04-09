@@ -24,8 +24,9 @@ func Order[T constraints.Float](v T) int {
 	if v == 0 {
 		return 0
 	}
-	n := int(math.Floor(math.Log10(float64(v))))
-	if v > 1 {
+	f := math.Abs(float64(v))
+	n := int(math.Floor(math.Log10(f)))
+	if f > 1 {
 		n++
 	}
 	return n

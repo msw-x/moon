@@ -2,6 +2,7 @@ package ufmt
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
@@ -20,7 +21,7 @@ func DelicateFloat64(v float64, precision int) (s string) {
 	if v == 0 {
 		return "0"
 	}
-	if v < 1 {
+	if math.Abs(v) < 1 {
 		precision += -umath.Order(v) - 1
 	}
 	return Float64(v, precision)
