@@ -10,7 +10,7 @@ import (
 )
 
 func Float64(v float64, precision int) (s string) {
-	if precision > 0 {
+	if precision > 0 && precision < 20 {
 		f := "%." + strconv.Itoa(precision) + "f"
 		s = fmt.Sprintf(f, v)
 		s = strings.TrimRight(s, "0")
