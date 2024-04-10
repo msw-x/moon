@@ -10,10 +10,14 @@ import (
 )
 
 func Float64(v float64, precision int) (s string) {
-	f := "%." + strconv.Itoa(precision) + "f"
-	s = fmt.Sprintf(f, v)
-	s = strings.TrimRight(s, "0")
-	s = strings.TrimRight(s, ".")
+	if precision > 0 {
+		f := "%." + strconv.Itoa(precision) + "f"
+		s = fmt.Sprintf(f, v)
+		s = strings.TrimRight(s, "0")
+		s = strings.TrimRight(s, ".")
+	} else {
+		s = strconv.Itoa(int(v))
+	}
 	return
 }
 
