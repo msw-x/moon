@@ -74,7 +74,12 @@ func run(version string, opts ulog.Options, fn any) {
 	log.Info("disk:", hws.Disk())
 	logTimezone(log)
 	log.Info("name:", Name())
-	log.Info("path:", Dir())
+	dir := Dir()
+	pwd := Pwd()
+	log.Info("path:", dir)
+	if dir != pwd && pwd != "" {
+		log.Info("pwd:", pwd)
+	}
 	switch f := fn.(type) {
 	case func():
 		f()
