@@ -25,6 +25,11 @@ func Dir() string {
 	return path.Dir(Executable())
 }
 
+func Pwd() string {
+	s, _ := os.Getwd()
+	return s
+}
+
 func Pid() int {
 	return os.Getpid()
 }
