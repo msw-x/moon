@@ -15,6 +15,7 @@ type Options struct {
 	InsecureSkipVerify bool
 	PingInterval       time.Duration
 	ReDialInterval     time.Duration
+	ReDialDelay        time.Duration
 	HandshakeTimeout   time.Duration
 	ReadTimeout        time.Duration
 	SendTimeout        time.Duration
@@ -25,6 +26,7 @@ type Options struct {
 func (o *Options) SetDefaultTimeouts() {
 	o.PingInterval = time.Second * 24
 	o.ReDialInterval = time.Second * 12
+	o.ReDialDelay = time.Second * 1
 	o.HandshakeTimeout = time.Second * 12
 	o.ReadTimeout = o.PingInterval + time.Second*4
 	o.SendTimeout = time.Second * 8

@@ -24,6 +24,7 @@ type Client struct {
 	mutex    sync.Mutex
 	ws       *websocket.Conn
 	job      *app.Job
+	err      error
 	lastSend time.Time
 }
 
@@ -135,6 +136,7 @@ func (o *Client) Send(messageType int, data []byte) error {
 	defer o.mutex.Unlock()
 	ws, err := o.socket()
 	if err != nil {
+		o.err = err
 		o.log.Error("send:", err)
 		return err
 	}
@@ -146,6 +148,7 @@ func (o *Client) Send(messageType int, data []byte) error {
 	if err == nil {
 		o.dump("sent", messageType, data, o.Options.LogSent)
 	} else {
+		o.err = err
 		o.log.Error("send:", err)
 		o.closeSocket()
 	}
@@ -186,12 +189,15 @@ func (o *Client) closeSocket() {
 }
 
 func (o *Client) connectAndRun() {
+	if o.err != nil {
+		o.job.Sleep(o.Options.ReDialDelay)
+	}
 	url := o.Options.Url()
 	o.log.Info("dial:", url)
-	err := o.dial(url)
-	if err != nil {
-		o.log.Error("dial:", err)
-		if !o.Events.callOnDialError(err) {
+	o.err = o.dial(url)
+	if o.err != nil {
+		o.log.Error("dial:", o.err)
+		if !o.Events.callOnDialError(o.err) {
 			o.job.Sleep(o.Options.ReDialInterval)
 		}
 		return
@@ -232,7 +238,7 @@ func (o *Client) onDisconnected() {
 func (o *Client) run() {
 	if o.Options.PingInterval != 0 {
 		pingJob := app.NewJob()
-		pingJob.RunTicks(o.ping, o.Options.PingInterval)
+		pingJob.RunTicks(o.ping, time.Second)
 		defer pingJob.Stop()
 	}
 	for o.job.Do() {
@@ -242,6 +248,7 @@ func (o *Client) run() {
 		messageType, data, err := o.ws.ReadMessage()
 		if o.job.Do() {
 			if err != nil {
+				o.err = err
 				o.closeSocket()
 				if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway, websocket.CloseNoStatusReceived) {
 					o.log.Info("recv:", err)
@@ -263,7 +270,7 @@ func (o *Client) ping() {
 	if o.lastSend.IsZero() {
 		o.lastSend = time.Now()
 	} else {
-		if time.Since(o.lastSend) > o.Options.PingInterval/2 {
+		if time.Since(o.lastSend) >= o.Options.PingInterval {
 			if o.Events.OnPing == nil {
 				o.Send(websocket.PingMessage, nil)
 			} else {
