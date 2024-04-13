@@ -28,6 +28,10 @@ func (o *SyncPlain[Id, Item]) OnDelete(onDelete func(Item, *bun.DeleteQuery)) {
 	o.c.OnDelete(onDelete)
 }
 
+func (o *SyncPlain[Id, Item]) ExcludeMutex() {
+	o.c.ExcludeMutex()
+}
+
 func (o *SyncPlain[Id, Item]) Db() *db.Db {
 	return o.c.Db()
 }

@@ -16,16 +16,17 @@ import (
 )
 
 type Sync[Id constraints.Ordered, MapItem any, DbItem any] struct {
-	log       *ulog.Log
-	db        *db.Db
-	m         map[Id]MapItem
-	name      string
-	fn        Funcs[Id, MapItem, DbItem]
-	onSelect  func(*bun.SelectQuery)
-	onDelete  func(MapItem, *bun.DeleteQuery)
-	mutex     sync.Mutex
-	inited    bool
-	logUpdate bool
+	log          *ulog.Log
+	db           *db.Db
+	m            map[Id]MapItem
+	name         string
+	fn           Funcs[Id, MapItem, DbItem]
+	onSelect     func(*bun.SelectQuery)
+	onDelete     func(MapItem, *bun.DeleteQuery)
+	mutex        sync.Mutex
+	excludeMutex bool
+	inited       bool
+	logUpdate    bool
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Open(name string, log *ulog.Log, db *db.Db, dbItemId func(DbItem) Id) {
@@ -56,6 +57,10 @@ func (o *Sync[Id, MapItem, DbItem]) OnSelect(onSelect func(*bun.SelectQuery)) {
 
 func (o *Sync[Id, MapItem, DbItem]) OnDelete(onDelete func(MapItem, *bun.DeleteQuery)) {
 	o.onDelete = onDelete
+}
+
+func (o *Sync[Id, MapItem, DbItem]) ExcludeMutex() {
+	o.excludeMutex = true
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Db() *db.Db {
@@ -100,8 +105,10 @@ func (o *Sync[Id, MapItem, DbItem]) Init() bool {
 	if o.db.Select(&list, o.onSelect) != nil {
 		return false
 	}
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
+	if !o.excludeMutex {
+		o.mutex.Lock()
+		defer o.mutex.Unlock()
+	}
 	o.m = make(map[Id]MapItem)
 	for _, e := range list {
 		o.put(e)
@@ -123,8 +130,10 @@ func (o *Sync[Id, MapItem, DbItem]) Delete(id Id) error {
 	o.log.Debugf("delete[%v]", id)
 	e, err := o.Get(id)
 	if err == nil {
-		o.mutex.Lock()
-		defer o.mutex.Unlock()
+		if !o.excludeMutex {
+			o.mutex.Lock()
+			defer o.mutex.Unlock()
+		}
 		v := o.fn.mapToDbItem(e)
 		var onDelete func(*bun.DeleteQuery)
 		if o.onDelete != nil {
@@ -144,8 +153,10 @@ func (o *Sync[Id, MapItem, DbItem]) Delete(id Id) error {
 func (o *Sync[Id, MapItem, DbItem]) DeleteAll() (err error) {
 	o.log.Debug("delete all")
 	if o.onDelete == nil {
-		o.mutex.Lock()
-		defer o.mutex.Unlock()
+		if !o.excludeMutex {
+			o.mutex.Lock()
+			defer o.mutex.Unlock()
+		}
 		_, err = db.DeleteAll[DbItem](o.db)
 		if err == nil {
 			o.m = make(map[Id]MapItem)
@@ -172,8 +183,10 @@ func (o *Sync[Id, MapItem, DbItem]) Replace(e MapItem) error {
 }
 
 func (o *Sync[Id, MapItem, DbItem]) ForEach(fn func(MapItem)) {
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
+	if !o.excludeMutex {
+		o.mutex.Lock()
+		defer o.mutex.Unlock()
+	}
 	o.check()
 	for _, e := range o.m {
 		fn(e)
@@ -181,8 +194,10 @@ func (o *Sync[Id, MapItem, DbItem]) ForEach(fn func(MapItem)) {
 }
 
 func (o *Sync[Id, MapItem, DbItem]) ForEachSwarm(fn func(MapItem)) {
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
+	if !o.excludeMutex {
+		o.mutex.Lock()
+		defer o.mutex.Unlock()
+	}
 	o.check()
 	swarm := app.NewGoSwarm().WithLog(o.log)
 	for _, e := range o.m {
@@ -195,8 +210,10 @@ func (o *Sync[Id, MapItem, DbItem]) ForEachSwarm(fn func(MapItem)) {
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Walk(fn func(MapItem) bool) bool {
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
+	if !o.excludeMutex {
+		o.mutex.Lock()
+		defer o.mutex.Unlock()
+	}
 	o.check()
 	for _, e := range o.m {
 		if fn(e) {
@@ -207,8 +224,10 @@ func (o *Sync[Id, MapItem, DbItem]) Walk(fn func(MapItem) bool) bool {
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Keys() []Id {
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
+	if !o.excludeMutex {
+		o.mutex.Lock()
+		defer o.mutex.Unlock()
+	}
 	var l []Id
 	for id := range o.m {
 		l = append(l, id)
@@ -217,8 +236,10 @@ func (o *Sync[Id, MapItem, DbItem]) Keys() []Id {
 }
 
 func (o *Sync[Id, MapItem, DbItem]) List() []MapItem {
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
+	if !o.excludeMutex {
+		o.mutex.Lock()
+		defer o.mutex.Unlock()
+	}
 	o.check()
 	var l []MapItem
 	for _, e := range o.m {
@@ -240,16 +261,20 @@ func (o *Sync[Id, MapItem, DbItem]) DbList() []DbItem {
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Exist(id Id) bool {
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
+	if !o.excludeMutex {
+		o.mutex.Lock()
+		defer o.mutex.Unlock()
+	}
 	o.check()
 	_, ok := o.m[id]
 	return ok
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Get(id Id) (MapItem, error) {
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
+	if !o.excludeMutex {
+		o.mutex.Lock()
+		defer o.mutex.Unlock()
+	}
 	o.check()
 	i, ok := o.m[id]
 	var err error
@@ -260,8 +285,10 @@ func (o *Sync[Id, MapItem, DbItem]) Get(id Id) (MapItem, error) {
 }
 
 func (o *Sync[Id, MapItem, DbItem]) GetIfExists(id Id) (MapItem, bool) {
-	o.mutex.Lock()
-	defer o.mutex.Unlock()
+	if !o.excludeMutex {
+		o.mutex.Lock()
+		defer o.mutex.Unlock()
+	}
 	o.check()
 	i, ok := o.m[id]
 	return i, ok
@@ -277,8 +304,10 @@ func (o *Sync[Id, MapItem, DbItem]) add(action string, e DbItem) (Id, error) {
 	if err == nil {
 		id = o.fn.dbItemId(e)
 		o.log.Info(action, "id:", id)
-		o.mutex.Lock()
-		defer o.mutex.Unlock()
+		if !o.excludeMutex {
+			o.mutex.Lock()
+			defer o.mutex.Unlock()
+		}
 		o.check()
 		o.put(e)
 	} else {
@@ -314,8 +343,10 @@ func (o *Sync[Id, MapItem, DbItem]) update(remove bool, id Id, fn func(e MapItem
 			curr := o.fn.mapToDbItem(e)
 			_, err = db.UpdateDiff(o.db, prev, curr)
 			if err == nil {
-				o.mutex.Lock()
-				defer o.mutex.Unlock()
+				if !o.excludeMutex {
+					o.mutex.Lock()
+					defer o.mutex.Unlock()
+				}
 				o.check()
 				o.m[id] = e
 				if o.logUpdate {

@@ -48,6 +48,10 @@ func (o *Async[Id, MapItem, DbItem]) OnDelete(onDelete func(MapItem, *bun.Delete
 	o.c.OnDelete(onDelete)
 }
 
+func (o *Async[Id, MapItem, DbItem]) ExcludeMutex() {
+	o.c.ExcludeMutex()
+}
+
 func (o *Async[Id, MapItem, DbItem]) HandleImmediate() {
 	o.handleImmediate = true
 }
