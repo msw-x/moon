@@ -34,7 +34,7 @@ func (o *AsyncPlain[Id, Item]) OnDelete(onDelete func(Item, *bun.DeleteQuery)) {
 	o.c.OnDelete(onDelete)
 }
 
-func (o *AsyncPlain[Id, MapItem, DbItem]) ExcludeMutex() {
+func (o *AsyncPlain[Id, Item]) ExcludeMutex() {
 	o.c.ExcludeMutex()
 }
 
