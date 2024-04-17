@@ -26,3 +26,16 @@ func WideInt[V constraints.Integer](v V) string {
 	}
 	return ret
 }
+
+func WideFloat(v float64, precision int) string {
+	i := int64(v)
+	d := v - float64(i)
+	r := ""
+	if d > 0 {
+		r = Float64(d, precision)
+		if len(r) > 0 {
+			r = r[1:]
+		}
+	}
+	return WideInt(i) + r
+}
