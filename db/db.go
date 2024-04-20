@@ -62,8 +62,15 @@ func New(opt Options) *Db {
 		// make app more resilient to errors during migrations
 		o.db = bun.NewDB(sqldb, pgdialect.New(), bun.WithDiscardUnknownColumns())
 	}
-	if opt.LogErrors || opt.LogQueries {
-		o.db.AddQueryHook(newLog(o.log, opt.LogErrors && !opt.LogQueries))
+	if opt.LogErrors || opt.LogQueries || opt.LogLongQueries {
+		log := newLog(o.log, opt.LogErrors && !opt.LogQueries)
+		if opt.LogLongQueries {
+			if opt.LongQueriesTime == 0 {
+				opt.LongQueriesTime = opt.Timeout / 2
+			}
+			log.WithQueriesTime(opt.LongQueriesTime, opt.WarnLongQueries)
+		}
+		o.db.AddQueryHook(log)
 	}
 	if opt.ReadOnly {
 		o.log.Info("readonly")

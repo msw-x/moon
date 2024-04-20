@@ -5,12 +5,15 @@ import (
 	"time"
 
 	"github.com/msw-x/moon/ulog"
+	"github.com/msw-x/moon/utime"
 	"github.com/uptrace/bun"
 )
 
 type log struct {
-	log        *ulog.Log
-	onlyErrors bool
+	log             *ulog.Log
+	onlyErrors      bool
+	longQueriesTime time.Duration
+	warnLongQueries bool
 }
 
 func newLog(ul *ulog.Log, onlyErrors bool) *log {
@@ -18,6 +21,12 @@ func newLog(ul *ulog.Log, onlyErrors bool) *log {
 		log:        ul,
 		onlyErrors: onlyErrors,
 	}
+}
+
+func (o *log) WithQueriesTime(t time.Duration, warn bool) *log {
+	o.longQueriesTime = t
+	o.warnLongQueries = warn
+	return o
 }
 
 func (o *log) Printf(format string, v ...any) {
@@ -29,12 +38,25 @@ func (o *log) BeforeQuery(c context.Context, q *bun.QueryEvent) context.Context 
 }
 
 func (o *log) AfterQuery(c context.Context, q *bun.QueryEvent) {
-	dur := time.Since(q.StartTime).Truncate(time.Microsecond)
 	if q.Err == nil {
-		if !o.onlyErrors {
-			o.log.Debug(dur, q.Query)
+		if o.longQueriesTime == 0 {
+			if !o.onlyErrors {
+				o.log.Debug(queryTime(q), q.Query)
+			}
+		} else {
+			if time.Since(q.StartTime) > o.longQueriesTime {
+				if o.warnLongQueries {
+					o.log.Warning(queryTime(q), q.Query)
+				} else {
+					o.log.Debug(queryTime(q), q.Query)
+				}
+			}
 		}
 	} else {
-		o.log.Error(dur, q.Query, q.Err)
+		o.log.Error(queryTime(q), q.Query, q.Err)
 	}
+}
+
+func queryTime(q *bun.QueryEvent) time.Duration {
+	return utime.PrettyTruncate(time.Since(q.StartTime))
 }
