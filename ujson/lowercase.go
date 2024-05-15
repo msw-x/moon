@@ -1,6 +1,9 @@
 package ujson
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"slices"
+)
 
 func MarshalLowerCase(v any) (bytes []byte, err error) {
 	bytes, err = json.Marshal(v)
@@ -17,7 +20,7 @@ func ToLowerCase(j []byte) {
 		if containsAny(c, "\n\n\t ") {
 			continue
 		}
-		if containsAny(c, "{}[],\\") {
+		if containsAny(c, "{}[],\\-_") {
 			keyIndex = 0
 			waitColon = false
 			continue
@@ -42,10 +45,5 @@ func ToLowerCase(j []byte) {
 }
 
 func containsAny(v byte, chars string) bool {
-	for _, c := range []byte(chars) {
-		if v == c {
-			return true
-		}
-	}
-	return false
+	return slices.Contains([]byte(chars), v)
 }
