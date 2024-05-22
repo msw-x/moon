@@ -2,8 +2,7 @@ package telegram
 
 import (
 	"fmt"
-
-	botapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"strings"
 )
 
 func Spoiler(v any) string {
@@ -23,5 +22,21 @@ func UserIdRef(v any, id int64) string {
 }
 
 func EscapeMarkdownV2(v any) string {
-	return botapi.EscapeText(botapi.ModeMarkdownV2, fmt.Sprint(v))
+	// Fixed EscapeMarkdown for \ symbol #44
+	// https://github.com/go-telegram/bot/pull/44
+	// return botapi.EscapeText(botapi.ModeMarkdownV2, fmt.Sprint(v))
+	// EscapeMarkdown escapes special symbols for Telegram MarkdownV2 syntax
+	// https://github.com/go-telegram/bot/blob/main/common.go
+	// https://core.telegram.org/bots/api
+	// In all other places characters '_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!' must be escaped with the preceding character '\'.
+	var s = fmt.Sprint(v)
+	var shouldBeEscaped = "_*[]()~`>#+-=|{}.!\\"
+	var result []rune
+	for _, r := range s {
+		if strings.ContainsRune(shouldBeEscaped, r) {
+			result = append(result, '\\')
+		}
+		result = append(result, r)
+	}
+	return string(result)
 }
