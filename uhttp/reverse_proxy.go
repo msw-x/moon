@@ -49,7 +49,7 @@ func (o *ReverseProxy) Pure() *ReverseProxy {
 }
 
 func (o *ReverseProxy) Connect(router *Router) {
-	uri := router.uri(o.path)
+	path := router.nextPath(o.path)
 	target := func(s string) (u *url.URL, ok bool) {
 		var err error
 		if s == "" {
@@ -65,7 +65,7 @@ func (o *ReverseProxy) Connect(router *Router) {
 	var proxy *httputil.ReverseProxy
 	if o.onTarget == nil {
 		if t, ok := target(o.target); ok {
-			router.log.Debugf("PROXY:%s->%s", uri, t)
+			router.log.Debugf("PROXY:%s->%s", path, t)
 			if o.onRewrite == nil {
 				proxy = httputil.NewSingleHostReverseProxy(t)
 			} else {
@@ -78,7 +78,7 @@ func (o *ReverseProxy) Connect(router *Router) {
 			}
 		}
 	} else {
-		router.log.Debugf("PROXY:%s", uri)
+		router.log.Debugf("PROXY:%s", path)
 		proxy = &httputil.ReverseProxy{
 			Rewrite: func(r *httputil.ProxyRequest) {
 				if t, ok := target(o.onTarget(r)); ok {
@@ -87,7 +87,7 @@ func (o *ReverseProxy) Connect(router *Router) {
 			},
 		}
 	}
-	router.HandleFunc(uri+"{path:.*}", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc(path+"{path:.*}", func(w http.ResponseWriter, r *http.Request) {
 		r.URL.Path = mux.Vars(r)["path"]
 		ok := true
 		if o.onRequest != nil {

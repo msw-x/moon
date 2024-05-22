@@ -1,6 +1,7 @@
 package uhttp
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"net/http"
@@ -35,7 +36,7 @@ func NewRouter() *Router {
 }
 
 func (o Router) Branch(path string) *Router {
-	o.path = o.uri(path)
+	o.path = o.nextPath(path)
 	return &o
 }
 
@@ -63,18 +64,18 @@ func (o *Router) IsRoot() bool {
 	return o.path == ""
 }
 
-func (o *Router) HandleFunc(uri string, onRequest OnRequest) *mux.Route {
-	return o.router.HandleFunc(uri, onRequest)
+func (o *Router) HandleFunc(path string, onRequest OnRequest) *mux.Route {
+	return o.router.HandleFunc(path, onRequest)
 }
 
-func (o *Router) Handle(method string, path string, onRequest OnRequest) {
+func (o *Router) Handle(method string, path string, onRequest OnRequest) error {
 	if onRequest == nil {
-		panic("router on-request func is nil")
+		return errors.New("router on-request func is nil")
 	}
 	o.init()
-	uri := o.uri(path)
-	o.log.Debug(RouteName(method, uri))
-	o.HandleFunc(uri, func(w http.ResponseWriter, r *http.Request) {
+	path = o.nextPath(path)
+	o.log.Debug(RouteName(method, path))
+	o.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
 		name := o.RequestName(r)
 		defer uerr.Recover(func(err string) {
 			o.log.Error(name, err)
@@ -90,6 +91,7 @@ func (o *Router) Handle(method string, path string, onRequest OnRequest) {
 		}
 		onRequest(w, r)
 	}).Methods(method)
+	return nil
 }
 
 func (o *Router) Get(path string, onRequest OnRequest) {
@@ -112,16 +114,23 @@ func (o *Router) Options(path string, onRequest OnRequest) {
 	o.Handle(http.MethodOptions, path, onRequest)
 }
 
-func (o *Router) Files(files fs.FS) {
+func (o *Router) Files(f fs.FS) {
 	o.init()
-	uri := o.uri("")
-	o.log.Debugf("%s[files]", RouteName(http.MethodGet, uri))
-	fs := http.FileServer(http.FS(files))
+	path := o.nextPath("")
+	o.log.Debugf("%s[fs]", RouteName(http.MethodGet, path))
+	fs := http.FileServer(http.FS(f))
 	if o.IsRoot() {
-		o.router.PathPrefix(uri).Handler(fs)
+		o.router.PathPrefix(path).Handler(fs)
 	} else {
-		o.router.PathPrefix(uri).Handler(http.StripPrefix(strings.TrimSuffix(uri, "/"), fs))
+		o.router.PathPrefix(path).Handler(http.StripPrefix(strings.TrimSuffix(path, "/"), fs))
 	}
+}
+
+func (o *Router) Spa(fs fs.FS) {
+	o.init()
+	path := o.nextPath("")
+	o.log.Debugf("%s[spa]", RouteName(http.MethodGet, path))
+	o.router.PathPrefix(path).Handler(NewSpaHandler(fs).WithPath(path))
 }
 
 func (o *Router) WebSocket(path string, onWebsocket OnWebsocket) {
@@ -134,7 +143,7 @@ func (o *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 		},
 	}
 	method := http.MethodGet
-	o.log.Debug(WebSocketName(RouteName(method, o.uri(path))))
+	o.log.Debug(WebSocketName(RouteName(method, o.nextPath(path))))
 	o.Handle(method, path, func(w http.ResponseWriter, r *http.Request) {
 		defer uerr.Recover(func(err string) {
 			o.log.Error(WebSocketName(o.RequestName(r)), err)
@@ -172,7 +181,7 @@ func (o *Router) init() {
 	}
 }
 
-func (o *Router) uri(path string) string {
+func (o *Router) nextPath(path string) string {
 	if path == "" {
 		if o.IsRoot() {
 			return "/"
