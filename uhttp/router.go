@@ -120,9 +120,9 @@ func (o *Router) Files(f fs.FS) {
 	o.log.Debugf("%s[fs]", RouteName(http.MethodGet, path))
 	fs := http.FileServer(http.FS(f))
 	if o.IsRoot() {
-		o.router.PathPrefix(path).Handler(fs)
+		o.router.PathPrefix(path).Handler(fs).Methods(http.MethodGet)
 	} else {
-		o.router.PathPrefix(path).Handler(http.StripPrefix(strings.TrimSuffix(path, "/"), fs))
+		o.router.PathPrefix(path).Handler(http.StripPrefix(strings.TrimSuffix(path, "/"), fs)).Methods(http.MethodGet)
 	}
 }
 
@@ -130,7 +130,7 @@ func (o *Router) Spa(fs fs.FS) {
 	o.init()
 	path := o.nextPath("")
 	o.log.Debugf("%s[spa]", RouteName(http.MethodGet, path))
-	o.router.PathPrefix(path).Handler(NewSpaHandler(fs).WithPath(path))
+	o.router.PathPrefix(path).Handler(NewSpaHandler(fs).WithPath(path)).Methods(http.MethodGet)
 }
 
 func (o *Router) WebSocket(path string, onWebsocket OnWebsocket) {
