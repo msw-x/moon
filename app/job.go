@@ -108,7 +108,7 @@ func (o *Job) Run(fn func()) {
 	}()
 }
 
-func (o *Job) RunLoop(fn func()) {
+func (o *Job) Loop(fn func()) {
 	o.Run(func() {
 		for o.Do() {
 			fn()
@@ -116,8 +116,8 @@ func (o *Job) RunLoop(fn func()) {
 	})
 }
 
-func (o *Job) RunTicks(fn func(), interval time.Duration) {
-	o.RunLoop(func() {
+func (o *Job) Tick(fn func(), interval time.Duration) {
+	o.Loop(func() {
 		fn()
 		o.Sleep(interval)
 	})

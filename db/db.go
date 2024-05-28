@@ -77,7 +77,7 @@ func New(opt Options) *Db {
 	}
 	o.ro = opt.ReadOnly
 	o.job = app.NewJob().WithLog(o.log).OnFinish(o.close)
-	o.job.RunTicks(o.checkConnection, time.Second)
+	o.job.Tick(o.checkConnection, time.Second)
 	return o
 }
 

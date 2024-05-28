@@ -124,7 +124,7 @@ func (o *Client) Run() {
 			o.job.Cancel()
 		}
 	})
-	o.job.RunLoop(o.connectAndRun)
+	o.job.Loop(o.connectAndRun)
 }
 
 func (o *Client) Connected() bool {
@@ -238,7 +238,7 @@ func (o *Client) onDisconnected() {
 func (o *Client) run() {
 	if o.Options.PingInterval != 0 {
 		pingJob := app.NewJob()
-		pingJob.RunTicks(o.ping, time.Second)
+		pingJob.Tick(o.ping, time.Second)
 		defer pingJob.Stop()
 	}
 	for o.job.Do() {

@@ -20,7 +20,7 @@ func NewLimiter[T any](send func(T)) *Limiter[T] {
 	}
 	o.SetInterval(time.Second*3 + time.Millisecond*100)
 	o.SetQueue(NewQueue[T]())
-	o.job.RunTicks(o.tick, 10*time.Millisecond)
+	o.job.Tick(o.tick, 10*time.Millisecond)
 	return o
 }
 
