@@ -21,7 +21,7 @@ func (o *Async[Id, MapItem, DbItem]) Open(name string, log *ulog.Log, db *db.Db,
 	o.c.Open(name, log, db, dbItemId)
 	o.handle = handle
 	o.job = app.NewJob().WithLog(o.c.Log())
-	o.job.RunTicks(o.process, interval)
+	o.job.Tick(o.process, interval)
 }
 
 func (o *Async[Id, MapItem, DbItem]) Close() {
