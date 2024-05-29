@@ -90,3 +90,15 @@ func (o *StringFloat64) Set(v float64) {
 func (o *StringFloat64) SetWithPrecision(v float64, precison int) {
 	*o = StringFloat64(ufmt.Float64(v, precison))
 }
+
+type StringNumberI[T any] interface {
+	Exists() bool
+	Value() (T, error)
+}
+
+func SetIfExists[T any](src StringNumberI[T], dst *T) (err error) {
+	if src.Exists() {
+		*dst, err = src.Value()
+	}
+	return err
+}
