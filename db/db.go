@@ -107,6 +107,14 @@ func (o *Db) Await(timeout time.Duration) time.Duration {
 	return app.Wait(o.log, o.Ok, timeout)
 }
 
+/*
+func (o *Db) OnReady(f func(), timeout time.Duration) {
+	if app.NewWait().WithLog(o.log).WithTimeout(timeout).WithDo(o.job.Do).Wait(o.Ok).Waited() {
+		f()
+	}
+}
+*/
+
 func (o *Db) Migrator() *Migrator {
 	return NewMigrator(o)
 }
