@@ -104,6 +104,10 @@ func (o *Async[Id, MapItem, DbItem]) DeleteAll() error {
 	return o.c.DeleteAll()
 }
 
+func (o *Async[Id, MapItem, DbItem]) SoftDelete(id Id, fn func(e MapItem) MapItem) error {
+	return o.c.SoftDelete(id, fn)
+}
+
 func (o *Async[Id, MapItem, DbItem]) Remove(id Id, fn func(e MapItem) MapItem) error {
 	return o.c.Remove(id, fn)
 }

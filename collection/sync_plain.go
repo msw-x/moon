@@ -80,6 +80,10 @@ func (o *SyncPlain[Id, Item]) DeleteAll() error {
 	return o.c.DeleteAll()
 }
 
+func (o *SyncPlain[Id, Item]) SoftDelete(id Id, fn func(e Item) Item) error {
+	return o.c.SoftDelete(id, fn)
+}
+
 func (o *SyncPlain[Id, Item]) Remove(id Id, fn func(e Item) Item) error {
 	return o.c.Remove(id, fn)
 }

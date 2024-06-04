@@ -167,12 +167,16 @@ func (o *Sync[Id, MapItem, DbItem]) DeleteAll() (err error) {
 	return
 }
 
+func (o *Sync[Id, MapItem, DbItem]) SoftDelete(id Id, fn func(e MapItem) MapItem) error {
+	return o.update(updateDelete, id, fn)
+}
+
 func (o *Sync[Id, MapItem, DbItem]) Remove(id Id, fn func(e MapItem) MapItem) error {
-	return o.update(true, id, fn)
+	return o.update(updateRemove, id, fn)
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Update(id Id, fn func(e MapItem) MapItem) error {
-	return o.update(false, id, fn)
+	return o.update(updatePure, id, fn)
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Replace(e MapItem) error {
@@ -321,12 +325,15 @@ func (o *Sync[Id, MapItem, DbItem]) put(e DbItem) {
 	o.m[o.fn.dbItemId(e)] = o.fn.newMapItem(e)
 }
 
-func (o *Sync[Id, MapItem, DbItem]) update(remove bool, id Id, fn func(e MapItem) MapItem) error {
+func (o *Sync[Id, MapItem, DbItem]) update(mode updateMode, id Id, fn func(e MapItem) MapItem) error {
 	var action string
-	if remove {
-		action = "remove"
-	} else {
+	switch mode {
+	case updatePure:
 		action = "update"
+	case updateRemove:
+		action = "remove"
+	case updateDelete:
+		action = "delete"
 	}
 	action = fmt.Sprintf("%s[%v]", action, id)
 	if o.logUpdate {
@@ -348,7 +355,11 @@ func (o *Sync[Id, MapItem, DbItem]) update(remove bool, id Id, fn func(e MapItem
 					defer o.mutex.Unlock()
 				}
 				o.check()
-				o.m[id] = e
+				if mode == updateDelete {
+					delete(o.m, id)
+				} else {
+					o.m[id] = e
+				}
 				if o.logUpdate {
 					o.log.Info(action, "completed")
 				}
