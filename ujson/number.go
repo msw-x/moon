@@ -5,7 +5,7 @@ import (
 	"github.com/msw-x/moon/umath"
 )
 
-type Int64 float64
+type Int64 int64
 
 func (o *Int64) UnmarshalJSON(b []byte) error {
 	return unmarshalNumber(b, parse.Int64, o)
