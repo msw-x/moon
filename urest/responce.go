@@ -170,7 +170,7 @@ func (o *Responce[T]) makeContent() {
 			Error:     fmt.Sprint(o.Error),
 			ErrorCode: o.ErrorCode,
 		}
-		if v.Error != "" || v.ErrorCode != 0 {
+		if !(o.Error == nil || v.Error == "") || v.ErrorCode != 0 {
 			o.body, _ = ujson.MarshalLowerCase(v)
 		}
 	}
