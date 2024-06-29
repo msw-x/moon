@@ -74,6 +74,10 @@ func (o *Responce[T]) SetNotImplemented() {
 	o.Status = http.StatusNotImplemented
 }
 
+func (o *Responce[T]) SetNotFound() {
+	o.Status = http.StatusNotFound
+}
+
 func (o *Responce[T]) SetServiceUnavailable() {
 	o.Status = http.StatusServiceUnavailable
 }
@@ -100,6 +104,11 @@ func (o *Responce[T]) NotAcceptable(s string) {
 
 func (o *Responce[T]) NotImplemented(s string) {
 	o.SetNotImplemented()
+	o.Error = errors.New(s)
+}
+
+func (o *Responce[T]) NotFound(s string) {
+	o.SetNotFound()
 	o.Error = errors.New(s)
 }
 
