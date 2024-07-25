@@ -301,7 +301,7 @@ func (o *Db) checkConnection() {
 func (o *Db) close() {
 	err := o.db.Close()
 	s := o.db.DBStats()
-	o.log.Infof("queries:%d errors:%d", s.Queries, s.Errors)
+	o.log.Infof("queries[%d] errors[%d]", s.Queries, s.Errors)
 	if err != nil {
 		o.log.Error("close:", err)
 	}
