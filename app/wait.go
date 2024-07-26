@@ -7,7 +7,6 @@ import (
 	"github.com/msw-x/moon/utime"
 )
 
-/*
 type Wait struct {
 	log     *ulog.Log
 	do      func() bool
@@ -67,6 +66,13 @@ func (o *Wait) Wait(ok func() bool) *Wait {
 	return o
 }
 
+func (o *Wait) Await(ok func() bool, on func()) {
+	Go(func() {
+		o.Wait(ok)
+		on()
+	})
+}
+
 func (o *Wait) Time() time.Duration {
 	if o.ts.IsZero() {
 		return 0
@@ -77,9 +83,10 @@ func (o *Wait) Time() time.Duration {
 func (o *Wait) Waited() bool {
 	return o.waited
 }
-*/
 
-func Wait(log *ulog.Log, fn func() bool, timeout time.Duration) time.Duration {
+func WaitFor(log *ulog.Log, fn func() bool, timeout time.Duration) time.Duration {
+	return NewWait().WithLog(log).WithTimeout(timeout).Wait(fn).Time()
+
 	log.Info("wait...")
 	ts := time.Now()
 	before := ts.Add(timeout)
