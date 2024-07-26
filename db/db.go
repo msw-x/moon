@@ -63,17 +63,22 @@ func (o *Db) Wait(timeout time.Duration) bool {
 	return o.Ok()
 }
 
-func (o *Db) Await(timeout time.Duration) time.Duration {
-	return app.Wait(o.log, o.Ok, timeout)
+func (o *Db) WaitForReady(timeout time.Duration) time.Duration {
+	return app.WaitFor(o.log, o.Ok, timeout)
 }
 
-/*
-func (o *Db) OnReady(f func(), timeout time.Duration) {
-	if app.NewWait().WithLog(o.log).WithTimeout(timeout).WithDo(o.job.Do).Wait(o.Ok).Waited() {
-		f()
-	}
+func (o *Db) OnReady(f func()) {
+	o.OnReadyFor(f, 0)
 }
-*/
+
+func (o *Db) OnReadyFor(f func(), timeout time.Duration) {
+	w := app.NewWait().WithLog(o.log).WithDo(o.job.Do).WithTimeout(timeout)
+	w.Await(o.Ok, func() {
+		if w.Waited() {
+			f()
+		}
+	})
+}
 
 func (o *Db) Migrator() *Migrator {
 	return NewMigrator(o)
