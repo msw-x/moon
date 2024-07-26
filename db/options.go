@@ -1,6 +1,9 @@
 package db
 
-import "time"
+import (
+	"runtime"
+	"time"
+)
 
 type Options struct {
 	User            string
@@ -18,4 +21,15 @@ type Options struct {
 	WarnLongQueries bool
 	LongQueriesTime time.Duration
 	ReadOnly        bool
+}
+
+func (o Options) MaxOpenConnections() int {
+	v := int(o.MaxConnFactor * float32(runtime.GOMAXPROCS(0)))
+	if v == 0 {
+		v = 1
+	}
+	if v < o.MinOpenConns {
+		v = o.MinOpenConns
+	}
+	return v
 }

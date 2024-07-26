@@ -5,7 +5,6 @@ import (
 	"crypto/tls"
 	"database/sql"
 	"fmt"
-	"runtime"
 	"time"
 
 	"github.com/msw-x/moon/app"
@@ -16,68 +15,29 @@ import (
 )
 
 type Db struct {
-	log *ulog.Log
-	db  *bun.DB
-	job *app.Job
-	ro  bool
-	ok  bool
+	log   *ulog.Log
+	db    *bun.DB
+	job   *app.Job
+	opts  Options
+	hosts *Hosts
+	ro    bool
+	ok    bool
 }
 
-func New(opt Options) *Db {
+func New(opts Options) *Db {
 	//todo: circuit breaker
 	o := new(Db)
 	o.log = ulog.New("db")
-	h := host(opt.Host)
-	o.log.Info("host:", h)
-	pgopts := []pgdriver.Option{
-		pgdriver.WithNetwork("tcp"),
-		pgdriver.WithAddr(h),
-		pgdriver.WithInsecure(opt.Insecure),
-		pgdriver.WithUser(opt.User),
-		pgdriver.WithPassword(opt.Pass),
-		pgdriver.WithDatabase(opt.Name),
-		pgdriver.WithApplicationName(app.Name()),
-		pgdriver.WithDialTimeout(opt.Timeout),
-		pgdriver.WithReadTimeout(opt.Timeout),
-		pgdriver.WithWriteTimeout(opt.Timeout),
-	}
-	if !opt.Insecure {
-		pgopts = append(pgopts, pgdriver.WithTLSConfig(&tls.Config{InsecureSkipVerify: true}))
-	}
-	pgconn := pgdriver.NewConnector(pgopts...)
-	sqldb := sql.OpenDB(pgconn)
-	maxOpenConns := int(opt.MaxConnFactor * float32(runtime.GOMAXPROCS(0)))
-	if maxOpenConns == 0 {
-		maxOpenConns = 1
-	}
-	if maxOpenConns < opt.MinOpenConns {
-		maxOpenConns = opt.MinOpenConns
-	}
-	o.log.Info("max open conns:", maxOpenConns)
-	sqldb.SetMaxOpenConns(maxOpenConns)
-	sqldb.SetMaxIdleConns(maxOpenConns)
-	if opt.Strict {
-		o.db = bun.NewDB(sqldb, pgdialect.New())
-	} else {
-		// make app more resilient to errors during migrations
-		o.db = bun.NewDB(sqldb, pgdialect.New(), bun.WithDiscardUnknownColumns())
-	}
-	if opt.LogErrors || opt.LogQueries || opt.LogLongQueries {
-		log := newLog(o.log, opt.LogErrors && !opt.LogQueries)
-		if opt.LogLongQueries {
-			if opt.LongQueriesTime == 0 {
-				opt.LongQueriesTime = opt.Timeout / 2
-			}
-			log.WithQueriesTime(opt.LongQueriesTime, opt.WarnLongQueries)
-		}
-		o.db.AddQueryHook(log)
-	}
-	if opt.ReadOnly {
+	o.opts = opts
+	o.hosts = NewHosts(opts.Host)
+	o.ro = opts.ReadOnly
+	if opts.ReadOnly {
 		o.log.Info("readonly")
 	}
-	o.ro = opt.ReadOnly
+	o.log.Info("max open connections:", opts.MaxOpenConnections())
+	o.connect(o.hosts.Next())
 	o.job = app.NewJob().WithLog(o.log).OnFinish(o.close)
-	o.job.Tick(o.checkConnection, time.Second)
+	o.job.Tick(o.check, time.Second)
 	return o
 }
 
@@ -286,8 +246,7 @@ func (o *Db) ctx() context.Context {
 	return context.Background()
 }
 
-func (o *Db) checkConnection() {
-	ok := o.Ping()
+func (o *Db) status(ok bool) {
 	if ok != o.ok {
 		o.ok = ok
 		if o.ok {
@@ -296,6 +255,61 @@ func (o *Db) checkConnection() {
 			o.log.Error("disconnected")
 		}
 	}
+}
+
+func (o *Db) check() {
+	ok := o.Ping()
+	o.status(ok)
+	if !ok && o.hosts.IsMulti() {
+		o.hosts.Loop(func(host string) bool {
+			o.connect(host)
+			ok = o.Ping()
+			return ok
+		})
+		o.status(ok)
+	}
+}
+
+func (o *Db) connect(host string) {
+	o.log.Info("connect:", host)
+	pgopts := []pgdriver.Option{
+		pgdriver.WithNetwork("tcp"),
+		pgdriver.WithAddr(host),
+		pgdriver.WithInsecure(o.opts.Insecure),
+		pgdriver.WithUser(o.opts.User),
+		pgdriver.WithPassword(o.opts.Pass),
+		pgdriver.WithDatabase(o.opts.Name),
+		pgdriver.WithApplicationName(app.Name()),
+		pgdriver.WithDialTimeout(o.opts.Timeout),
+		pgdriver.WithReadTimeout(o.opts.Timeout),
+		pgdriver.WithWriteTimeout(o.opts.Timeout),
+	}
+	if !o.opts.Insecure {
+		pgopts = append(pgopts, pgdriver.WithTLSConfig(&tls.Config{InsecureSkipVerify: true}))
+	}
+	pgconn := pgdriver.NewConnector(pgopts...)
+	sqldb := sql.OpenDB(pgconn)
+	sqldb.SetMaxOpenConns(o.opts.MaxOpenConnections())
+	sqldb.SetMaxIdleConns(o.opts.MaxOpenConnections())
+	var db *bun.DB
+	if o.opts.Strict {
+		db = bun.NewDB(sqldb, pgdialect.New())
+	} else {
+		// make app more resilient to errors during migrations
+		db = bun.NewDB(sqldb, pgdialect.New(), bun.WithDiscardUnknownColumns())
+	}
+	if o.opts.LogErrors || o.opts.LogQueries || o.opts.LogLongQueries {
+		log := newLog(o.log, o.opts.LogErrors && !o.opts.LogQueries)
+		if o.opts.LogLongQueries {
+			if o.opts.LongQueriesTime == 0 {
+				o.opts.LongQueriesTime = o.opts.Timeout / 2
+			}
+			log.WithQueriesTime(o.opts.LongQueriesTime, o.opts.WarnLongQueries)
+		}
+		db.AddQueryHook(log)
+	}
+	o.db = db
+	return
 }
 
 func (o *Db) close() {
