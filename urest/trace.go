@@ -7,7 +7,10 @@ import (
 	"github.com/msw-x/moon/uhttp"
 )
 
-func Trace[RequestData any, ResponceData any](ctx *Context, r Request[RequestData], w Responce[ResponceData], tm time.Duration) {
+func Trace[RequestData any, ResponseData any](ctx *Context, r Request[RequestData], w Response[ResponseData], tm time.Duration) {
+	if w.notTrace {
+		return
+	}
 	ctx.Trace(uhttp.FormatProvider{
 		Title: func() string {
 			name := ctx.router.RequestName(r.r)
@@ -26,10 +29,10 @@ func Trace[RequestData any, ResponceData any](ctx *Context, r Request[RequestDat
 		RequestBody: func() string {
 			return string(r.body)
 		},
-		ResponceHeader: func() string {
+		ResponseHeader: func() string {
 			return uhttp.HeaderString(w.w.Header())
 		},
-		ResponceBody: func() string {
+		ResponseBody: func() string {
 			return string(w.body)
 		},
 	}, w.Ok() || w.muteError)

@@ -10,7 +10,7 @@ import (
 	"github.com/msw-x/moon/ujson"
 )
 
-type Responce[T any] struct {
+type Response[T any] struct {
 	Status    int
 	Data      T
 	Error     error
@@ -20,21 +20,26 @@ type Responce[T any] struct {
 	body        []byte
 	contentType string
 	muteError   bool
+	notTrace    bool
 }
 
-func (o *Responce[T]) Ok() bool {
+func (o *Response[T]) Ok() bool {
 	return o.Error == nil && o.Status == 0
 }
 
-func (o *Responce[T]) MuteError() {
+func (o *Response[T]) MuteError() {
 	o.muteError = true
 }
 
-func (o *Responce[T]) EmptyData() bool {
+func (o *Response[T]) NotTrace() {
+	o.notTrace = true
+}
+
+func (o *Response[T]) EmptyData() bool {
 	return reflect.TypeOf(o.Data).Size() == 0
 }
 
-func (o *Responce[T]) RefineError(prefix string) bool {
+func (o *Response[T]) RefineError(prefix string) bool {
 	if o.Error == nil {
 		return false
 	}
@@ -42,11 +47,11 @@ func (o *Responce[T]) RefineError(prefix string) bool {
 	return true
 }
 
-func (o *Responce[T]) RefineErrorf(s string, args ...any) bool {
+func (o *Response[T]) RefineErrorf(s string, args ...any) bool {
 	return o.RefineError(fmt.Sprintf(s, args...))
 }
 
-func (o *Responce[T]) RefineBadRequest(prefix string) bool {
+func (o *Response[T]) RefineBadRequest(prefix string) bool {
 	if o.RefineError(prefix) {
 		o.SetBadRequest()
 		return true
@@ -54,94 +59,94 @@ func (o *Responce[T]) RefineBadRequest(prefix string) bool {
 	return false
 }
 
-func (o *Responce[T]) SetBadRequest() {
+func (o *Response[T]) SetBadRequest() {
 	o.Status = http.StatusBadRequest
 }
 
-func (o *Responce[T]) SetForbidden() {
+func (o *Response[T]) SetForbidden() {
 	o.Status = http.StatusForbidden
 }
 
-func (o *Responce[T]) SetUnauthorized() {
+func (o *Response[T]) SetUnauthorized() {
 	o.Status = http.StatusUnauthorized
 }
 
-func (o *Responce[T]) SetNotAcceptable() {
+func (o *Response[T]) SetNotAcceptable() {
 	o.Status = http.StatusNotAcceptable
 }
 
-func (o *Responce[T]) SetNotImplemented() {
+func (o *Response[T]) SetNotImplemented() {
 	o.Status = http.StatusNotImplemented
 }
 
-func (o *Responce[T]) SetNotFound() {
+func (o *Response[T]) SetNotFound() {
 	o.Status = http.StatusNotFound
 }
 
-func (o *Responce[T]) SetServiceUnavailable() {
+func (o *Response[T]) SetServiceUnavailable() {
 	o.Status = http.StatusServiceUnavailable
 }
 
-func (o *Responce[T]) BadRequest(s string) {
+func (o *Response[T]) BadRequest(s string) {
 	o.SetBadRequest()
 	o.Error = errors.New(s)
 }
 
-func (o *Responce[T]) Forbidden(s string) {
+func (o *Response[T]) Forbidden(s string) {
 	o.SetForbidden()
 	o.Error = errors.New(s)
 }
 
-func (o *Responce[T]) Unauthorized(s string) {
+func (o *Response[T]) Unauthorized(s string) {
 	o.SetUnauthorized()
 	o.Error = errors.New(s)
 }
 
-func (o *Responce[T]) NotAcceptable(s string) {
+func (o *Response[T]) NotAcceptable(s string) {
 	o.SetNotAcceptable()
 	o.Error = errors.New(s)
 }
 
-func (o *Responce[T]) NotImplemented(s string) {
+func (o *Response[T]) NotImplemented(s string) {
 	o.SetNotImplemented()
 	o.Error = errors.New(s)
 }
 
-func (o *Responce[T]) NotFound(s string) {
+func (o *Response[T]) NotFound(s string) {
 	o.SetNotFound()
 	o.Error = errors.New(s)
 }
 
-func (o *Responce[T]) ServiceUnavailable(s string) {
+func (o *Response[T]) ServiceUnavailable(s string) {
 	o.SetServiceUnavailable()
 	o.Error = errors.New(s)
 }
 
-func (o *Responce[T]) BadRequestf(s string, args ...any) {
+func (o *Response[T]) BadRequestf(s string, args ...any) {
 	o.BadRequest(fmt.Sprintf(s, args...))
 }
 
-func (o *Responce[T]) Forbiddenf(s string, args ...any) {
+func (o *Response[T]) Forbiddenf(s string, args ...any) {
 	o.Forbidden(fmt.Sprintf(s, args...))
 }
 
-func (o *Responce[T]) Unauthorizedf(s string, args ...any) {
+func (o *Response[T]) Unauthorizedf(s string, args ...any) {
 	o.Unauthorized(fmt.Sprintf(s, args...))
 }
 
-func (o *Responce[T]) NotAcceptablef(s string, args ...any) {
+func (o *Response[T]) NotAcceptablef(s string, args ...any) {
 	o.NotAcceptable(fmt.Sprintf(s, args...))
 }
 
-func (o *Responce[T]) NotImplementedf(s string, args ...any) {
+func (o *Response[T]) NotImplementedf(s string, args ...any) {
 	o.NotImplemented(fmt.Sprintf(s, args...))
 }
 
-func (o *Responce[T]) ServiceUnavailablef(s string, args ...any) {
+func (o *Response[T]) ServiceUnavailablef(s string, args ...any) {
 	o.ServiceUnavailable(fmt.Sprintf(s, args...))
 }
 
-func (o *Responce[T]) makeContent() {
+func (o *Response[T]) makeContent() {
 	if o.Ok() {
 		if !o.EmptyData() {
 			switch v := any(o.Data).(type) {
@@ -177,7 +182,7 @@ func (o *Responce[T]) makeContent() {
 	return
 }
 
-func (o *Responce[T]) send() {
+func (o *Response[T]) send() {
 	if o.w != nil {
 		o.makeContent()
 		if !o.Ok() && o.Status == 0 {

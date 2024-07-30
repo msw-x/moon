@@ -8,8 +8,6 @@ import (
 type Context struct {
 	router      *uhttp.Router
 	allowCors   bool
-	trace       bool
-	traceError  bool
 	format      uhttp.Format
 	formatError uhttp.Format
 }
@@ -24,6 +22,15 @@ func (o *Context) Router() *uhttp.Router {
 	return o.router
 }
 
+func (o *Context) ReverseProxy(proxy *uhttp.ReverseProxy) {
+	if proxy.Tracer() == nil {
+		proxy.WithTrace(uhttp.NewTracer[uhttp.ReverseProxyResponce](o.Router().Log().Branch("proxy")).
+			WithFormat(o.format).
+			WithFormatError(o.formatError))
+	}
+	o.Router().ReverseProxy(proxy)
+}
+
 func (o Context) Branch(name string) *Context {
 	o.router = o.router.Branch(name)
 	return &o
@@ -35,13 +42,11 @@ func (o *Context) AllowCors(v bool) *Context {
 }
 
 func (o *Context) WithFormat(f uhttp.Format) *Context {
-	o.trace = true
 	o.format = f
 	return o.WithFormatError(f)
 }
 
 func (o *Context) WithFormatError(f uhttp.Format) *Context {
-	o.traceError = true
 	o.formatError = f
 	return o
 }

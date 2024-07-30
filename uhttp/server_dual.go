@@ -9,54 +9,54 @@ import (
 	"github.com/msw-x/moon/ulog"
 )
 
-type DualServer struct {
+type ServerDual struct {
 	s           *Server
 	tls         *Server
 	tlsRedirect string
 }
 
-func NewDualServer() *DualServer {
-	return &DualServer{
+func ServerNewDual() *ServerDual {
+	return &ServerDual{
 		s:   NewServer(),
 		tls: NewServer(),
 	}
 }
 
-func (o *DualServer) WithSecret(certFile, keyFile string) *DualServer {
+func (o *ServerDual) WithSecret(certFile, keyFile string) *ServerDual {
 	o.tls.WithSecret(certFile, keyFile)
 	return o
 }
 
-func (o *DualServer) WithSecretDir(dir string) *DualServer {
+func (o *ServerDual) WithSecretDir(dir string) *ServerDual {
 	o.tls.WithSecretDir(dir)
 	return o
 }
 
-func (o *DualServer) WithAutoSecret(dir string, domains ...string) *DualServer {
+func (o *ServerDual) WithAutoSecret(dir string, domains ...string) *ServerDual {
 	o.tls.WithAutoSecret(dir, domains...)
 	return o
 }
 
-func (o *DualServer) WithLogErrors(use bool) *DualServer {
+func (o *ServerDual) WithLogErrors(use bool) *ServerDual {
 	o.s.WithLogErrors(use)
 	o.tls.WithLogErrors(use)
 	return o
 }
 
-func (o *DualServer) WithLogErrorsLevel(level ulog.Level) *DualServer {
+func (o *ServerDual) WithLogErrorsLevel(level ulog.Level) *ServerDual {
 	o.s.WithLogErrorsLevel(level)
 	o.tls.WithLogErrorsLevel(level)
 	return o
 }
 
-func (o *DualServer) WithRedirectToTls(use string) *DualServer {
+func (o *ServerDual) WithRedirectToTls(use string) *ServerDual {
 	o.tlsRedirect = use
 	return o
 }
 
-func (o *DualServer) Run(addr string, addrTls string, handler http.Handler) error {
+func (o *ServerDual) Run(addr string, addrTls string, handler http.Handler) error {
 	if !o.tls.IsTls() {
-		return errors.New("dual-server: tls secret not defined")
+		return errors.New("server-dual: tls secret not defined")
 	}
 	if o.tlsRedirect == "" {
 		o.s.Run(addr, handler)
@@ -74,7 +74,7 @@ func (o *DualServer) Run(addr string, addrTls string, handler http.Handler) erro
 	return nil
 }
 
-func (o *DualServer) Close() {
+func (o *ServerDual) Close() {
 	o.s.Close()
 	o.tls.Close()
 }

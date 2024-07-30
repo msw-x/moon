@@ -7,7 +7,7 @@ import (
 	"github.com/msw-x/moon/uerr"
 )
 
-func execHeader[ResponceData any](h http.Header, w *Responce[ResponceData], f func(http.Header, *Responce[ResponceData])) {
+func execHeader[ResponseData any](h http.Header, w *Response[ResponseData], f func(http.Header, *Response[ResponseData])) {
 	defer uerr.Recover(func(s string) {
 		w.Error = fmt.Errorf("header: %s", s)
 	})
@@ -16,7 +16,7 @@ func execHeader[ResponceData any](h http.Header, w *Responce[ResponceData], f fu
 	}
 }
 
-func execHandle[RequestData any, ResponceData any](r Request[RequestData], w *Responce[ResponceData], f func(Request[RequestData], *Responce[ResponceData])) {
+func execHandle[RequestData any, ResponseData any](r Request[RequestData], w *Response[ResponseData], f func(Request[RequestData], *Response[ResponseData])) {
 	defer uerr.Recover(func(s string) {
 		w.Error = fmt.Errorf("handle: %s", s)
 	})

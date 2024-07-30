@@ -16,11 +16,11 @@ import (
 type Performer struct {
 	Request Request
 	c       *http.Client
-	trace   func(Responce)
+	trace   func(Response)
 	errors  OnErrors
 }
 
-func (o *Performer) Do() (r Responce) {
+func (o *Performer) Do() (r Response) {
 	o.errors.init(&r)
 	r.Request = o.Request
 	ts := time.Now()
@@ -28,13 +28,13 @@ func (o *Performer) Do() (r Responce) {
 	request, err := http.NewRequest(r.Request.Method, r.Request.Uri(), bytes.NewReader(r.Request.Body))
 	request.Header = r.Request.Header
 	if err == nil {
-		responce, err := o.c.Do(request)
+		response, err := o.c.Do(request)
 		if err == nil {
-			defer responce.Body.Close()
-			r.Header = responce.Header
-			r.Status = responce.Status
-			r.StatusCode = responce.StatusCode
-			r.Body, err = io.ReadAll(responce.Body)
+			defer response.Body.Close()
+			r.Header = response.Header
+			r.Status = response.Status
+			r.StatusCode = response.StatusCode
+			r.Body, err = io.ReadAll(response.Body)
 			if err != nil {
 				o.errors.readBody(err)
 			}
@@ -101,7 +101,7 @@ func (o *Performer) Json(v any) *Performer {
 	return o.Body(body)
 }
 
-func (o *Performer) Trace(trace func(Responce)) *Performer {
+func (o *Performer) Trace(trace func(Response)) *Performer {
 	o.trace = trace
 	return o
 }

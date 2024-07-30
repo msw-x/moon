@@ -2,42 +2,47 @@ package uhttp
 
 import "github.com/msw-x/moon/ulog"
 
-type Tracer struct {
+type Tracer[T TraceResponce] struct {
 	log         *ulog.Log
 	format      Format
 	formatError Format
-	validate    func(Responce) bool
-	filter      func(Responce) bool
+	validate    func(T) bool
+	filter      func(T) bool
 }
 
-func NewTracer(log *ulog.Log) *Tracer {
-	o := new(Tracer)
+type TraceResponce interface {
+	Ok() bool
+	Format(Format) string
+}
+
+func NewTracer[T TraceResponce](log *ulog.Log) *Tracer[T] {
+	o := new(Tracer[T])
 	o.log = log
 	return o
 }
 
-func (o *Tracer) WithFormat(f Format) *Tracer {
+func (o *Tracer[T]) WithFormat(f Format) *Tracer[T] {
 	o.format = f
 	o.formatError = f
 	return o
 }
 
-func (o *Tracer) WithFormatError(f Format) *Tracer {
+func (o *Tracer[T]) WithFormatError(f Format) *Tracer[T] {
 	o.formatError = f
 	return o
 }
 
-func (o *Tracer) WithValidate(f func(Responce) bool) *Tracer {
+func (o *Tracer[T]) WithValidate(f func(T) bool) *Tracer[T] {
 	o.validate = f
 	return o
 }
 
-func (o *Tracer) WithFilter(f func(Responce) bool) *Tracer {
+func (o *Tracer[T]) WithFilter(f func(T) bool) *Tracer[T] {
 	o.filter = f
 	return o
 }
 
-func (o *Tracer) Trace(r Responce) {
+func (o *Tracer[T]) Trace(r T) {
 	if o.filter != nil {
 		if !o.filter(r) {
 			return

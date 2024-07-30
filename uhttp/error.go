@@ -1,16 +1,16 @@
 package uhttp
 
-type OnError func(error, *Responce) error
+type OnError func(error, *Response) error
 
 type OnErrors struct {
 	InitRequest OnError
 	DoRequest   OnError
 	ReadBody    OnError
 
-	r *Responce
+	r *Response
 }
 
-func (o *OnErrors) init(r *Responce) {
+func (o *OnErrors) init(r *Response) {
 	o.r = r
 }
 

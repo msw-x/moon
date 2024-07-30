@@ -12,7 +12,7 @@ type Client struct {
 	c      *http.Client
 	base   string
 	path   string
-	trace  func(Responce)
+	trace  func(Response)
 	errors OnErrors
 }
 
@@ -76,7 +76,7 @@ func (o *Client) WithTimeout(timeout time.Duration) *Client {
 	return o
 }
 
-func (o *Client) WithTrace(trace func(Responce)) *Client {
+func (o *Client) WithTrace(trace func(Response)) *Client {
 	o.trace = trace
 	return o
 }

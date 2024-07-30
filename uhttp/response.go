@@ -11,7 +11,7 @@ import (
 	"github.com/msw-x/moon/parse"
 )
 
-type Responce struct {
+type Response struct {
 	Request    Request
 	Time       time.Duration
 	Status     string
@@ -21,11 +21,11 @@ type Responce struct {
 	Error      error
 }
 
-func (o *Responce) Ok() bool {
+func (o Response) Ok() bool {
 	return o.StatusCode == http.StatusOK && o.Error == nil
 }
 
-func (o *Responce) NotOkError() error {
+func (o Response) NotOkError() error {
 	if o.Ok() {
 		return nil
 	}
@@ -35,68 +35,68 @@ func (o *Responce) NotOkError() error {
 	return o.Error
 }
 
-func (o *Responce) GetStatus() string {
+func (o Response) GetStatus() string {
 	if o.Status == "" {
 		return strconv.Itoa(o.StatusCode)
 	}
 	return o.Status
 }
 
-func (o *Responce) BodyExists() bool {
+func (o Response) BodyExists() bool {
 	return len(o.Body) > 0
 }
 
-func (o *Responce) Text() string {
+func (o Response) Text() string {
 	return string(o.Body)
 }
 
-func (o *Responce) Json(v any) error {
+func (o Response) Json(v any) error {
 	return json.Unmarshal(o.Body, v)
 }
 
-func (o *Responce) HeaderTo(v any) error {
+func (o Response) HeaderTo(v any) error {
 	return HeaderTo(o.Header, v)
 }
 
-func (o *Responce) HeaderExists(key string) bool {
+func (o Response) HeaderExists(key string) bool {
 	return o.HeaderValue(key) != ""
 }
 
-func (o *Responce) HeaderValue(key string) string {
+func (o Response) HeaderValue(key string) string {
 	return o.Header.Get(key)
 }
 
-func (o *Responce) HeaderInt64(key string) (int64, error) {
+func (o Response) HeaderInt64(key string) (int64, error) {
 	return parse.Int64(o.HeaderValue(key))
 }
 
-func (o *Responce) HeaderFloat64(key string) (float64, error) {
+func (o Response) HeaderFloat64(key string) (float64, error) {
 	return parse.Float64(o.HeaderValue(key))
 }
 
-func (o *Responce) RefineError(text string, err error) {
+func (o Response) RefineError(text string, err error) {
 	o.Error = fmt.Errorf("%s: %v", text, err)
 }
 
-func (o *Responce) Title() string {
+func (o Response) Title() string {
 	return Title(ClientRequestName(o.Request), o.StatusCode, o.Status, o.Time, len(o.Body), o.Error)
 }
 
-func (o *Responce) Format(f Format) string {
+func (o Response) Format(f Format) string {
 	return FormatProvider{
 		Title:          o.Title,
 		RequestParams:  o.Request.ParamsString,
 		RequestHeader:  o.Request.HeaderString,
 		RequestBody:    o.Request.BodyString,
-		ResponceHeader: o.HeaderString,
-		ResponceBody:   o.BodyString,
+		ResponseHeader: o.HeaderString,
+		ResponseBody:   o.BodyString,
 	}.Format(f)
 }
 
-func (o *Responce) HeaderString() string {
+func (o Response) HeaderString() string {
 	return HeaderString(o.Header)
 }
 
-func (o *Responce) BodyString() string {
+func (o Response) BodyString() string {
 	return string(o.Body)
 }

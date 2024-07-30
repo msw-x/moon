@@ -7,12 +7,12 @@ import (
 	"github.com/msw-x/moon/utime"
 )
 
-func Handle[RequestData any, ResponceData any](
+func Handle[RequestData any, ResponseData any](
 	ctx *Context,
 	method string,
 	url string,
-	header func(http.Header, *Responce[ResponceData]),
-	handle func(Request[RequestData], *Responce[ResponceData]),
+	header func(http.Header, *Response[ResponseData]),
+	handle func(Request[RequestData], *Response[ResponseData]),
 ) {
 	if ctx.allowCors {
 		ctx.router.Options(url, func(w http.ResponseWriter, r *http.Request) {
@@ -32,66 +32,66 @@ func Handle[RequestData any, ResponceData any](
 			allowCors(w)
 		}
 		var request Request[RequestData]
-		var responce Responce[ResponceData]
-		execHeader(r.Header, &responce, header)
+		var response Response[ResponseData]
+		execHeader(r.Header, &response, header)
 		request.r = r
-		responce.w = w
-		if responce.Ok() {
-			responce.Error = request.readBody()
-			if responce.Ok() {
+		response.w = w
+		if response.Ok() {
+			response.Error = request.readBody()
+			if response.Ok() {
 				if request.HasBody() {
-					responce.Error = request.DataFromJson()
-					if !responce.Ok() {
-						responce.RefineBadRequest("unmarshal json")
+					response.Error = request.DataFromJson()
+					if !response.Ok() {
+						response.RefineBadRequest("unmarshal json")
 					}
 				} else if !request.EmptyData() {
 					if method == http.MethodPut || method == http.MethodPost {
-						responce.BadRequest("body is empty")
+						response.BadRequest("body is empty")
 					} else {
 						request.DataFromParams()
 					}
 				}
-				if responce.Ok() {
-					execHandle(request, &responce, handle)
+				if response.Ok() {
+					execHandle(request, &response, handle)
 				}
 			} else {
-				responce.w = nil
-				responce.RefineError("read body")
+				response.w = nil
+				response.RefineError("read body")
 			}
 		}
-		responce.send()
-		Trace(ctx, request, responce, tm.Time())
+		response.send()
+		Trace(ctx, request, response, tm.Time())
 	})
 }
 
-func Get[RequestData any, ResponceData any](
+func Get[RequestData any, ResponseData any](
 	ctx *Context,
 	url string,
-	handle func(Request[RequestData], *Responce[ResponceData]),
+	handle func(Request[RequestData], *Response[ResponseData]),
 ) {
 	Handle(ctx, http.MethodGet, url, nil, handle)
 }
 
-func Post[RequestData any, ResponceData any](
+func Post[RequestData any, ResponseData any](
 	ctx *Context,
 	url string,
-	handle func(Request[RequestData], *Responce[ResponceData]),
+	handle func(Request[RequestData], *Response[ResponseData]),
 ) {
 	Handle(ctx, http.MethodPost, url, nil, handle)
 }
 
-func Put[RequestData any, ResponceData any](
+func Put[RequestData any, ResponseData any](
 	ctx *Context,
 	url string,
-	handle func(Request[RequestData], *Responce[ResponceData]),
+	handle func(Request[RequestData], *Response[ResponseData]),
 ) {
 	Handle(ctx, http.MethodPut, url, nil, handle)
 }
 
-func Delete[RequestData any, ResponceData any](
+func Delete[RequestData any, ResponseData any](
 	ctx *Context,
 	url string,
-	handle func(Request[RequestData], *Responce[ResponceData]),
+	handle func(Request[RequestData], *Response[ResponseData]),
 ) {
 	Handle(ctx, http.MethodDelete, url, nil, handle)
 }

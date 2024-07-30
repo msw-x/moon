@@ -9,13 +9,13 @@ import (
 type Format struct {
 	RequestParams     bool
 	RequestHeader     bool
-	ResponceHeader    bool
+	ResponseHeader    bool
 	RequestBody       bool
-	ResponceBody      bool
+	ResponseBody      bool
 	RequestBodyTrim   bool
-	ResponceBodyTrim  bool
+	ResponseBodyTrim  bool
 	RequestBodyLimit  int
-	ResponceBodyLimit int
+	ResponseBodyLimit int
 }
 
 type FormatProvider struct {
@@ -23,8 +23,8 @@ type FormatProvider struct {
 	RequestParams  func() string
 	RequestHeader  func() string
 	RequestBody    func() string
-	ResponceHeader func() string
-	ResponceBody   func() string
+	ResponseHeader func() string
+	ResponseBody   func() string
 }
 
 func (o FormatProvider) Format(f Format) string {
@@ -48,7 +48,7 @@ func (o FormatProvider) Format(f Format) string {
 	push(f.RequestParams, 0, false, "request-params", o.RequestParams)
 	push(f.RequestHeader, 0, false, "request-header", o.RequestHeader)
 	push(f.RequestBody, f.RequestBodyLimit, f.RequestBodyTrim, "request-body", o.RequestBody)
-	push(f.ResponceHeader, 0, false, "responce-header", o.ResponceHeader)
-	push(f.ResponceBody, f.ResponceBodyLimit, f.ResponceBodyTrim, "responce-body", o.ResponceBody)
+	push(f.ResponseHeader, 0, false, "response-header", o.ResponseHeader)
+	push(f.ResponseBody, f.ResponseBodyLimit, f.ResponseBodyTrim, "response-body", o.ResponseBody)
 	return ufmt.NotableJoinSliceWith("\n", l)
 }
