@@ -75,7 +75,7 @@ func (o *context) statistics() string {
 	}
 	add := func(level Level, count uint) {
 		if count > 0 {
-			text = fmt.Sprintf("%s %v[%s]", text, level.Laconic(), ufmt.WideInt(count))
+			text = fmt.Sprintf("%s %v[%s]", text, level.Laconic(), ufmt.Int(count, ufmt.IntCtx{Precision: 0, Dense: true}))
 		}
 	}
 	add(LevelTrace, o.stat.Trace)
