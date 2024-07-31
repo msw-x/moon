@@ -17,7 +17,7 @@ type Server struct {
 	log       *ulog.Log
 	s         *http.Server
 	job       *app.Job
-	timeouts  timeouts
+	timeouts  Timeouts
 	certFile  string
 	keyFile   string
 	domains   []string
@@ -27,13 +27,18 @@ type Server struct {
 
 func NewServer() *Server {
 	return &Server{
-		timeouts: timeouts{
-			write: 15 * time.Second,
-			read:  15 * time.Second,
-			idle:  60 * time.Second,
-			close: 5 * time.Second,
+		timeouts: Timeouts{
+			Write: 15 * time.Second,
+			Read:  15 * time.Second,
+			Idle:  60 * time.Second,
+			Close: 5 * time.Second,
 		},
 	}
+}
+
+func (o *Server) WithTimeouts(timeouts Timeouts) *Server {
+	o.timeouts.Set(timeouts)
+	return o
 }
 
 func (o *Server) WithSecret(certFile, keyFile string) *Server {
@@ -90,7 +95,8 @@ func (o *Server) Run(addr string, handler http.Handler) {
 			secret.Ensure(o.certFile, o.keyFile)
 		}
 	}
-	o.log = ulog.New(name).WithID(addr)
+	o.log = ulog.New(name).WithID(addr).WithLifetime()
+	o.log.Info("timeouts:", o.timeouts.String())
 	if o.IsTls() {
 		if o.tlsman == nil {
 			o.log.Info("cert:", o.certFile)
@@ -102,9 +108,9 @@ func (o *Server) Run(addr string, handler http.Handler) {
 	o.s = &http.Server{
 		Addr:         addr,
 		Handler:      handler,
-		WriteTimeout: o.timeouts.write,
-		ReadTimeout:  o.timeouts.read,
-		IdleTimeout:  o.timeouts.idle,
+		WriteTimeout: o.timeouts.Write,
+		ReadTimeout:  o.timeouts.Read,
+		IdleTimeout:  o.timeouts.Idle,
 		ErrorLog: ulog.StdBridge(func(m string) {
 			if o.logErrors != nil {
 				level := *o.logErrors
@@ -138,8 +144,9 @@ func (o *Server) Run(addr string, handler http.Handler) {
 }
 
 func (o *Server) Close() {
+	defer o.log.Close()
 	if o.s != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), o.timeouts.close)
+		ctx, cancel := context.WithTimeout(context.Background(), o.timeouts.Close)
 		defer cancel()
 		s := o.s
 		o.s = nil
@@ -150,11 +157,4 @@ func (o *Server) Close() {
 
 func (o *Server) IsTls() bool {
 	return o.certFile != "" && o.keyFile != "" || o.tlsman != nil
-}
-
-type timeouts struct {
-	write time.Duration
-	read  time.Duration
-	idle  time.Duration
-	close time.Duration
 }

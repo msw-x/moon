@@ -22,6 +22,12 @@ func ServerNewDual() *ServerDual {
 	}
 }
 
+func (o *ServerDual) WithTimeouts(timeouts Timeouts) *ServerDual {
+	o.s.WithTimeouts(timeouts)
+	o.tls.WithTimeouts(timeouts)
+	return o
+}
+
 func (o *ServerDual) WithSecret(certFile, keyFile string) *ServerDual {
 	o.tls.WithSecret(certFile, keyFile)
 	return o
