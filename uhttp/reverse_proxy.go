@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+
+	"github.com/gorilla/mux"
 )
 
 type ReverseProxy struct {
@@ -102,6 +104,7 @@ func (o *ReverseProxy) Connect(router *Router) {
 		w.WriteHeader(http.StatusBadGateway)
 	}
 	router.HandleFunc(path+"{path:.*}", func(w http.ResponseWriter, r *http.Request) {
+		r.URL.Path = mux.Vars(r)["path"]
 		resp := NewReverseProxyResponse(r, w, o.tracer, router)
 		if o.onRequest != nil {
 			if resp.ErrorFree() {
