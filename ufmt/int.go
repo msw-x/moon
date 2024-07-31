@@ -27,26 +27,26 @@ type IntCtx struct {
 	maxLevel  int
 }
 
-func (this *IntCtx) init() {
-	if this.Base == nil {
-		this.base = 1000
+func (o *IntCtx) init() {
+	if o.Base == nil {
+		o.base = 1000
 	} else {
-		this.base = this.Base.(int)
+		o.base = o.Base.(int)
 	}
-	if this.Precision == nil {
-		this.precision = 1
+	if o.Precision == nil {
+		o.precision = 1
 	} else {
-		this.precision = this.Precision.(int)
+		o.precision = o.Precision.(int)
 	}
-	if this.MinLevel == nil {
-		this.minLevel = 0
+	if o.MinLevel == nil {
+		o.minLevel = 0
 	} else {
-		this.minLevel = this.MinLevel.(int)
+		o.minLevel = o.MinLevel.(int)
 	}
-	if this.MaxLevel == nil {
-		this.maxLevel = len(IntPrefix)
+	if o.MaxLevel == nil {
+		o.maxLevel = len(IntPrefix)
 	} else {
-		this.maxLevel = this.MaxLevel.(int)
+		o.maxLevel = o.MaxLevel.(int)
 	}
 }
 
