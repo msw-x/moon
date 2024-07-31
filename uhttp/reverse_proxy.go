@@ -96,12 +96,9 @@ func (o *ReverseProxy) Connect(router *Router) {
 		return nil
 	}
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
-		log.Trace("ErrorHandler 1")
 		if v, ok := w.(*ReverseProxyResponse); ok {
 			v.SetError(err)
-			log.Trace("ErrorHandler 2")
 		}
-		log.Trace("ErrorHandler 3")
 		w.WriteHeader(http.StatusBadGateway)
 	}
 	router.HandleFunc(path+"{path:.*}", func(w http.ResponseWriter, r *http.Request) {
