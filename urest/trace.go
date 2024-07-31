@@ -18,7 +18,7 @@ func Trace[RequestData any, ResponseData any](ctx *Context, r Request[RequestDat
 			if w.Ok() && statusCode == 0 {
 				statusCode = 200
 			}
-			return uhttp.Title(name, statusCode, strconv.Itoa(statusCode), tm, len(w.body), w.Error)
+			return uhttp.Title(name, statusCode, strconv.Itoa(statusCode), tm, len(r.body), len(w.body), w.Error)
 		},
 		RequestParams: func() string {
 			return uhttp.ParamsString(r.r.URL.Query())

@@ -4,10 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/msw-x/moon/ufmt"
-	"github.com/msw-x/moon/utime"
 )
 
 func ClientAddress(r *http.Request, xRemoteAddress string) string {
@@ -45,21 +43,4 @@ func ProxyRequestName(r *http.Request, xRemoteAddress string) string {
 
 func WebSocketName(name string) string {
 	return ufmt.JoinWith("@", name, "ws")
-}
-
-func Title(name string, statusCode int, status string, tm time.Duration, bodyLen int, err error) string {
-	l := []any{name}
-	if statusCode != 0 {
-		l = append(l, status)
-	}
-	if tm != 0 {
-		l = append(l, utime.PrettyTruncate(tm))
-	}
-	if bodyLen != 0 {
-		l = append(l, ufmt.ByteSizeDense(bodyLen))
-	}
-	if err != nil {
-		l = append(l, err)
-	}
-	return ufmt.JoinSlice(l)
 }

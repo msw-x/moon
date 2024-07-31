@@ -65,11 +65,13 @@ func (o ReverseProxyResponse) Format(f Format) string {
 	return FormatProvider{
 		Title: func() string {
 			var err error
+			requestBodyLen := len(o.requestBody)
 			responseBodyLen := len(responseBody)
 			if responseBodyLen == 0 {
 				err = o.err
 			}
-			return Title(o.router.RequestName(o.r), o.statusCode, strconv.Itoa(o.statusCode), time.Since(o.ts), responseBodyLen, err)
+			return Title(o.router.RequestName(o.r), o.statusCode, strconv.Itoa(o.statusCode),
+				time.Since(o.ts), requestBodyLen, responseBodyLen, err)
 		},
 		RequestParams: func() string {
 			return ParamsString(o.r.URL.Query())

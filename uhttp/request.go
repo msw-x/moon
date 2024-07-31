@@ -36,6 +36,10 @@ func (o *Request) HeaderString() string {
 	return HeaderString(o.Header)
 }
 
+func (o *Request) BodyLenght() int {
+	return len(o.Body)
+}
+
 func (o *Request) BodyString() string {
 	return string(o.Body)
 }

@@ -79,7 +79,7 @@ func (o Response) RefineError(text string, err error) {
 }
 
 func (o Response) Title() string {
-	return Title(ClientRequestName(o.Request), o.StatusCode, o.Status, o.Time, len(o.Body), o.Error)
+	return Title(ClientRequestName(o.Request), o.StatusCode, o.Status, o.Time, o.Request.BodyLenght(), len(o.Body), o.Error)
 }
 
 func (o Response) Format(f Format) string {
