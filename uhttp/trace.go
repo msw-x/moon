@@ -42,6 +42,14 @@ func (o *Tracer[T]) WithFilter(f func(T) bool) *Tracer[T] {
 	return o
 }
 
+func (o *Tracer[T]) RequireRequestBody() bool {
+	return o.format.RequestBody || o.formatError.RequestBody
+}
+
+func (o *Tracer[T]) RequireResponseBody() bool {
+	return o.format.ResponseBody || o.formatError.ResponseBody
+}
+
 func (o *Tracer[T]) Trace(r T) {
 	if o.filter != nil {
 		if !o.filter(r) {

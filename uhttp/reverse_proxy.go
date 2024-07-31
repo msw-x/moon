@@ -1,21 +1,19 @@
 package uhttp
 
 import (
-	"context"
 	"errors"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"time"
 )
 
 type ReverseProxy struct {
 	path      string
-	onRequest func(http.ResponseWriter, *http.Request) bool
+	onRequest func(http.ResponseWriter, *http.Request) error
 	onRewrite func(*httputil.ProxyRequest)
 	onTarget  func(*httputil.ProxyRequest) string
 	target    string
-	tracer    *Tracer[ReverseProxyResponce]
+	tracer    *Tracer[ReverseProxyResponse]
 }
 
 func NewReverseProxy(s string) *ReverseProxy {
@@ -24,12 +22,12 @@ func NewReverseProxy(s string) *ReverseProxy {
 	return o
 }
 
-func (o *ReverseProxy) WithTrace(tracer *Tracer[ReverseProxyResponce]) *ReverseProxy {
+func (o *ReverseProxy) WithTrace(tracer *Tracer[ReverseProxyResponse]) *ReverseProxy {
 	o.tracer = tracer
 	return o
 }
 
-func (o *ReverseProxy) OnRequest(f func(http.ResponseWriter, *http.Request) bool) *ReverseProxy {
+func (o *ReverseProxy) OnRequest(f func(http.ResponseWriter, *http.Request) error) *ReverseProxy {
 	o.onRequest = f
 	return o
 }
@@ -72,7 +70,7 @@ func (o *ReverseProxy) Connect(router *Router) {
 	var proxy *httputil.ReverseProxy
 	if o.onTarget == nil {
 		if t, ok := target(o.target); ok {
-			log.Debugf("PROXY:%s->%s", path, t)
+			log.Debugf("proxy:%s->%s", path, t)
 			if o.onRewrite == nil {
 				proxy = httputil.NewSingleHostReverseProxy(t)
 			} else {
@@ -85,7 +83,7 @@ func (o *ReverseProxy) Connect(router *Router) {
 			}
 		}
 	} else {
-		log.Debugf("PROXY:%s", path)
+		log.Debugf("proxy:%s", path)
 		proxy = &httputil.ReverseProxy{
 			Rewrite: func(r *httputil.ProxyRequest) {
 				if t, ok := target(o.onTarget(r)); ok {
@@ -94,53 +92,32 @@ func (o *ReverseProxy) Connect(router *Router) {
 			},
 		}
 	}
-	toContextRequest := func(r *http.Request, key string, val any) {
-		if o.tracer != nil {
-			r.WithContext(context.WithValue(r.Context(), key, val))
-		}
-	}
 	proxy.ModifyResponse = func(v *http.Response) error {
-		toContextRequest(v.Request, "status", v.Status)
-		toContextRequest(v.Request, "status-code", v.StatusCode)
 		return nil
 	}
 	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
-		toContextRequest(r, "error", err)
+		log.Trace("ErrorHandler 1")
+		if v, ok := w.(*ReverseProxyResponse); ok {
+			v.SetError(err)
+			log.Trace("ErrorHandler 2")
+		}
+		log.Trace("ErrorHandler 3")
 		w.WriteHeader(http.StatusBadGateway)
 	}
 	router.HandleFunc(path+"{path:.*}", func(w http.ResponseWriter, r *http.Request) {
-		ts := time.Now()
-		ok := true
+		resp := NewReverseProxyResponse(r, w, o.tracer, router)
 		if o.onRequest != nil {
-			ok = o.onRequest(w, r)
+			if resp.ErrorFree() {
+				resp.SetError(o.onRequest(resp, r))
+			}
 		}
-		if ok {
-			proxy.ServeHTTP(w, r)
+		if resp.ErrorFree() {
+			proxy.ServeHTTP(resp, r)
 		}
-		if o.tracer != nil {
-			o.trace(router, w, r, time.Since(ts))
-		}
+		resp.Close()
 	})
 }
 
-func (o *ReverseProxy) Tracer() *Tracer[ReverseProxyResponce] {
+func (o *ReverseProxy) Tracer() *Tracer[ReverseProxyResponse] {
 	return o.tracer
-}
-
-func (o *ReverseProxy) trace(router *Router, w http.ResponseWriter, r *http.Request, tm time.Duration) {
-	var trace ReverseProxyResponce
-	trace.Request = r
-	trace.Header = w.Header()
-	trace.Time = tm
-	trace.router = router
-	if v := r.Context().Value("status"); v != nil {
-		trace.Status = v.(string)
-	}
-	if v := r.Context().Value("status-code"); v != nil {
-		trace.StatusCode = v.(int)
-	}
-	if v := r.Context().Value("error"); v != nil {
-		trace.Error = v.(error)
-	}
-	o.tracer.Trace(trace)
 }

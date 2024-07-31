@@ -24,7 +24,7 @@ func (o *Context) Router() *uhttp.Router {
 
 func (o *Context) ReverseProxy(proxy *uhttp.ReverseProxy) {
 	if proxy.Tracer() == nil {
-		proxy.WithTrace(uhttp.NewTracer[uhttp.ReverseProxyResponce](o.Router().Log().Branch("proxy")).
+		proxy.WithTrace(uhttp.NewTracer[uhttp.ReverseProxyResponse](o.Router().Log().Branch("proxy")).
 			WithFormat(o.format).
 			WithFormatError(o.formatError))
 	}

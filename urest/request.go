@@ -2,7 +2,7 @@ package urest
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"reflect"
@@ -121,7 +121,7 @@ func (o *Request[T]) DataFromJson() error {
 }
 
 func (o *Request[T]) readBody() (err error) {
-	o.body, err = ioutil.ReadAll(o.r.Body)
+	o.body, err = io.ReadAll(o.r.Body)
 	return
 }
 
