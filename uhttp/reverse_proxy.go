@@ -6,26 +6,37 @@ import (
 	"net/http/httputil"
 	"net/url"
 
-	"github.com/gorilla/mux"
+	"github.com/msw-x/moon/ulog"
 )
 
 type ReverseProxy struct {
-	path      string
+	log       *ulog.Log
+	proxy     *httputil.ReverseProxy
+	tracer    *Tracer[ReverseProxyResponse]
+	target    string
 	onRequest func(http.ResponseWriter, *http.Request) error
 	onRewrite func(*httputil.ProxyRequest)
 	onTarget  func(*httputil.ProxyRequest) string
-	target    string
-	tracer    *Tracer[ReverseProxyResponse]
 }
 
-func NewReverseProxy(s string) *ReverseProxy {
+func NewReverseProxy() *ReverseProxy {
 	o := new(ReverseProxy)
-	o.path = s
+	o.log = ulog.Empty()
+	return o
+}
+
+func (o *ReverseProxy) WithLog(log *ulog.Log) *ReverseProxy {
+	o.log = log
 	return o
 }
 
 func (o *ReverseProxy) WithTrace(tracer *Tracer[ReverseProxyResponse]) *ReverseProxy {
 	o.tracer = tracer
+	return o
+}
+
+func (o *ReverseProxy) WithTarget(s string) *ReverseProxy {
+	o.target = s
 	return o
 }
 
@@ -44,80 +55,82 @@ func (o *ReverseProxy) OnTarget(f func(*httputil.ProxyRequest) string) *ReverseP
 	return o
 }
 
-func (o *ReverseProxy) Target(s string) *ReverseProxy {
-	o.target = s
-	return o
-}
-
 func (o *ReverseProxy) Pure() *ReverseProxy {
 	o.OnRewrite(func(*httputil.ProxyRequest) {})
 	return o
 }
 
-func (o *ReverseProxy) Connect(router *Router) {
-	log := router.log
-	path := router.nextPath(o.path)
-	target := func(s string) (u *url.URL, ok bool) {
-		var err error
-		if s == "" {
-			err = errors.New("target is empty")
-		}
-		u, err = url.Parse(s)
-		ok = err == nil
-		if !ok {
-			log.Errorf("proxy url[%s]: %v", s, err)
-		}
-		return
-	}
-	var proxy *httputil.ReverseProxy
+func (o *ReverseProxy) Init() {
 	if o.onTarget == nil {
-		if t, ok := target(o.target); ok {
-			log.Debugf("proxy:%s->%s", path, t)
+		if t, ok := o.targetUrl(o.target); ok {
 			if o.onRewrite == nil {
-				proxy = httputil.NewSingleHostReverseProxy(t)
+				o.proxy = httputil.NewSingleHostReverseProxy(t)
 			} else {
-				proxy = &httputil.ReverseProxy{
+				o.proxy = &httputil.ReverseProxy{
 					Rewrite: func(r *httputil.ProxyRequest) {
 						o.onRewrite(r)
 						r.SetURL(t)
 					},
 				}
 			}
+		} else {
+			return
 		}
 	} else {
-		log.Debugf("proxy:%s", path)
-		proxy = &httputil.ReverseProxy{
+		o.proxy = &httputil.ReverseProxy{
 			Rewrite: func(r *httputil.ProxyRequest) {
-				if t, ok := target(o.onTarget(r)); ok {
+				if t, ok := o.targetUrl(o.onTarget(r)); ok {
 					r.SetURL(t)
 				}
 			},
 		}
 	}
-	proxy.ModifyResponse = func(v *http.Response) error {
+	o.proxy.ModifyResponse = func(v *http.Response) error {
 		return nil
 	}
-	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+	o.proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
 		if v, ok := w.(*ReverseProxyResponse); ok {
 			v.SetError(err)
 		}
 		w.WriteHeader(http.StatusBadGateway)
 	}
-	router.HandleFunc(path+"{path:.*}", func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = mux.Vars(r)["path"]
-		resp := NewReverseProxyResponse(r, w, o.tracer, router)
-		if o.onRequest != nil {
-			if resp.ErrorFree() {
-				resp.SetError(o.onRequest(resp, r))
-			}
-		}
+}
+
+func (o *ReverseProxy) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	resp := NewReverseProxyResponse(r, w, o.tracer)
+	if o.onRequest != nil {
 		if resp.ErrorFree() {
-			proxy.ServeHTTP(resp, r)
+			resp.SetError(o.onRequest(resp, r))
 		}
-		resp.Close()
-	})
+	}
+	if resp.ErrorFree() {
+		o.proxy.ServeHTTP(resp, r)
+	}
+	resp.Close()
+}
+
+func (o *ReverseProxy) Log() *ulog.Log {
+	return o.log
 }
 
 func (o *ReverseProxy) Tracer() *Tracer[ReverseProxyResponse] {
 	return o.tracer
+}
+
+func (o *ReverseProxy) Target() string {
+	return o.target
+}
+
+func (o *ReverseProxy) targetUrl(s string) (u *url.URL, ok bool) {
+	var err error
+	if s == "" {
+		err = errors.New("url is empty")
+	} else {
+		u, err = url.Parse(s)
+	}
+	ok = err == nil
+	if !ok {
+		o.log.Errorf("url[%s]: %v", s, err)
+	}
+	return
 }

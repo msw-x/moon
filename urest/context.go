@@ -22,13 +22,18 @@ func (o *Context) Router() *uhttp.Router {
 	return o.router
 }
 
-func (o *Context) ReverseProxy(proxy *uhttp.ReverseProxy) {
+func (o *Context) ReverseProxy(path string, proxy *uhttp.ReverseProxy) {
+	log := proxy.Log()
+	if log.IsEmpty() {
+		log = o.Router().Log().Branch("proxy")
+		proxy.WithLog(log)
+	}
 	if proxy.Tracer() == nil {
-		proxy.WithTrace(uhttp.NewTracer[uhttp.ReverseProxyResponse](o.Router().Log().Branch("proxy")).
+		proxy.WithTrace(uhttp.NewTracer[uhttp.ReverseProxyResponse](log).
 			WithFormat(o.format).
 			WithFormatError(o.formatError))
 	}
-	o.Router().ReverseProxy(proxy)
+	o.Router().ReverseProxy(path, proxy)
 }
 
 func (o Context) Branch(name string) *Context {

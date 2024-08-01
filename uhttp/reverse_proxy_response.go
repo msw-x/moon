@@ -16,16 +16,14 @@ type ReverseProxyResponse struct {
 	statusCode  int
 	err         error
 	tracer      *Tracer[ReverseProxyResponse]
-	router      *Router
 }
 
-func NewReverseProxyResponse(r *http.Request, w http.ResponseWriter, tracer *Tracer[ReverseProxyResponse], router *Router) *ReverseProxyResponse {
+func NewReverseProxyResponse(r *http.Request, w http.ResponseWriter, tracer *Tracer[ReverseProxyResponse]) *ReverseProxyResponse {
 	o := new(ReverseProxyResponse)
 	o.r = r
 	o.w = w
 	o.ts = time.Now()
 	o.tracer = tracer
-	o.router = router
 	if tracer != nil && tracer.RequireRequestBody() {
 		o.requestBody, o.err = DumpBody(r)
 	}
@@ -70,7 +68,7 @@ func (o ReverseProxyResponse) Format(f Format) string {
 			if responseBodyLen == 0 {
 				err = o.err
 			}
-			return Title(o.router.RequestName(o.r), o.statusCode, strconv.Itoa(o.statusCode),
+			return Title(ProxyRequestNameDefault(o.r), o.statusCode, strconv.Itoa(o.statusCode),
 				time.Since(o.ts), requestBodyLen, responseBodyLen, err)
 		},
 		RequestParams: func() string {

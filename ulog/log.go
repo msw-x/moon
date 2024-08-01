@@ -51,6 +51,10 @@ func (o *Log) IsGloabl() bool {
 	return o.ctx == &ctx
 }
 
+func (o *Log) IsEmpty() bool {
+	return o.prefix == ""
+}
+
 func (o *Log) Options() Options {
 	return o.ctx.opts
 }

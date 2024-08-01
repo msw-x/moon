@@ -27,6 +27,9 @@ func ClientRequestName(r Request) string {
 }
 
 func RouteName(method, uri string) string {
+	if method == "" {
+		method = "*"
+	}
 	return ufmt.JoinWith(":", strings.ToUpper(method), uri)
 }
 
@@ -39,6 +42,10 @@ func ProxyRequestName(r *http.Request, xRemoteAddress string) string {
 		return "?"
 	}
 	return ufmt.JoinWith("'", ClientAddress(r, xRemoteAddress), RouteName(r.Method, r.URL.Path))
+}
+
+func ProxyRequestNameDefault(r *http.Request) string {
+	return ProxyRequestName(r, XForwardedFor)
 }
 
 func WebSocketName(name string) string {

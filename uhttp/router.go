@@ -2,7 +2,6 @@ package uhttp
 
 import (
 	"errors"
-	"fmt"
 	"io/fs"
 	"net/http"
 	"strings"
@@ -16,11 +15,9 @@ import (
 
 type Router struct {
 	log            *ulog.Log
-	id             string
 	path           string
 	router         *mux.Router
 	xRemoteAddress string
-	logRequest     bool
 	wsErrorLevel   ulog.Level
 }
 
@@ -29,6 +26,7 @@ type OnWebsocket func(*websocket.Conn)
 
 func NewRouter() *Router {
 	return &Router{
+		log:            ulog.Empty(),
 		router:         mux.NewRouter(),
 		xRemoteAddress: XForwardedFor,
 		wsErrorLevel:   ulog.LevelError,
@@ -40,13 +38,8 @@ func (o Router) Branch(path string) *Router {
 	return &o
 }
 
-func (o *Router) WithId(id any) *Router {
-	o.id = fmt.Sprint(id)
-	return o
-}
-
-func (o *Router) WithLogRequest(logRequest bool) *Router {
-	o.logRequest = logRequest
+func (o *Router) WithLog(log *ulog.Log) *Router {
+	o.log = log
 	return o
 }
 
@@ -64,34 +57,10 @@ func (o *Router) IsRoot() bool {
 	return o.path == ""
 }
 
-func (o *Router) HandleFunc(path string, onRequest OnRequest) *mux.Route {
-	return o.router.HandleFunc(path, onRequest)
-}
-
 func (o *Router) Handle(method string, path string, onRequest OnRequest) error {
-	if onRequest == nil {
-		return errors.New("router on-request func is nil")
-	}
-	o.init()
 	path = o.nextPath(path)
 	o.log.Debug(RouteName(method, path))
-	o.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
-		name := o.RequestName(r)
-		defer uerr.Recover(func(err string) {
-			o.log.Error(name, err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err))
-		})
-		if o.logRequest {
-			if r.ContentLength > 0 {
-				o.log.Debug(name, ufmt.ByteSize(r.ContentLength))
-			} else {
-				o.log.Debug(name)
-			}
-		}
-		onRequest(w, r)
-	}).Methods(method)
-	return nil
+	return o.handle(method, path, onRequest)
 }
 
 func (o *Router) Get(path string, onRequest OnRequest) {
@@ -115,7 +84,6 @@ func (o *Router) Options(path string, onRequest OnRequest) {
 }
 
 func (o *Router) Files(f fs.FS) {
-	o.init()
 	path := o.nextPath("")
 	o.log.Debugf("%s[fs]", RouteName(http.MethodGet, path))
 	fs := http.FileServer(http.FS(f))
@@ -127,14 +95,12 @@ func (o *Router) Files(f fs.FS) {
 }
 
 func (o *Router) Spa(fs fs.FS) {
-	o.init()
 	path := o.nextPath("")
 	o.log.Debugf("%s[spa]", RouteName(http.MethodGet, path))
 	o.router.PathPrefix(path).Handler(NewSpaHandler(fs).WithPath(path)).Methods(http.MethodGet)
 }
 
 func (o *Router) WebSocket(path string, onWebsocket OnWebsocket) {
-	o.init()
 	up := websocket.Upgrader{
 		ReadBufferSize:  0,
 		WriteBufferSize: 0,
@@ -157,13 +123,17 @@ func (o *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 	})
 }
 
-func (o *Router) ReverseProxy(r *ReverseProxy) {
-	o.init()
-	r.Connect(o)
+func (o *Router) ReverseProxy(path string, proxy *ReverseProxy) {
+	proxy.Init()
+	path = o.nextPath(path)
+	o.log.Debug(RouteName("PROXY", ufmt.NotableJoinWith("->", path, proxy.Target())))
+	o.handle("", path+"{path:.*}", func(w http.ResponseWriter, r *http.Request) {
+		r.URL.Path = mux.Vars(r)["path"]
+		proxy.ServeHTTP(w, r)
+	})
 }
 
 func (o *Router) Log() *ulog.Log {
-	o.init()
 	return o.log
 }
 
@@ -175,12 +145,6 @@ func (o *Router) RequestName(r *http.Request) string {
 	return ProxyRequestName(r, o.xRemoteAddress)
 }
 
-func (o *Router) init() {
-	if o.log == nil {
-		o.log = ulog.New("router").WithID(o.id)
-	}
-}
-
 func (o *Router) nextPath(path string) string {
 	if path == "" {
 		if o.IsRoot() {
@@ -189,4 +153,23 @@ func (o *Router) nextPath(path string) string {
 		return o.path
 	}
 	return o.path + "/" + path
+}
+
+func (o *Router) handle(method string, path string, onRequest OnRequest) error {
+	if onRequest == nil {
+		return errors.New("router on-request func is nil")
+	}
+	route := o.router.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+		name := o.RequestName(r)
+		defer uerr.Recover(func(err string) {
+			o.log.Error(name, err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err))
+		})
+		onRequest(w, r)
+	})
+	if method != "" && method != "*" {
+		route.Methods(method)
+	}
+	return nil
 }
