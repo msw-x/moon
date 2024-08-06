@@ -34,6 +34,9 @@ func New(opts Options) *Db {
 	if opts.ReadOnly {
 		o.log.Info("readonly")
 	}
+	if opts.Insecure {
+		o.log.Info("insecure")
+	}
 	o.log.Info("max open connections:", opts.MaxOpenConnections())
 	o.connect(o.hosts.Next())
 	o.job = app.NewJob().WithLog(o.log).OnFinish(o.close)
