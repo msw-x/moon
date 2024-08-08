@@ -28,7 +28,8 @@ func (o *Performer) Do() (r Response) {
 	request, err := http.NewRequest(r.Request.Method, r.Request.Uri(), bytes.NewReader(r.Request.Body))
 	request.Header = r.Request.Header
 	if err == nil {
-		response, err := o.c.Do(request)
+		var response *http.Response
+		response, err = o.c.Do(request)
 		if err == nil {
 			defer response.Body.Close()
 			r.Header = response.Header
