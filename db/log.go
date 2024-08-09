@@ -39,18 +39,16 @@ func (o *log) BeforeQuery(c context.Context, q *bun.QueryEvent) context.Context 
 
 func (o *log) AfterQuery(c context.Context, q *bun.QueryEvent) {
 	if q.Err == nil {
-		if o.longQueriesTime == 0 {
-			if !o.onlyErrors {
+		if o.longQueriesTime > 0 && time.Since(q.StartTime) > o.longQueriesTime {
+			if o.warnLongQueries {
+				o.log.Warning(queryTime(q), q.Query)
+			} else {
 				o.log.Debug(queryTime(q), q.Query)
 			}
-		} else {
-			if time.Since(q.StartTime) > o.longQueriesTime {
-				if o.warnLongQueries {
-					o.log.Warning(queryTime(q), q.Query)
-				} else {
-					o.log.Debug(queryTime(q), q.Query)
-				}
-			}
+			return
+		}
+		if !o.onlyErrors {
+			o.log.Debug(queryTime(q), q.Query)
 		}
 	} else {
 		o.log.Error(queryTime(q), q.Query, q.Err)
