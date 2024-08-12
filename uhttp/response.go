@@ -21,6 +21,10 @@ type Response struct {
 	Error      error
 }
 
+func (o *Response) RefineError(text string, err error) {
+	o.Error = fmt.Errorf("%s: %v", text, err)
+}
+
 func (o Response) Ok() bool {
 	return o.StatusCode == http.StatusOK && o.Error == nil
 }
@@ -72,10 +76,6 @@ func (o Response) HeaderInt64(key string) (int64, error) {
 
 func (o Response) HeaderFloat64(key string) (float64, error) {
 	return parse.Float64(o.HeaderValue(key))
-}
-
-func (o Response) RefineError(text string, err error) {
-	o.Error = fmt.Errorf("%s: %v", text, err)
 }
 
 func (o Response) Title() string {
