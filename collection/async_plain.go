@@ -102,8 +102,16 @@ func (o *AsyncPlain[Id, Item]) Update(id Id, fn func(e Item) Item) error {
 	return o.c.Update(id, fn)
 }
 
+func (o *AsyncPlain[Id, Item]) SoftUpdate(id Id, fn func(e Item) Item) error {
+	return o.c.SoftUpdate(id, fn)
+}
+
 func (o *AsyncPlain[Id, Item]) Replace(e Item) error {
 	return o.c.Replace(e)
+}
+
+func (o *AsyncPlain[Id, Item]) SoftReplace(e Item) error {
+	return o.c.SoftReplace(e)
 }
 
 func (o *AsyncPlain[Id, Item]) ForEach(fn func(Item)) {

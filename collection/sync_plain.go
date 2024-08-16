@@ -92,8 +92,16 @@ func (o *SyncPlain[Id, Item]) Update(id Id, fn func(e Item) Item) error {
 	return o.c.Update(id, fn)
 }
 
+func (o *SyncPlain[Id, Item]) SoftUpdate(id Id, fn func(e Item) Item) error {
+	return o.c.SoftUpdate(id, fn)
+}
+
 func (o *SyncPlain[Id, Item]) Replace(e Item) error {
 	return o.c.Replace(e)
+}
+
+func (o *SyncPlain[Id, Item]) SoftReplace(e Item) error {
+	return o.c.SoftReplace(e)
 }
 
 func (o *SyncPlain[Id, Item]) Upsert(e Item) error {

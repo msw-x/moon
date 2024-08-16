@@ -116,8 +116,16 @@ func (o *Async[Id, MapItem, DbItem]) Update(id Id, fn func(e MapItem) MapItem) e
 	return o.c.Update(id, fn)
 }
 
+func (o *Async[Id, MapItem, DbItem]) SoftUpdate(id Id, fn func(e MapItem) MapItem) error {
+	return o.c.SoftUpdate(id, fn)
+}
+
 func (o *Async[Id, MapItem, DbItem]) Replace(e MapItem) error {
 	return o.c.Replace(e)
+}
+
+func (o *Async[Id, MapItem, DbItem]) SoftReplace(e MapItem) error {
+	return o.c.SoftReplace(e)
 }
 
 func (o *Async[Id, MapItem, DbItem]) ForEach(fn func(MapItem)) {

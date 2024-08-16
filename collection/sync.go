@@ -179,9 +179,20 @@ func (o *Sync[Id, MapItem, DbItem]) Update(id Id, fn func(e MapItem) MapItem) er
 	return o.update(updatePure, id, fn)
 }
 
+func (o *Sync[Id, MapItem, DbItem]) SoftUpdate(id Id, fn func(e MapItem) MapItem) error {
+	return o.update(updateSoft, id, fn)
+}
+
 func (o *Sync[Id, MapItem, DbItem]) Replace(e MapItem) error {
 	id := o.mapItemId(e)
 	return o.Update(id, func(MapItem) MapItem {
+		return e
+	})
+}
+
+func (o *Sync[Id, MapItem, DbItem]) SoftReplace(e MapItem) error {
+	id := o.mapItemId(e)
+	return o.SoftUpdate(id, func(MapItem) MapItem {
 		return e
 	})
 }
