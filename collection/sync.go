@@ -341,6 +341,8 @@ func (o *Sync[Id, MapItem, DbItem]) update(mode updateMode, id Id, fn func(e Map
 	switch mode {
 	case updatePure:
 		action = "update"
+	case updateSoft:
+		action = "update (soft)"
 	case updateRemove:
 		action = "remove"
 	case updateDelete:
@@ -358,8 +360,10 @@ func (o *Sync[Id, MapItem, DbItem]) update(mode updateMode, id Id, fn func(e Map
 			o.assertFn("map-to-db-item", o.fn.mapToDbItem)
 			prev := o.fn.mapToDbItem(e)
 			e = fn(e)
-			curr := o.fn.mapToDbItem(e)
-			_, err = db.UpdateDiff(o.db, prev, curr)
+			if mode != updateSoft {
+				curr := o.fn.mapToDbItem(e)
+				_, err = db.UpdateDiff(o.db, prev, curr)
+			}
 			if err == nil {
 				if !o.excludeMutex {
 					o.mutex.Lock()
