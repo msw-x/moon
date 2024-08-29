@@ -34,7 +34,7 @@ func NewRouter() *Router {
 }
 
 func (o Router) Branch(path string) *Router {
-	o.path = o.uri(path)
+	o.path = o.Uri(path)
 	return &o
 }
 
@@ -67,7 +67,7 @@ func (o *Router) Handle(method string, path string, onRequest OnRequest) {
 		panic("router on-request func is nil")
 	}
 	o.init()
-	uri := o.uri(path)
+	uri := o.Uri(path)
 	if o.logRequest {
 		o.log.Debug(RouteName(method, uri))
 	}
@@ -110,7 +110,7 @@ func (o *Router) Options(path string, onRequest OnRequest) {
 }
 
 func (o *Router) Files(files fs.FS) {
-	uri := o.uri("")
+	uri := o.Uri("")
 	if o.logRequest {
 		o.log.Debugf("%s[files]", RouteName(http.MethodGet, uri))
 	}
@@ -131,7 +131,7 @@ func (o *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 		},
 	}
 	method := http.MethodGet
-	o.log.Debug(WebSocketName(RouteName(method, o.uri(path))))
+	o.log.Debug(WebSocketName(RouteName(method, o.Uri(path))))
 	o.Handle(method, path, func(w http.ResponseWriter, r *http.Request) {
 		defer uerr.Recover(func(err string) {
 			o.log.Error(WebSocketName(o.requestName(r)), err)
@@ -154,13 +154,7 @@ func (o *Router) Router() *mux.Router {
 	return o.router
 }
 
-func (o *Router) init() {
-	if o.log == nil {
-		o.log = ulog.New("router").WithID(o.id)
-	}
-}
-
-func (o *Router) uri(path string) string {
+func (o *Router) Uri(path string) string {
 	if path == "" {
 		if o.IsRoot() {
 			return "/"
@@ -168,6 +162,12 @@ func (o *Router) uri(path string) string {
 		return o.path
 	}
 	return o.path + "/" + path
+}
+
+func (o *Router) init() {
+	if o.log == nil {
+		o.log = ulog.New("router").WithID(o.id)
+	}
 }
 
 func (o *Router) requestName(r *http.Request) string {
