@@ -1,6 +1,7 @@
 package webs
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"net"
@@ -75,6 +76,11 @@ func (o *DualServer) WithAutoRedirectToTls() *DualServer {
 func (o *DualServer) WithTimeout(t Timeout) *DualServer {
 	o.s.WithTimeout(t)
 	o.tls.WithTimeout(t)
+	return o
+}
+
+func (o *DualServer) WithOnTlsConfig(f func(*tls.Config) *tls.Config) *DualServer {
+	o.tls.WithOnTlsConfig(f)
 	return o
 }
 

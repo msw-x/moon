@@ -27,6 +27,7 @@ type Server struct {
 	xRemoteAddress string
 	logRequests    bool
 	logErrors      *ulog.Level
+	onTlsConfig    func(*tls.Config) *tls.Config
 }
 
 func New() *Server {
@@ -98,6 +99,11 @@ func (o *Server) WithTimeout(timeout Timeout) *Server {
 	return o
 }
 
+func (o *Server) WithOnTlsConfig(f func(*tls.Config) *tls.Config) *Server {
+	o.onTlsConfig = f
+	return o
+}
+
 func (o *Server) Run(addr string, handler http.Handler) {
 	if addr == "" {
 		return
@@ -154,6 +160,9 @@ func (o *Server) Run(addr string, handler http.Handler) {
 		o.log.Info("listen")
 		var err error
 		if o.IsTls() {
+			if o.onTlsConfig != nil {
+				o.s.TLSConfig = o.onTlsConfig(o.s.TLSConfig)
+			}
 			err = o.s.ListenAndServeTLS(o.certFile, o.keyFile)
 		} else {
 			err = o.s.ListenAndServe()
