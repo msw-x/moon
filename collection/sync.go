@@ -23,7 +23,7 @@ type Sync[Id constraints.Ordered, MapItem any, DbItem any] struct {
 	fn           Funcs[Id, MapItem, DbItem]
 	onSelect     func(*bun.SelectQuery)
 	onDelete     func(MapItem, *bun.DeleteQuery)
-	mutex        sync.Mutex
+	mutex        sync.RWMutex
 	excludeMutex bool
 	inited       bool
 	logUpdate    bool
@@ -199,8 +199,8 @@ func (o *Sync[Id, MapItem, DbItem]) SoftReplace(e MapItem) error {
 
 func (o *Sync[Id, MapItem, DbItem]) ForEach(fn func(MapItem)) {
 	if !o.excludeMutex {
-		o.mutex.Lock()
-		defer o.mutex.Unlock()
+		o.mutex.RLock()
+		defer o.mutex.RUnlock()
 	}
 	o.check()
 	for _, e := range o.m {
@@ -210,8 +210,8 @@ func (o *Sync[Id, MapItem, DbItem]) ForEach(fn func(MapItem)) {
 
 func (o *Sync[Id, MapItem, DbItem]) ForEachSwarm(fn func(MapItem)) {
 	if !o.excludeMutex {
-		o.mutex.Lock()
-		defer o.mutex.Unlock()
+		o.mutex.RLock()
+		defer o.mutex.RUnlock()
 	}
 	o.check()
 	swarm := app.NewGoSwarm().WithLog(o.log)
@@ -226,8 +226,8 @@ func (o *Sync[Id, MapItem, DbItem]) ForEachSwarm(fn func(MapItem)) {
 
 func (o *Sync[Id, MapItem, DbItem]) Walk(fn func(MapItem) bool) bool {
 	if !o.excludeMutex {
-		o.mutex.Lock()
-		defer o.mutex.Unlock()
+		o.mutex.RLock()
+		defer o.mutex.RUnlock()
 	}
 	o.check()
 	for _, e := range o.m {
@@ -240,8 +240,8 @@ func (o *Sync[Id, MapItem, DbItem]) Walk(fn func(MapItem) bool) bool {
 
 func (o *Sync[Id, MapItem, DbItem]) Keys() []Id {
 	if !o.excludeMutex {
-		o.mutex.Lock()
-		defer o.mutex.Unlock()
+		o.mutex.RLock()
+		defer o.mutex.RUnlock()
 	}
 	var l []Id
 	for id := range o.m {
@@ -252,8 +252,8 @@ func (o *Sync[Id, MapItem, DbItem]) Keys() []Id {
 
 func (o *Sync[Id, MapItem, DbItem]) List() []MapItem {
 	if !o.excludeMutex {
-		o.mutex.Lock()
-		defer o.mutex.Unlock()
+		o.mutex.RLock()
+		defer o.mutex.RUnlock()
 	}
 	o.check()
 	var l []MapItem
@@ -277,8 +277,8 @@ func (o *Sync[Id, MapItem, DbItem]) DbList() []DbItem {
 
 func (o *Sync[Id, MapItem, DbItem]) Exist(id Id) bool {
 	if !o.excludeMutex {
-		o.mutex.Lock()
-		defer o.mutex.Unlock()
+		o.mutex.RLock()
+		defer o.mutex.RUnlock()
 	}
 	o.check()
 	_, ok := o.m[id]
@@ -287,8 +287,8 @@ func (o *Sync[Id, MapItem, DbItem]) Exist(id Id) bool {
 
 func (o *Sync[Id, MapItem, DbItem]) Get(id Id) (MapItem, error) {
 	if !o.excludeMutex {
-		o.mutex.Lock()
-		defer o.mutex.Unlock()
+		o.mutex.RLock()
+		defer o.mutex.RUnlock()
 	}
 	o.check()
 	i, ok := o.m[id]
@@ -301,8 +301,8 @@ func (o *Sync[Id, MapItem, DbItem]) Get(id Id) (MapItem, error) {
 
 func (o *Sync[Id, MapItem, DbItem]) GetIfExists(id Id) (MapItem, bool) {
 	if !o.excludeMutex {
-		o.mutex.Lock()
-		defer o.mutex.Unlock()
+		o.mutex.RLock()
+		defer o.mutex.RUnlock()
 	}
 	o.check()
 	i, ok := o.m[id]
