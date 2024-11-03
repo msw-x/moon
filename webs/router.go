@@ -24,7 +24,7 @@ type Router struct {
 }
 
 type OnRequest func(http.ResponseWriter, *http.Request)
-type OnWebsocket func(*websocket.Conn)
+type OnWebsocket func(*websocket.Conn, *http.Request)
 
 func NewRouter() *Router {
 	return &Router{
@@ -138,7 +138,7 @@ func (o *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 		})
 		conn, err := up.Upgrade(w, r, nil)
 		if err == nil {
-			onWebsocket(conn)
+			onWebsocket(conn, r)
 		} else {
 			o.log.Print(o.upgradeErrorLevel, WebSocketName(o.requestName(r)), err)
 		}
