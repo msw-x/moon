@@ -43,6 +43,10 @@ func (o *Client) Close() {
 	o.job.Stop()
 }
 
+func (o *Client) Cancel() {
+	o.job.Cancel()
+}
+
 func (o *Client) Log() *ulog.Log {
 	return o.log
 }
