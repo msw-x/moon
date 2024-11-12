@@ -12,9 +12,16 @@ import (
 )
 
 func Run[UserConf any](version string, fn func(UserConf)) {
+	RunPre(version, nil, fn)
+}
+
+func RunPre[UserConf any](version string, pre func() bool, fn func(UserConf)) {
 	defer exit()
 	defer ulog.Close()
 	defer uerr.Recover(fatal)
+	if pre != nil && pre() {
+		return
+	}
 	if confFile, ok := ParseCmdLine(version); ok {
 		conf := LoadConf[Conf](confFile)
 		run(version, conf.Log(), func(log *ulog.Log) {
