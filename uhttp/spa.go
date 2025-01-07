@@ -1,7 +1,6 @@
 package uhttp
 
 import (
-	"fmt"
 	"io/fs"
 	"net/http"
 	"os"
@@ -30,9 +29,7 @@ func (o *SpaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.NotFoundHandler().ServeHTTP(w, r)
 		return
 	}
-	fmt.Println(o.path)
 	path := strings.TrimPrefix(r.URL.Path, o.path)
-	fmt.Println("path:", path)
 	if o.path != "/" && path != "" {
 		if !strings.HasPrefix(path, "/") {
 			http.NotFoundHandler().ServeHTTP(w, r)
