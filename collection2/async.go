@@ -136,7 +136,7 @@ func (o *Async[Id, MapItem, DbItem]) ForEachSwarm(fn func(MapItem)) {
 	o.c.ForEachSwarm(fn)
 }
 
-func (o *Async[Id, MapItem, DbItem]) ForEachSwarm(fn func(MapItem), limit int) {
+func (o *Async[Id, MapItem, DbItem]) ForEachSwarmPool(fn func(MapItem), limit int) {
 	o.c.ForEachSwarm(fn, limit)
 }
 
