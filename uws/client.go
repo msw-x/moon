@@ -238,7 +238,7 @@ func (o *Client) dial(url string) (err error) {
 }
 
 func (o *Client) wait(name string, v time.Duration) {
-	o.log.Debugf("wait %s:", name, utime.Pretty(v))
+	o.log.Debugf("wait %s: %s", name, utime.Pretty(v))
 	o.job.Sleep(v)
 }
 
