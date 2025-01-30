@@ -136,6 +136,10 @@ func (o *Async[Id, MapItem, DbItem]) ForEachSwarm(fn func(MapItem)) {
 	o.c.ForEachSwarm(fn)
 }
 
+func (o *Async[Id, MapItem, DbItem]) ForEachSwarm(fn func(MapItem), limit int) {
+	o.c.ForEachSwarm(fn, limit)
+}
+
 func (o *Async[Id, MapItem, DbItem]) Walk(fn func(MapItem) bool) bool {
 	return o.c.Walk(fn)
 }

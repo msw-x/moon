@@ -130,6 +130,10 @@ func (o *SyncPlain[Id, Item]) ForEachSwarm(fn func(Item)) {
 	o.c.ForEachSwarm(fn)
 }
 
+func (o *SyncPlain[Id, Item]) ForEachSwarmPool(fn func(Item), limit int) {
+	o.c.ForEachSwarm(fn, limit)
+}
+
 func (o *SyncPlain[Id, Item]) Walk(fn func(Item) bool) bool {
 	return o.c.Walk(fn)
 }
