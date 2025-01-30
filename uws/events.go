@@ -1,12 +1,17 @@
 package uws
 
-import "github.com/gorilla/websocket"
+import (
+	"time"
+
+	"github.com/gorilla/websocket"
+)
 
 type Events struct {
 	OnPing         func()
 	OnMessage      func(int, []byte)
 	OnPreDial      func(string) string
 	OnDial         func(string)
+	OnDialDelay    func() time.Duration
 	OnDialError    func(error) bool
 	OnConnected    func()
 	OnDisconnected func()
@@ -49,6 +54,14 @@ func (o *Events) callOnDial(s string) {
 	if f != nil {
 		f(s)
 	}
+}
+
+func (o *Events) callOnDialDealy() time.Duration {
+	f := o.OnDialDelay
+	if f != nil {
+		return f()
+	}
+	return 0
 }
 
 func (o *Events) callOnDialError(err error) bool {

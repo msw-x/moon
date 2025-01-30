@@ -14,6 +14,7 @@ import (
 	"github.com/msw-x/moon/ufmt"
 	"github.com/msw-x/moon/ujson"
 	"github.com/msw-x/moon/ulog"
+	"github.com/msw-x/moon/utime"
 )
 
 type Client struct {
@@ -106,6 +107,10 @@ func (o *Client) WithOnDial(f func(string)) {
 	o.Events.OnDial = f
 }
 
+func (o *Client) WithOnDialDelay(f func() time.Duration) {
+	o.Events.OnDialDelay = f
+}
+
 func (o *Client) WithOnDialError(f func(error) bool) {
 	o.Events.OnDialError = f
 }
@@ -194,7 +199,7 @@ func (o *Client) closeSocket() {
 
 func (o *Client) connectAndRun() {
 	if o.err != nil {
-		o.job.Sleep(o.Options.ReDialDelay)
+		o.wait("re-dial delay", o.Options.ReDialDelay)
 	}
 	url := o.Options.Url()
 	o.log.Info("dial:", url)
@@ -202,7 +207,7 @@ func (o *Client) connectAndRun() {
 	if o.err != nil {
 		o.log.Error("dial:", o.err)
 		if !o.Events.callOnDialError(o.err) {
-			o.job.Sleep(o.Options.ReDialInterval)
+			o.wait("re-dial interval", o.Options.ReDialInterval)
 		}
 		return
 	}
@@ -214,6 +219,10 @@ func (o *Client) connectAndRun() {
 func (o *Client) dial(url string) (err error) {
 	url = o.Events.callOnPreDial(url)
 	o.Events.callOnDial(url)
+	delay := o.Events.callOnDialDealy()
+	if delay != 0 {
+		o.wait("dial delay", delay)
+	}
 	dialer := websocket.Dialer{
 		HandshakeTimeout: o.Options.HandshakeTimeout,
 	}
@@ -226,6 +235,11 @@ func (o *Client) dial(url string) (err error) {
 	}
 	o.ws, _, err = dialer.Dial(url, nil)
 	return
+}
+
+func (o *Client) wait(name string, v time.Duration) {
+	o.log.Debugf("wait %s:", name, utime.Pretty(v))
+	o.job.Sleep(v)
 }
 
 func (o *Client) onConnected() {
