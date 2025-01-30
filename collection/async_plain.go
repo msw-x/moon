@@ -122,6 +122,10 @@ func (o *AsyncPlain[Id, Item]) ForEachSwarm(fn func(Item)) {
 	o.c.ForEachSwarm(fn)
 }
 
+func (o *AsyncPlain[Id, Item]) ForEachSwarmPool(fn func(Item), limit int) {
+	o.c.ForEachSwarmPool(fn, limit)
+}
+
 func (o *AsyncPlain[Id, Item]) Walk(fn func(Item) bool) bool {
 	return o.c.Walk(fn)
 }

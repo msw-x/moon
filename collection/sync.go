@@ -224,6 +224,22 @@ func (o *Sync[Id, MapItem, DbItem]) ForEachSwarm(fn func(MapItem)) {
 	swarm.Wait()
 }
 
+func (o *Sync[Id, MapItem, DbItem]) ForEachSwarmPool(fn func(MapItem), limit int) {
+	if !o.excludeMutex {
+		o.mutex.Lock()
+		defer o.mutex.Unlock()
+	}
+	o.check()
+	swarm := app.NewGoSwarmLimit().WithLog(o.log)
+	for _, e := range o.m {
+		v := e
+		swarm.Add(func() {
+			fn(v)
+		})
+	}
+	swarm.Execute(limit)
+}
+
 func (o *Sync[Id, MapItem, DbItem]) Walk(fn func(MapItem) bool) bool {
 	if !o.excludeMutex {
 		o.mutex.Lock()
