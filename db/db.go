@@ -251,6 +251,9 @@ func (o *Db) GetIfExistsPk(model any) (bool, error) {
 }
 
 func (o *Db) Transaction(f func(ctx context.Context, tx bun.Tx) error) error {
+	if o.ro {
+		return nil
+	}
 	return o.db.RunInTx(o.ctx(), nil, f)
 }
 
