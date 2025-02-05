@@ -10,4 +10,5 @@ type LimiterIf[T any] interface {
 	Queue() QueueIf[T]
 	Close()
 	Push(T) bool
+	Discard(int) int
 }

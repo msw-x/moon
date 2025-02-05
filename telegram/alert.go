@@ -129,6 +129,10 @@ func (o *AlertBot) SendLog(m ulog.Message) {
 	o.Send(fmt.Sprintf("%s`%s`%s", icon, text, tail))
 }
 
+func (o *AlertBot) Discard(n int) int {
+	return o.limiter.Discard(n)
+}
+
 func (o *AlertBot) pureSend(text string) {
 	if o.bot != nil {
 		msg := botapi.NewMessage(o.chatId, text)

@@ -44,6 +44,15 @@ func (o *Limiter[T]) Push(m T) bool {
 	return o.queue.Push(m)
 }
 
+func (o *Limiter[T]) Discard(n int) (m int) {
+	for ; m != n; m++ {
+		if _, ok := o.queue.Pop(); !ok {
+			break
+		}
+	}
+	return
+}
+
 func (o *Limiter[T]) tick() {
 	if text, ok := o.queue.Pop(); ok {
 		o.send(text)
