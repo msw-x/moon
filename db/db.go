@@ -250,6 +250,10 @@ func (o *Db) GetIfExistsPk(model any) (bool, error) {
 	return o.GetIfExists(model, nil)
 }
 
+func (o *Db) Transaction(f func(ctx context.Context, tx bun.Tx) error) error {
+	return o.db.RunInTx(o.ctx(), nil, f)
+}
+
 func (o *Db) ctx() context.Context {
 	return context.Background()
 }
