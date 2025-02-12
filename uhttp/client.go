@@ -22,6 +22,8 @@ func NewClient() *Client {
 	return o
 }
 
+/// Close() - завершение выполнения всех запросов ???
+
 func (o *Client) Copy() *Client {
 	c := *o
 	return &c

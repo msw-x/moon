@@ -20,6 +20,13 @@ type Performer struct {
 	errors  OnErrors
 }
 
+/// timeout на каждый запрос
+
+/// отмена выполнения запроса?
+
+/// Skip io.EOF if Content-Lenght equal to len(Body)
+/// SkipEof()
+
 func (o *Performer) Do() (r Response) {
 	o.errors.init(&r)
 	r.Request = o.Request
@@ -29,8 +36,14 @@ func (o *Performer) Do() (r Response) {
 	request.Header = r.Request.Header
 	if err == nil {
 		var response *http.Response
+		// https://pkg.go.dev/net/http#Client.Do
+		// Any returned error will be of type *url.Error.
+		// The url.Error value's Timeout method will report true if the request timed out.
 		response, err = o.c.Do(request)
 		if err == nil {
+			// If the returned error is nil, the Response will contain a non-nil Body which the user is expected to close.
+			// If the Body is not both read to EOF and closed, the Client's underlying RoundTripper (typically Transport)
+			// may not be able to re-use a persistent TCP connection to the server for a subsequent "keep-alive" request.
 			defer response.Body.Close()
 			r.Header = response.Header
 			r.Status = response.Status
@@ -38,6 +51,7 @@ func (o *Performer) Do() (r Response) {
 			r.Body, err = io.ReadAll(response.Body)
 			if err != nil {
 				o.errors.readBody(err)
+				/// but if len(r.Body) == http.Content-Length ?
 			}
 		} else {
 			o.errors.doRequest(err)
@@ -47,7 +61,7 @@ func (o *Performer) Do() (r Response) {
 	}
 	r.Time = time.Since(ts)
 	if o.trace != nil {
-		o.trace(r)
+		o.trace(r) /// print Content-Length
 	}
 	return
 }
