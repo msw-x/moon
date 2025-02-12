@@ -17,10 +17,16 @@ func JoinSlice[T any](v []T) string {
 	return JoinSliceWith(" ", v)
 }
 
-func JoinSliceWith[T any](splitter string, v []T) string {
-	s := make([]string, len(v))
-	for n, a := range v {
-		s[n] = fmt.Sprint(a)
+func JoinSliceWith[T any](splitter string, l []T) string {
+	return JoinSliceFuncWith(splitter, l, func(v T) string {
+		return fmt.Sprint(v)
+	})
+}
+
+func JoinSliceFuncWith[T any](splitter string, l []T, f func(T) string) string {
+	s := make([]string, len(l))
+	for n, v := range l {
+		s[n] = f(v)
 	}
 	return strings.Join(s, splitter)
 }
