@@ -3,11 +3,25 @@ package migrate
 import (
 	"fmt"
 
+	"github.com/msw-x/moon/tabtable"
 	"github.com/msw-x/moon/uerr"
+	"github.com/msw-x/moon/ufmt"
 )
 
 type Schema struct {
 	Tables []Table
+}
+
+func (o *Schema) String() string {
+	return ufmt.JoinSliceFuncWith("\n", o.Tables, func(v Table) string {
+		return v.String()
+	})
+}
+
+func (o *Schema) Pretty() string {
+	return ufmt.JoinSliceFuncWith("\n", o.Tables, func(v Table) string {
+		return v.Pretty()
+	})
 }
 
 func (o *Schema) AddTable(name string) error {
@@ -100,6 +114,22 @@ type Table struct {
 	Columns []Column
 }
 
+const columnTab = "  "
+
+func (o *Table) String() string {
+	return o.Name + "\n" + ufmt.JoinSliceFuncWith("\n", o.Columns, func(v Column) string {
+		return columnTab + v.String()
+	})
+}
+
+func (o *Table) Pretty() string {
+	t := tabtable.New()
+	for _, v := range o.Columns {
+		t.Write(columnTab+v.Name, v.Type, v.Constraints)
+	}
+	return o.Name + "\n" + t.String()
+}
+
 func (o *Table) Column(name string) (r *Column, err error) {
 	r = o.column(name)
 	if r == nil {
@@ -122,4 +152,8 @@ type Column struct {
 	Name        string
 	Type        string
 	Constraints string
+}
+
+func (o *Column) String() string {
+	return ufmt.NotableJoin(o.Name, o.Type, o.Constraints)
 }

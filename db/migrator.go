@@ -42,7 +42,30 @@ func (o *Migrator) WithMarkAppliedOnSuccess(v bool) *Migrator {
 	return o
 }
 
-func (o *Migrator) Exec(fs fs.FS, lock bool, rollbackLast bool, previewDown bool, repairDown bool) (ok bool) {
+type MigratorOptions struct {
+	Lock         bool
+	Rollback     bool
+	PreviewDown  bool
+	RepairDown   bool
+	TraceSchema  bool
+	PrettySchema bool
+}
+
+func (o *Migrator) Exec(fs fs.FS, opt MigratorOptions) (ok bool) {
+	if opt.TraceSchema {
+		o.m.WithAutoDownSqlTrace(func(m *migrate.Migration, c *migrate.Context) {
+			var s string
+			if opt.PrettySchema {
+				s = c.Pretty()
+			} else {
+				s = c.String()
+			}
+			if s != "" {
+				s = "\n" + s
+			}
+			o.log.Trace(m.String(), s)
+		})
+	}
 	err := o.m.Init()
 	if err == nil {
 		if o.load(fs) {
@@ -51,15 +74,15 @@ func (o *Migrator) Exec(fs fs.FS, lock bool, rollbackLast bool, previewDown bool
 				ok = true
 			} else {
 				o.log.Info(o.m.Status())
-				if lock {
+				if opt.Lock {
 					o.log.Info("locked")
 				} else {
 					switch {
-					case rollbackLast:
+					case opt.Rollback:
 						o.rollbackLast()
-					case previewDown:
+					case opt.PreviewDown:
 						o.previewDown()
-					case repairDown:
+					case opt.RepairDown:
 						o.repairDown()
 					default:
 						ok = o.migrate()

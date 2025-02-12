@@ -16,18 +16,29 @@ func NewContext() *Context {
 	return o
 }
 
+func (o *Context) String() string {
+	return o.schema.String()
+}
+
+func (o *Context) Pretty() string {
+	return o.schema.Pretty()
+}
+
 func (o *Context) Process(l []string) error {
 	n := len(l)
 	if n == 0 {
 		return nil
 	}
-	if strings.ContainsAny(l[n-1], "};") {
+	last := l[n-1]
+	if strings.ContainsAny(last, "};") {
 		o.activeTable = ""
 	}
-	l[n-1] = trimNameTail(l[n-1])
-	if l[n-1] == "" {
+	if last == "(" || last == "," || last == ";" {
 		n--
+		l = l[:n]
 	}
+	l[n-1] = strings.TrimSuffix(l[n-1], ",")
+	l[n-1] = strings.TrimSuffix(l[n-1], ";")
 	if o.activeTable == "" {
 		if n > 2 {
 			if l[1] == "TABLE" {
@@ -43,11 +54,13 @@ func (o *Context) Process(l []string) error {
 					if l[0] == "ALTER" {
 						tableName := l[2]
 						if l[3] == "ADD" {
+							columnName := l[4]
+							columnType := l[5]
 							constraints := ""
 							if n > 6 {
 								constraints = ufmt.JoinSlice(l[6:])
 							}
-							return o.addColumn(tableName, l[4], l[5], constraints)
+							return o.addColumn(tableName, columnName, columnType, constraints)
 						}
 						if l[3] == "ALTER" && l[4] == "COLUMN" && l[6] == "TYPE" {
 							return o.schema.AlterColumnType(tableName, l[5], l[7])
@@ -58,18 +71,18 @@ func (o *Context) Process(l []string) error {
 		}
 	} else {
 		if n > 1 {
+			columnName := l[0]
+			columnType := l[1]
 			constraints := ""
 			if n > 2 {
 				constraints = ufmt.JoinSlice(l[2:])
 			}
-			return o.addColumn(o.activeTable, l[0], l[1], constraints)
+			return o.addColumn(o.activeTable, columnName, columnType, constraints)
 		}
 	}
 	return nil
 }
 
 func (o *Context) addColumn(tableName string, columnName string, columnType string, columnConstraints string) error {
-	columnConstraints = strings.TrimSuffix(columnConstraints, ",")
-	columnConstraints = strings.TrimSuffix(columnConstraints, " ")
 	return o.schema.AddColumn(tableName, columnName, columnType, columnConstraints)
 }
