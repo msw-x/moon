@@ -1,11 +1,14 @@
 package migrate
 
 import (
+	"errors"
 	"fmt"
+	"unicode"
 
 	"github.com/msw-x/moon/tabtable"
 	"github.com/msw-x/moon/uerr"
 	"github.com/msw-x/moon/ufmt"
+	"github.com/msw-x/moon/ustring"
 )
 
 type Schema struct {
@@ -25,6 +28,10 @@ func (o *Schema) Pretty() string {
 }
 
 func (o *Schema) AddTable(name string) error {
+	err := ValidateName(name)
+	if err != nil {
+		return fmt.Errorf("table '%s' %v", name, err)
+	}
 	t := o.table(name)
 	if t != nil {
 		return fmt.Errorf("table[%s] already exists", name)
@@ -35,11 +42,15 @@ func (o *Schema) AddTable(name string) error {
 	return nil
 }
 
-func (o *Schema) DromTable(name string) error {
+func (o *Schema) DropTable(name string) error {
 	return uerr.Unimplemented()
 }
 
 func (o *Schema) AddColumn(tableName, columnName, columnType, columnConstraints string) error {
+	err := ValidateName(columnName)
+	if err != nil {
+		return fmt.Errorf("table '%s' column '%s' %v", tableName, columnName, err)
+	}
 	t, err := o.Table(tableName)
 	if err != nil {
 		return err
@@ -156,4 +167,19 @@ type Column struct {
 
 func (o *Column) String() string {
 	return ufmt.NotableJoin(o.Name, o.Type, o.Constraints)
+}
+
+func ValidateName(s string) error {
+	if s == "" {
+		return errors.New("is empty")
+	}
+	if !ustring.IsLower(s) {
+		return errors.New("contains capital letters")
+	}
+	for _, r := range s {
+		if !unicode.IsLetter(r) && !unicode.IsDigit(r) && r != '_' && r != '.' {
+			return errors.New("contains invalid symbols")
+		}
+	}
+	return nil
 }
