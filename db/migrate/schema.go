@@ -3,6 +3,8 @@ package migrate
 import (
 	"errors"
 	"fmt"
+	"slices"
+	"strings"
 	"unicode"
 
 	"github.com/msw-x/moon/tabtable"
@@ -77,6 +79,27 @@ func (o *Schema) AlterColumnType(tableName, columnName, columnType string) error
 		c.Type = columnType
 	}
 	return err
+}
+
+func (o *Schema) RemoveColumnKeyConstraint(tableName, columnName string) (constraint string, err error) {
+	var c *Column
+	c, err = o.Column(tableName, columnName)
+	if err == nil {
+		l := strings.Fields(c.Constraints)
+		r := slices.DeleteFunc(l, func(s string) bool {
+			if slices.Contains([]string{"UNIQUE"}, strings.ToUpper(s)) {
+				constraint = s
+				return true
+			}
+			return false
+		})
+		if constraint == "" {
+			err = fmt.Errorf("table[%s] column[%s] key constraint not found", tableName, columnName)
+		} else {
+			c.Constraints = strings.Join(r, " ")
+		}
+	}
+	return
 }
 
 func (o *Schema) Table(name string) (r *Table, err error) {
@@ -162,6 +185,8 @@ func (o *Table) column(name string) (r *Column) {
 type Column struct {
 	Name        string
 	Type        string
+	NotNull     bool
+	Default     string
 	Constraints string
 }
 

@@ -52,8 +52,8 @@ func (o *Migration) IsApplied() bool {
 }
 
 func (o *Migration) SetApplied(groupId int64) {
-	o.UpHash = ustring.Sha1(o.UpSql)
-	o.DownHash = ustring.Sha1(o.DownSql)
+	o.UpHash = Hash(o.UpSql)
+	o.DownHash = Hash(o.DownSql)
 	o.GroupId = groupId
 	o.MigratedAt = time.Now()
 }
@@ -71,11 +71,11 @@ func (o *Migration) Lost() bool {
 }
 
 func (o *Migration) UpHashIsValid() bool {
-	return o.UpHash == ustring.Sha1(o.UpSql)
+	return o.UpHash == Hash(o.UpSql)
 }
 
 func (o *Migration) DownHashIsValid() bool {
-	return o.DownHash == ustring.Sha1(o.DownSql)
+	return o.DownHash == Hash(o.DownSql)
 }
 
 func (o *Migration) PreviewDown(c *Context) (string, error) {

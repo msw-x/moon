@@ -105,7 +105,7 @@ func (o *Migrator) Forget() (err error) {
 	return
 }
 
-func (o *Migrator) Load(fs fs.FS) (err error) {
+func (o *Migrator) Load(fs fs.FS, final string) (err error) {
 	err = o.db.NewSelect().
 		ColumnExpr("*").
 		Model(&o.l).
@@ -114,7 +114,7 @@ func (o *Migrator) Load(fs fs.FS) (err error) {
 	if err != nil {
 		return
 	}
-	err = o.l.Load(fs)
+	err = o.l.Load(fs, final)
 	if err != nil {
 		return
 	}

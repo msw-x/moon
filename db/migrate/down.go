@@ -1,6 +1,7 @@
 package migrate
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 )
@@ -52,8 +53,9 @@ type DownGenerator struct {
 	Command string
 	Error   error
 
-	c *Context
-	l []string
+	c   *Context
+	l   []string
+	buf string
 }
 
 func NewDownGenerator(c *Context) *DownGenerator {
@@ -63,18 +65,27 @@ func NewDownGenerator(c *Context) *DownGenerator {
 	return o
 }
 
-func (o *DownGenerator) add(token string, f func(string) bool) {
+func (o *DownGenerator) insert(token string, f func(string) bool) {
 	if o.Error != nil {
 		return
 	}
 	if f == nil {
-		token = trimNameTail(token)
+		if !(strings.HasPrefix(token, "(") && strings.HasSuffix(token, ")")) {
+			token = trimNameTail(token)
+		}
 	}
-	o.l = append(o.l, token)
+	if token != "" {
+		o.l = append(o.l, token)
+	}
 	if f == nil {
 		o.Command = strings.Join(o.l, " ") + ";"
 	}
 	o.Process = f
+}
+
+func (o *DownGenerator) replace(token string, f func(string) bool) {
+	o.l[len(o.l)-1] = token
+	o.insert("", f)
 }
 
 func (o *DownGenerator) last() string {
@@ -89,9 +100,9 @@ func (o *DownGenerator) init(token string) (r bool) {
 	v := strings.ToUpper(token)
 	switch v {
 	case "CREATE":
-		o.add("DROP", o.create)
+		o.insert("DROP", o.create)
 	case "ALTER":
-		o.add(v, o.alter)
+		o.insert(v, o.alter)
 	default:
 		r = true
 	}
@@ -103,11 +114,11 @@ func (o *DownGenerator) create(token string) (r bool) {
 	switch v {
 	case "UNIQUE", "OR", "REPLACE":
 	case "SCHEMA", "SEQUENCE", "TYPE", "PROCEDURE", "FUNCTION", "TABLE":
-		o.add(v, nil)
-		o.add("IF EXISTS", o.name)
+		o.insert(v, nil)
+		o.insert("IF EXISTS", o.name)
 	case "INDEX":
-		o.add(v, nil)
-		o.add("IF EXISTS", o.nameOfIndex)
+		o.insert(v, nil)
+		o.insert("IF EXISTS", o.nameOfIndex)
 	default:
 		r = true
 	}
@@ -118,36 +129,71 @@ func (o *DownGenerator) alter(token string) (r bool) {
 	v := strings.ToUpper(token)
 	switch v {
 	case "ADD":
-		o.add("DROP", nil)
-		o.add("COLUMN", o.name)
+		o.insert("DROP", o.add)
 	case "DROP":
-		o.add(v, o.alter)
+		o.insert(v, o.alter)
 	case "COLUMN":
 		if o.lastIs("DROP") {
-			o.add("ADD", o.name)
+			o.replace("ADD", o.name)
 		} else {
-			o.add(v, o.alter)
+			o.insert(v, o.alter)
+		}
+	case "CONSTRAINT":
+		if o.lastIs("DROP") {
+			o.replace("ADD", o.constraint)
 		}
 	default:
 		if o.lastIs("COLUMN") {
-			o.add(token, o.column)
+			o.insert(token, o.column)
 		} else {
-			o.add(token, o.alter)
+			o.insert(token, o.alter)
 		}
 	}
 	return
+}
+
+func (o *DownGenerator) add(token string) bool {
+	if token == "PRIMARY" {
+		o.insert("CONSTRAINT", o.primary)
+		return false
+	}
+	o.insert("COLUMN", nil)
+	return o.name(token)
+}
+
+func (o *DownGenerator) primary(token string) bool {
+	o.insert("", o.key)
+	return false
+}
+
+func (o *DownGenerator) key(token string) bool {
+	o.buf += token
+	if strings.HasSuffix(token, ",") {
+		o.insert("", o.key)
+		return false
+	}
+	o.buf = strings.TrimSuffix(o.buf, ";")
+	o.buf = strings.TrimSuffix(o.buf, ")")
+	o.buf = strings.TrimPrefix(o.buf, "(")
+	o.buf = strings.ReplaceAll(o.buf, ",", "_")
+	table := o.l[2]
+	l := strings.Split(table, ".")
+	tableLocal := l[len(l)-1]
+	o.buf = tableLocal + "_" + o.buf + "_key"
+	o.insert(o.buf, nil)
+	return true
 }
 
 func (o *DownGenerator) column(token string) (r bool) {
 	v := strings.ToUpper(token)
 	switch v {
 	case "TYPE":
-		o.add(v, o.column)
+		o.insert(v, o.column)
 	default:
 		if o.lastIs("TYPE") {
 			columnType, _, err := o.c.schema.ColumnType(o.l[2], o.l[5])
 			if err == nil {
-				o.add(columnType, nil)
+				o.insert(columnType, nil)
 			} else {
 				o.Error = err
 			}
@@ -157,20 +203,37 @@ func (o *DownGenerator) column(token string) (r bool) {
 	return
 }
 
+func (o *DownGenerator) constraint(token string) (r bool) {
+	table := o.l[2]
+	l := strings.Split(table, ".")
+	tableLocal := l[len(l)-1]
+	token = trimNameTail(token)
+	token = strings.TrimPrefix(token, tableLocal+"_")
+	column := strings.TrimSuffix(token, "_key")
+	constraint, err := o.c.schema.RemoveColumnKeyConstraint(table, column)
+	if err == nil {
+		o.insert(constraint, nil)
+	} else {
+		o.Error = err
+	}
+	o.insert(fmt.Sprintf("(%s)", column), nil)
+	return true
+}
+
 func (o *DownGenerator) name(token string) (r bool) {
 	v := strings.ToUpper(token)
 	switch v {
 	case "IF", "NOT", "EXISTS":
 	default:
 		lastIsAdd := o.lastIs("ADD")
-		o.add(token, nil)
+		o.insert(token, nil)
 		r = true
 		if lastIsAdd {
-			columnType, columnConstraints, err := o.c.schema.ColumnType(o.l[2], o.l[5])
+			columnType, columnConstraints, err := o.c.schema.ColumnType(o.l[2], o.l[4])
 			if err == nil {
-				o.add(columnType, nil)
+				o.insert(columnType, nil)
 				if columnConstraints != "" {
-					o.add(columnConstraints, nil)
+					o.insert(columnConstraints, nil)
 				}
 			} else {
 				o.Error = err
@@ -185,7 +248,7 @@ func (o *DownGenerator) nameOfIndex(token string) (r bool) {
 	switch v {
 	case "CONCURRENTLY":
 	default:
-		o.add(token, nil)
+		o.insert(token, nil)
 		r = true
 	}
 	return

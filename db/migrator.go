@@ -47,6 +47,8 @@ type MigratorOptions struct {
 	Lock         bool
 	TraceSchema  bool
 	PrettySchema bool
+	Final        string
+	Migration    string
 }
 
 type MigratorAction string
@@ -80,7 +82,7 @@ func (o *Migrator) ExecOpt(fs fs.FS, opt MigratorOptions) (ok bool) {
 	}
 	err := o.m.Init()
 	if err == nil {
-		if o.load(fs) {
+		if o.load(fs, opt.Final) {
 			if o.m.MigrationsCount() == 0 {
 				o.log.Info("no migrations")
 				ok = true
@@ -95,7 +97,7 @@ func (o *Migrator) ExecOpt(fs fs.FS, opt MigratorOptions) (ok bool) {
 					case Rollback:
 						o.rollbackLast()
 					case PreviewDown:
-						o.previewDown()
+						o.previewDown(opt.Migration)
 					case RepairDown:
 						o.repairDown()
 					case ViewSchema:
@@ -112,8 +114,8 @@ func (o *Migrator) ExecOpt(fs fs.FS, opt MigratorOptions) (ok bool) {
 	return
 }
 
-func (o *Migrator) load(fs fs.FS) bool {
-	err := o.m.Load(fs)
+func (o *Migrator) load(fs fs.FS, final string) bool {
+	err := o.m.Load(fs, final)
 	if err == nil {
 		o.log.Info("migrations loaded")
 		return true
@@ -160,8 +162,8 @@ func (o *Migrator) rollbackLast() {
 	}
 }
 
-func (o *Migrator) previewDown() {
-	name, down, err := o.m.Migrations().PreviewDown()
+func (o *Migrator) previewDown(specific string) {
+	name, down, err := o.m.Migrations().PreviewDown(specific)
 	if err == nil {
 		o.log.Infof("preview migration[%s] down:\n%s", name, down)
 	} else {

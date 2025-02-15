@@ -54,13 +54,18 @@ func (o *Context) Process(l []string) error {
 					if l[0] == "ALTER" {
 						tableName := l[2]
 						if l[3] == "ADD" {
-							columnName := l[4]
-							columnType := l[5]
-							constraints := ""
-							if n > 6 {
-								constraints = ufmt.JoinSlice(l[6:])
+							if l[4] == "PRIMARY" {
+								///
+								return nil
+							} else {
+								columnName := l[4]
+								columnType := l[5]
+								constraints := ""
+								if n > 6 {
+									constraints = ufmt.JoinSlice(l[6:])
+								}
+								return o.addColumn(tableName, columnName, columnType, constraints)
 							}
-							return o.addColumn(tableName, columnName, columnType, constraints)
 						}
 						if l[3] == "ALTER" && l[4] == "COLUMN" && l[6] == "TYPE" {
 							return o.schema.AlterColumnType(tableName, l[5], l[7])

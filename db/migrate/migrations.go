@@ -76,8 +76,12 @@ func (o Migrations) SortDesc() {
 	})
 }
 
-func (o *Migrations) Load(f fs.FS) error {
+func (o *Migrations) Load(f fs.FS, final string) error {
+	var skip bool
 	return fs.WalkDir(f, ".", func(path string, e fs.DirEntry, err error) error {
+		if skip {
+			return nil
+		}
 		if err != nil {
 			return err
 		}
@@ -103,11 +107,12 @@ func (o *Migrations) Load(f fs.FS) error {
 			m.DownSql = sql
 			m.hasDownSql = true
 		}
+		skip = name == final
 		return nil
 	})
 }
 
-func (o Migrations) PreviewDown() (name string, down string, err error) {
+func (o Migrations) PreviewDown(specific string) (name string, down string, err error) {
 	c := NewContext()
 	for i := range o {
 		name = o[i].Name
@@ -115,6 +120,9 @@ func (o Migrations) PreviewDown() (name string, down string, err error) {
 		if err != nil {
 			name = ""
 			down = ""
+			break
+		}
+		if name == specific {
 			break
 		}
 	}
