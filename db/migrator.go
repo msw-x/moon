@@ -43,15 +43,27 @@ func (o *Migrator) WithMarkAppliedOnSuccess(v bool) *Migrator {
 }
 
 type MigratorOptions struct {
+	Action       MigratorAction
 	Lock         bool
-	Rollback     bool
-	PreviewDown  bool
-	RepairDown   bool
 	TraceSchema  bool
 	PrettySchema bool
 }
 
-func (o *Migrator) Exec(fs fs.FS, opt MigratorOptions) (ok bool) {
+type MigratorAction string
+
+const (
+	Migrate     MigratorAction = ""
+	Rollback    MigratorAction = "rollback"
+	PreviewDown MigratorAction = "preview-down"
+	RepairDown  MigratorAction = "repair-down"
+	ViewSchema  MigratorAction = "view-schema"
+)
+
+func (o *Migrator) Exec(fs fs.FS) bool {
+	return o.ExecOpt(fs, MigratorOptions{})
+}
+
+func (o *Migrator) ExecOpt(fs fs.FS, opt MigratorOptions) (ok bool) {
 	if opt.TraceSchema {
 		o.m.WithAutoDownSqlTrace(func(m *migrate.Migration, c *migrate.Context) {
 			var s string
@@ -77,15 +89,19 @@ func (o *Migrator) Exec(fs fs.FS, opt MigratorOptions) (ok bool) {
 				if opt.Lock {
 					o.log.Info("locked")
 				} else {
-					switch {
-					case opt.Rollback:
-						o.rollbackLast()
-					case opt.PreviewDown:
-						o.previewDown()
-					case opt.RepairDown:
-						o.repairDown()
-					default:
+					switch opt.Action {
+					case Migrate:
 						ok = o.migrate()
+					case Rollback:
+						o.rollbackLast()
+					case PreviewDown:
+						o.previewDown()
+					case RepairDown:
+						o.repairDown()
+					case ViewSchema:
+						o.viewSchema()
+					default:
+						o.log.Errorf("unsupported action '%s'", opt.Action)
 					}
 				}
 			}
@@ -162,6 +178,16 @@ func (o *Migrator) repairDown() {
 			s = "no"
 		}
 		o.log.Info("repaired down:", s)
+	} else {
+		o.log.Error(err)
+	}
+}
+
+func (o *Migrator) viewSchema() {
+	o.log.Info("view schema")
+	s, err := o.m.ViewSchema()
+	if err == nil {
+		o.log.Info("schema:\n", s)
 	} else {
 		o.log.Error(err)
 	}

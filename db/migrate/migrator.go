@@ -222,6 +222,10 @@ func (o *Migrator) RepairDown() ([]string, error) {
 	return o.l.RepairDown(o.updateApplied)
 }
 
+func (o *Migrator) ViewSchema() (string, error) {
+	return o.l.ViewSchema()
+}
+
 func (o *Migrator) Status() string {
 	w := tabtable.New()
 	w.Write("name", "comment", "group", "migrated")

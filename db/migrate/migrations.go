@@ -158,6 +158,19 @@ func (o *Migrations) RepairDown(update func(*Migration) error) (names []string, 
 	return
 }
 
+func (o *Migrations) ViewSchema() (s string, err error) {
+	c := NewContext()
+	for i := range *o {
+		m := (*o)[i]
+		_, err = m.PreviewDown(c)
+		if err != nil {
+			break
+		}
+	}
+	s = c.String()
+	return
+}
+
 func (o *Migrations) get(name string) *Migration {
 	for i := range *o {
 		m := (*o)[i]
