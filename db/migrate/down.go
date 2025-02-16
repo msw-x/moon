@@ -53,9 +53,8 @@ type DownGenerator struct {
 	Command string
 	Error   error
 
-	c   *Context
-	l   []string
-	buf string
+	c *Context
+	l []string
 }
 
 func NewDownGenerator(c *Context) *DownGenerator {
@@ -167,20 +166,14 @@ func (o *DownGenerator) primary(token string) bool {
 }
 
 func (o *DownGenerator) key(token string) bool {
-	o.buf += token
 	if strings.HasSuffix(token, ",") {
 		o.insert("", o.key)
 		return false
 	}
-	o.buf = strings.TrimSuffix(o.buf, ";")
-	o.buf = strings.TrimSuffix(o.buf, ")")
-	o.buf = strings.TrimPrefix(o.buf, "(")
-	o.buf = strings.ReplaceAll(o.buf, ",", "_")
 	table := o.l[2]
 	l := strings.Split(table, ".")
 	tableLocal := l[len(l)-1]
-	o.buf = tableLocal + "_" + o.buf + "_key"
-	o.insert(o.buf, nil)
+	o.insert(tableLocal+"_pkey", nil)
 	return true
 }
 
