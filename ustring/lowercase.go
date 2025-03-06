@@ -5,6 +5,8 @@ import (
 	"unicode"
 )
 
+// https://pkg.go.dev/golang.org/x/text/cases
+
 func TitleLowerCase(s string) string {
 	if len(s) > 0 {
 		s = strings.ToLower(string(s[0])) + s[1:]
