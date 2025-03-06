@@ -136,6 +136,10 @@ func (o *Client) Run() {
 	o.job.Loop(o.connectAndRun)
 }
 
+func (o *Client) Running() bool {
+	return o.job.Running()
+}
+
 func (o *Client) Connected() bool {
 	return o.ws != nil
 }
