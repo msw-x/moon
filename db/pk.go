@@ -22,33 +22,31 @@ func PkName(model any) (name string, err error) {
 		fail("model is not struct")
 		return
 	}
-	name = pkName(rt)
+	name = strings.Join(pkName(rt), ",")
 	if name == "" {
 		fail("it not found")
 	}
 	return
 }
 
-func pkName(rt reflect.Type) (name string) {
+func pkName(rt reflect.Type) (l []string) {
 	for i := 0; i < rt.NumField(); i++ {
 		f := rt.Field(i)
 		if f.Anonymous && f.Type.Kind() == reflect.Struct {
-			name = pkName(f.Type)
-			if name != "" {
-				return
-			}
+			l = append(l, pkName(f.Type)...)
 			continue
 		}
 		s := strings.Split(f.Tag.Get("bun"), ",")
 		if len(s) > 1 {
-			name = s[0]
+			name := s[0]
 			s = s[1:]
 			for _, tag := range s {
 				if tag == "pk" {
 					if name == "" {
 						name = snaker.CamelToSnake(f.Name)
 					}
-					return
+					l = append(l, name)
+					break
 				}
 			}
 		}
