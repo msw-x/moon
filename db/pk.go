@@ -13,9 +13,11 @@ func PkName(model any) (name string, err error) {
 		err = errors.New("pk name fail: " + reason)
 	}
 	rt := reflect.TypeOf(model)
-	if rt.Kind() != reflect.Pointer {
-		fail("model is not pointer")
-		return
+	if rt.Kind() != reflect.Slice && rt.Kind() != reflect.Array {
+		if rt.Kind() != reflect.Pointer {
+			fail("model is not pointer")
+			return
+		}
 	}
 	rt = rt.Elem()
 	if rt.Kind() != reflect.Struct {
