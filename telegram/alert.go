@@ -16,16 +16,14 @@ type AlertBot struct {
 	log         *ulog.Log
 	bot         *botapi.BotAPI
 	chatId      int64
-	version     string
 	limiter     LimiterIf[string]
 	closeAt     time.Time
 	logMsgLimit int
 }
 
-func NewAlertBot(token string, chatId string, version string) *AlertBot {
+func NewAlertBot(token string, chatId string) *AlertBot {
 	o := &AlertBot{
 		log:         ulog.New("alert-bot"),
-		version:     version,
 		logMsgLimit: 1024,
 	}
 	if chatId != "" {
@@ -90,8 +88,12 @@ func (o *AlertBot) Sendf(f string, v ...any) {
 	o.Send(fmt.Sprintf(f, v...))
 }
 
-func (o *AlertBot) Startup() {
-	o.send("🚀 *Startup*\n`v" + o.version + "`")
+func (o *AlertBot) Startup(version string) {
+	v := version
+	if v != "" {
+		v = fmt.Sprintf("\n`v%s`", v)
+	}
+	o.send("🚀 *Startup*" + v)
 }
 
 func (o *AlertBot) Shutdown(ts time.Duration) {
