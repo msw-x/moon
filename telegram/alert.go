@@ -74,6 +74,10 @@ func (o *AlertBot) QueueSize() int {
 	return o.limiter.Queue().Size()
 }
 
+func (o *AlertBot) QueueEmpty() bool {
+	return o.QueueSize() == 0
+}
+
 func (o *AlertBot) Send(message string) {
 	if o.limiter != nil {
 		if !o.limiter.Push(message) {
