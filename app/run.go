@@ -32,7 +32,7 @@ func RunPre[UserConf any](version string, pre func() bool, fn func(UserConf)) {
 	}
 }
 
-func RunJust(version string, opts ulog.Options, fn func()) {
+func RunJust(version string, opts ulog.Options, fn any) {
 	defer exit()
 	defer ulog.Close()
 	defer uerr.Recover(fatal)
