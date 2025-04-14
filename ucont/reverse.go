@@ -28,6 +28,17 @@ func Equal[S ~[]T, T comparable](a, b S) bool {
 	return true
 }
 
+func Unique[S ~[]T, T comparable](s S) (r S) {
+	keys := make(map[T]bool)
+	for _, v := range s {
+		if !keys[v] {
+			keys[v] = true
+			r = append(r, v)
+		}
+	}
+	return
+}
+
 func Filter[T any](s []T, f func(T) bool) (r []T) {
 	for _, v := range s {
 		if f(v) {
