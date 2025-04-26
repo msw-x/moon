@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"sync"
 	"time"
@@ -14,18 +15,19 @@ import (
 )
 
 type context struct {
-	inited   time.Time
-	opts     Options
-	stat     Statistics
-	file     *os.File
-	fileSize uint64
-	fileTime time.Time
-	fname    string
-	timeLoc  *time.Location
-	maxid    int
-	mapid    map[int]bool
-	hook     func(Message)
-	mutex    sync.Mutex
+	inited    time.Time
+	opts      Options
+	stat      Statistics
+	file      *os.File
+	fileSize  uint64
+	fileTime  time.Time
+	fname     string
+	fnameInit string
+	timeLoc   *time.Location
+	maxid     int
+	mapid     map[int]bool
+	hook      func(Message)
+	mutex     sync.Mutex
 }
 
 var ctx context
@@ -145,6 +147,9 @@ func (o *context) openFile(prolongation bool) {
 			appName += ".~"
 		}
 		o.fname = GenFilename(o.now(), o.opts.Dir, appName)
+		if !prolongation {
+			o.fnameInit = o.fname
+		}
 		o.rotate()
 	}
 	if o.fname != "" {
@@ -177,14 +182,18 @@ func (o *context) rotateEnabled() bool {
 func (o *context) rotate() {
 	if o.rotateEnabled() {
 		dirs := scanDirs(o.opts.Dir)
+		exclude := ""
+		if o.opts.LockInitialFile {
+			exclude = filepath.Base(o.fnameInit)
+		}
 		if o.opts.DaysCountLimit > 0 && dirs.count() > o.opts.DaysCountLimit {
 			n := dirs.count() - o.opts.DaysCountLimit
-			dirs.removeByCount(n)
+			dirs.removeByCount(n, exclude)
 		}
 		totalSizeLimit := int64(o.opts.TotalSizeLimit)
 		if totalSizeLimit > 0 && dirs.size() > totalSizeLimit {
 			n := dirs.size() - totalSizeLimit
-			dirs.removeBySize(n)
+			dirs.removeBySize(n, exclude)
 		}
 	}
 }

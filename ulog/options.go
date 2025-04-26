@@ -9,20 +9,21 @@ import (
 )
 
 type Options struct {
-	Level          any
-	Console        bool
-	File           string
-	Dir            string
-	Append         bool
-	AppName        string
-	GoID           bool
-	Timezone       string
-	CrtStdErr      bool
-	SplitArgs      any
-	FileSizeLimit  uint64
-	FileTimeLimit  time.Duration
-	DaysCountLimit int
-	TotalSizeLimit uint64
+	Level           any
+	Console         bool
+	File            string
+	Dir             string
+	Append          bool
+	AppName         string
+	GoID            bool
+	Timezone        string
+	CrtStdErr       bool
+	SplitArgs       any
+	FileSizeLimit   uint64
+	FileTimeLimit   time.Duration
+	DaysCountLimit  int
+	TotalSizeLimit  uint64
+	LockInitialFile bool
 
 	level     Level
 	splitArgs bool

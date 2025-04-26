@@ -50,17 +50,19 @@ type Conf struct {
 	LogFileTime  string
 	LogDaysCount int
 	LogTotalSize string
+	LogLockInit  bool
 }
 
 func (o *Conf) Log() ulog.Options {
 	opts := ulog.Options{
-		Level:          ulog.ParseLevel(o.LogLevel),
-		Console:        o.LogConsole,
-		File:           o.LogFile,
-		Dir:            o.LogDir,
-		GoID:           o.LogGoID,
-		Timezone:       o.LogTimezone,
-		DaysCountLimit: o.LogDaysCount,
+		Level:           ulog.ParseLevel(o.LogLevel),
+		Console:         o.LogConsole,
+		File:            o.LogFile,
+		Dir:             o.LogDir,
+		GoID:            o.LogGoID,
+		Timezone:        o.LogTimezone,
+		DaysCountLimit:  o.LogDaysCount,
+		LockInitialFile: o.LogLockInit,
 	}
 	if o.LogFileSize != "" {
 		opts.FileSizeLimit = parse.BytesCountStrict(o.LogFileSize)

@@ -34,6 +34,18 @@ func (o dir) sort() {
 	})
 }
 
+func (o dir) exists(fname string) (ok bool) {
+	if fname != "" {
+		for _, f := range o.files {
+			ok = f.Name() == fname
+			if ok {
+				break
+			}
+		}
+	}
+	return
+}
+
 type dirs []dir
 
 func (o dirs) sort() {
@@ -56,14 +68,20 @@ func (o dirs) count() int {
 	return len(o)
 }
 
-func (o dirs) removeByCount(n int) {
+func (o dirs) removeByCount(n int, exclude string) {
 	for _, d := range o[0:n] {
+		if d.exists(exclude) {
+			continue
+		}
 		os.RemoveAll(d.path)
 	}
 }
 
-func (o dirs) removeBySize(n int64) {
+func (o dirs) removeBySize(n int64, exclude string) {
 	for _, d := range o {
+		if d.exists(exclude) {
+			continue
+		}
 		if n <= 0 {
 			break
 		}
