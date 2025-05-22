@@ -3,8 +3,11 @@ package uws
 import (
 	"crypto/tls"
 	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -237,7 +240,27 @@ func (o *Client) dial(url string) (err error) {
 	if o.Options.Proxy != nil {
 		dialer.Proxy = http.ProxyURL(o.Options.Proxy)
 	}
-	o.ws, _, err = dialer.Dial(url, nil)
+	var r *http.Response
+	o.ws, r, err = dialer.Dial(url, nil)
+	if err != nil && r != nil {
+		s := r.Status
+		if s == "" && r.StatusCode != 0 {
+			s = strconv.Itoa(r.StatusCode)
+		}
+		if s != "" {
+			defer r.Body.Close()
+			body, _ := io.ReadAll(r.Body)
+			n := len(body)
+			if n > 0 {
+				m := 512
+				if n > m {
+					body = body[:m]
+				}
+				s += " " + string(body)
+			}
+			err = fmt.Errorf("%w: %s", err, s)
+		}
+	}
 	return
 }
 
