@@ -49,6 +49,7 @@ func (o *DomainMux) PureReverseProxy(domain string, target string) error {
 			},
 			ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
 				log.Errorf("%s %v: %v", r.Method, r.URL, err)
+				w.WriteHeader(http.StatusBadGateway)
 			},
 		}
 	}
