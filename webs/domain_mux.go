@@ -27,10 +27,14 @@ func (o *DomainMux) ReverseProxy(domain string, target string) error {
 }
 
 func (o *DomainMux) PureReverseProxy(domain string, target string) error {
+	return o.PureReverseProxyFilter(domain, target, nil)
+}
+
+func (o *DomainMux) PureReverseProxyFilter(domain string, target string, f func(http.ResponseWriter, *http.Request, *ulog.Log) bool) error {
 	log := ulog.New("reverse-proxy").WithID(domain)
 	targetUrl, err := url.Parse(target)
 	if err == nil {
-		o.m[domain] = &httputil.ReverseProxy{
+		p := &httputil.ReverseProxy{
 			Rewrite: func(r *httputil.ProxyRequest) {
 				r.SetURL(targetUrl)
 			},
@@ -52,6 +56,14 @@ func (o *DomainMux) PureReverseProxy(domain string, target string) error {
 				w.WriteHeader(http.StatusBadGateway)
 			},
 		}
+		o.m[domain] = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if f != nil {
+				if !f(w, r, log) {
+					return
+				}
+			}
+			p.ServeHTTP(w, r)
+		})
 	}
 	return err
 }
