@@ -302,6 +302,10 @@ func (o *Db) connect(host string) {
 	if !o.opts.Insecure {
 		pgopts = append(pgopts, pgdriver.WithTLSConfig(&tls.Config{InsecureSkipVerify: true}))
 	}
+	if o.opts.DisablePrepared {
+		pgopts = append(pgopts, pgdriver.WithConnParams(map[string]any{"disable_prepared": true}))
+	}
+
 	pgconn := pgdriver.NewConnector(pgopts...)
 	sqldb := sql.OpenDB(pgconn)
 	sqldb.SetMaxOpenConns(o.opts.MaxOpenConnections())
