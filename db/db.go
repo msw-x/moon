@@ -293,13 +293,19 @@ func (o *Db) check() {
 
 func (o *Db) connect(host string) {
 	o.log.Info("connect:", host)
+	dsn := fmt.Sprintf("postgres://%s:%s@%s/%s", o.opts.User, o.opts.Pass, host, o.opts.Name)
+	if o.opts.DisablePrepared {
+		dsn += "?disable_prepared=true"
+	}
+	o.log.Info("dsn:", dsn)
 	pgopts := []pgdriver.Option{
 		pgdriver.WithNetwork("tcp"),
-		pgdriver.WithAddr(host),
+		pgdriver.WithDSN(dsn),
+		//pgdriver.WithAddr(host),
 		pgdriver.WithInsecure(o.opts.Insecure),
-		pgdriver.WithUser(o.opts.User),
-		pgdriver.WithPassword(o.opts.Pass),
-		pgdriver.WithDatabase(o.opts.Name),
+		//pgdriver.WithUser(o.opts.User),
+		//pgdriver.WithPassword(o.opts.Pass),
+		//pgdriver.WithDatabase(o.opts.Name),
 		pgdriver.WithApplicationName(app.Name()),
 		pgdriver.WithDialTimeout(o.opts.Timeout),
 		pgdriver.WithReadTimeout(o.opts.Timeout),
@@ -308,9 +314,9 @@ func (o *Db) connect(host string) {
 	if !o.opts.Insecure {
 		pgopts = append(pgopts, pgdriver.WithTLSConfig(&tls.Config{InsecureSkipVerify: true}))
 	}
-	if o.opts.DisablePrepared {
-		pgopts = append(pgopts, pgdriver.WithConnParams(map[string]any{"disable_prepared": true}))
-	}
+	//if o.opts.DisablePrepared {
+	//	pgopts = append(pgopts, pgdriver.WithConnParams(map[string]any{"disable_prepared": true}))
+	//}
 
 	pgconn := pgdriver.NewConnector(pgopts...)
 	sqldb := sql.OpenDB(pgconn)
