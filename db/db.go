@@ -173,6 +173,12 @@ func (o *Db) UpdateAll(model any) error {
 	})
 }
 
+func (o *Db) UpdatePkOmitZero(model any) error {
+	return o.Update(model, func(q *bun.UpdateQuery) {
+		q.WherePK().OmitZero()
+	})
+}
+
 func (o *Db) Upsert(model any) error {
 	if o.ro {
 		return nil
