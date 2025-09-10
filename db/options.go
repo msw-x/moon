@@ -15,7 +15,6 @@ type Options struct {
 	MinOpenConns    int
 	Strict          bool
 	Insecure        bool
-	DisablePrepared bool
 	LogErrors       bool
 	LogQueries      bool
 	LogLongQueries  bool
