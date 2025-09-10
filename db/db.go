@@ -293,7 +293,6 @@ func (o *Db) check() {
 
 func (o *Db) connect(host string) {
 	o.log.Info("connect:", host)
-	o.log.Info("dsn:", dsn)
 	pgopts := []pgdriver.Option{
 		pgdriver.WithNetwork("tcp"),
 		pgdriver.WithAddr(host),
