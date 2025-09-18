@@ -24,6 +24,7 @@ type Options struct {
 	DaysCountLimit  int
 	TotalSizeLimit  uint64
 	LockInitialFile bool
+	Async           bool
 
 	level     Level
 	splitArgs bool

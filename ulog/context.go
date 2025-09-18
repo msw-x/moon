@@ -28,6 +28,7 @@ type context struct {
 	mapid     map[int]bool
 	hook      func(Message)
 	mutex     sync.Mutex
+	queue     *Queue[Message]
 }
 
 var ctx context
@@ -49,11 +50,39 @@ func (o *context) init(opts Options) {
 	o.maxid = 2
 	o.mapid = make(map[int]bool)
 	o.inited = time.Now()
+	if opts.Async && o.queue == nil {
+		o.queue = NewQueue[Message]()
+		go func() {
+			defer Recover()
+			for {
+				q := o.queue
+				if q == nil {
+					break
+				}
+				m, ok := q.Pop()
+				if ok {
+					printm(o, m)
+				}
+			}
+		}()
+	}
 }
 
 func (o *context) close() {
 	o.mutex.Lock()
 	defer o.mutex.Unlock()
+	if o.queue != nil {
+		q := o.queue
+		for {
+			m, ok := q.Pop()
+			if ok {
+				printm(o, m)
+			} else {
+				break
+			}
+		}
+		o.queue = nil
+	}
 	if o.file != nil {
 		o.file.Close()
 		o.file = nil

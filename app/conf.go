@@ -51,6 +51,7 @@ type Conf struct {
 	LogDaysCount int
 	LogTotalSize string
 	LogLockInit  bool
+	LogAsyncMode bool
 }
 
 func (o *Conf) Log() ulog.Options {
@@ -63,6 +64,7 @@ func (o *Conf) Log() ulog.Options {
 		Timezone:        o.LogTimezone,
 		DaysCountLimit:  o.LogDaysCount,
 		LockInitialFile: o.LogLockInit,
+		Async:           o.LogAsyncMode,
 	}
 	if o.LogFileSize != "" {
 		opts.FileSizeLimit = parse.BytesCountStrict(o.LogFileSize)
