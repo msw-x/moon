@@ -16,6 +16,7 @@ import (
 
 type Db struct {
 	log   *ulog.Log
+	sqldb *sql.DB
 	db    *bun.DB
 	job   *app.Job
 	opts  Options
@@ -55,6 +56,14 @@ func (o *Db) Ok() bool {
 func (o *Db) Ping() bool {
 	_, err := o.db.Exec("SELECT 1")
 	return err == nil
+}
+
+func (o *Db) Stat() bun.DBStats {
+	return o.db.DBStats()
+}
+
+func (o *Db) ConnStat() sql.DBStats {
+	return o.sqldb.Stats()
 }
 
 func (o *Db) Wait(timeout time.Duration) bool {
@@ -309,15 +318,15 @@ func (o *Db) connect(host string) {
 		pgopts = append(pgopts, pgdriver.WithTLSConfig(&tls.Config{InsecureSkipVerify: true}))
 	}
 	pgconn := pgdriver.NewConnector(pgopts...)
-	sqldb := sql.OpenDB(pgconn)
-	sqldb.SetMaxOpenConns(o.opts.MaxOpenConnections())
-	sqldb.SetMaxIdleConns(o.opts.MaxOpenConnections())
+	o.sqldb = sql.OpenDB(pgconn)
+	o.sqldb.SetMaxOpenConns(o.opts.MaxOpenConnections())
+	o.sqldb.SetMaxIdleConns(o.opts.MaxOpenConnections())
 	var db *bun.DB
 	if o.opts.Strict {
-		db = bun.NewDB(sqldb, pgdialect.New())
+		db = bun.NewDB(o.sqldb, pgdialect.New())
 	} else {
 		// make app more resilient to errors during migrations
-		db = bun.NewDB(sqldb, pgdialect.New(), bun.WithDiscardUnknownColumns())
+		db = bun.NewDB(o.sqldb, pgdialect.New(), bun.WithDiscardUnknownColumns())
 	}
 	if o.opts.LogErrors || o.opts.LogQueries || o.opts.LogLongQueries {
 		log := newLog(o.log, o.opts.LogErrors && !o.opts.LogQueries)
