@@ -13,12 +13,13 @@ import (
 )
 
 type AlertBot struct {
-	log         *ulog.Log
-	bot         *botapi.BotAPI
-	chatId      int64
-	limiter     LimiterIf[string]
-	closeAt     time.Time
-	logMsgLimit int
+	log           *ulog.Log
+	bot           *botapi.BotAPI
+	chatId        int64
+	limiter       LimiterIf[string]
+	closeAt       time.Time
+	logMsgLimit   int
+	quietShutdown bool
 }
 
 func NewAlertBot(token string, chatId string) *AlertBot {
@@ -65,6 +66,10 @@ func (o *AlertBot) SetQueue(queue QueueIf[string]) {
 	}
 }
 
+func (o *AlertBot) SetQuietShutdown(v bool) {
+	o.quietShutdown = v
+}
+
 func (o *AlertBot) QueueSize() int {
 	if o.limiter == nil {
 		return 0
@@ -99,6 +104,9 @@ func (o *AlertBot) Startup(version string) {
 func (o *AlertBot) Shutdown(ts time.Duration) {
 	if o.limiter != nil {
 		o.limiter.Close()
+		if o.quietShutdown {
+			return
+		}
 		s := ""
 		if ts > 0 {
 			ts = utime.PrettyTruncate(ts)
