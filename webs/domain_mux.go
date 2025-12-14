@@ -42,10 +42,10 @@ func (o *DomainMux) PureReverseProxyFilter(domain string, target string, f func(
 				var err error
 				var rc io.ReadCloser
 				_ = rc
-				//rc, err = r.In.GetBody()
-				//if err == nil {
-				//	body, err = io.ReadAll(rc)
-				//}
+				rc, err = r.In.GetBody()
+				if err == nil {
+					body, err = io.ReadAll(rc)
+				}
 				log.Debug(r.In.RemoteAddr, r.In.Method, r.In.URL, len(body), "B", "=>", r.Out.URL, err)
 			},
 			ModifyResponse: func(v *http.Response) error {
