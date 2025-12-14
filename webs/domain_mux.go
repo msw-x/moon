@@ -1,8 +1,6 @@
 package webs
 
 import (
-	"bytes"
-	"io"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -41,11 +39,11 @@ func (o *DomainMux) PureReverseProxyFilter(domain string, target string, f func(
 				r.SetURL(targetUrl)
 				var body []byte
 				var err error
-				body, err = io.ReadAll(r.In.Body)
-				if err == nil {
-					r.In.Body.Close()
-					r.In.Body = io.NopCloser(bytes.NewReader(body))
-				}
+				//body, err = io.ReadAll(r.In.Body)
+				//if err == nil {
+				//	r.In.Body.Close()
+				//	r.In.Body = io.NopCloser(bytes.NewReader(body))
+				//}
 				log.Debug("request", r.In.RemoteAddr, r.In.Method, r.In.URL, len(body), "B", "=>", r.Out.URL, err)
 			},
 			ModifyResponse: func(v *http.Response) error {
@@ -56,11 +54,11 @@ func (o *DomainMux) PureReverseProxyFilter(domain string, target string, f func(
 					if v.StatusCode == http.StatusOK {
 						var body []byte
 						var err error
-						body, err = io.ReadAll(r.Body)
-						if err == nil {
-							r.Body.Close()
-							r.Body = io.NopCloser(bytes.NewReader(body))
-						}
+						//body, err = io.ReadAll(r.Body)
+						//if err == nil {
+						//	r.Body.Close()
+						//	r.Body = io.NopCloser(bytes.NewReader(body))
+						//}
 						log.Debug("response", r.RemoteAddr, r.Method, r.URL, v.StatusCode, len(body), "B", err)
 					} else {
 						log.Error("response", r.RemoteAddr, r.Method, r.URL, v.StatusCode)
