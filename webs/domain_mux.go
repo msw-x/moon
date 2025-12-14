@@ -1,6 +1,8 @@
 package webs
 
 import (
+	"bytes"
+	"io"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -54,11 +56,11 @@ func (o *DomainMux) PureReverseProxyFilter(domain string, target string, f func(
 					if v.StatusCode == http.StatusOK {
 						var body []byte
 						var err error
-						//body, err = io.ReadAll(r.Body)
-						//if err == nil {
-						//	r.Body.Close()
-						//	r.Body = io.NopCloser(bytes.NewReader(body))
-						//}
+						body, err = io.ReadAll(r.Body)
+						if err != nil {
+							return err
+						}
+						r.Body = io.NopCloser(bytes.NewReader(body))
 						log.Debug("response", r.RemoteAddr, r.Method, r.URL, v.StatusCode, len(body), "B", err)
 					} else {
 						log.Error("response", r.RemoteAddr, r.Method, r.URL, v.StatusCode)
