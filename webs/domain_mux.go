@@ -1,6 +1,8 @@
 package webs
 
 import (
+	"bytes"
+	"io"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -37,6 +39,12 @@ func (o *DomainMux) PureReverseProxyFilter(domain string, target string, f func(
 		p := &httputil.ReverseProxy{
 			Rewrite: func(r *httputil.ProxyRequest) {
 				r.SetURL(targetUrl)
+				var body []byte
+				rc, err := r.In.GetBody()
+				if err == nil {
+					body, err = io.ReadAll(rc)
+				}
+				log.Debug(r.In.RemoteAddr, r.In.Method, r.In.URL, len(body), "B", "=>", r.Out.URL, err)
 			},
 			ModifyResponse: func(v *http.Response) error {
 				r := v.Request
@@ -44,15 +52,20 @@ func (o *DomainMux) PureReverseProxyFilter(domain string, target string, f func(
 					log.Error("request is nil")
 				} else {
 					if v.StatusCode == http.StatusOK {
-						log.Debug(r.Method, r.URL, v.StatusCode)
+						body, err := io.ReadAll(r.Body)
+						if err == nil {
+							defer r.Body.Close()
+							r.Body = io.NopCloser(bytes.NewReader(body))
+						}
+						log.Debug(r.RemoteAddr, r.Method, r.URL, v.StatusCode, len(body), "B", err)
 					} else {
-						log.Error(r.Method, r.URL, v.StatusCode)
+						log.Error(r.RemoteAddr, r.Method, r.URL, v.StatusCode)
 					}
 				}
 				return nil
 			},
 			ErrorHandler: func(w http.ResponseWriter, r *http.Request, err error) {
-				log.Errorf("%s %v: %v", r.Method, r.URL, err)
+				log.Errorf("%s %s %v: %v", r.RemoteAddr, r.Method, r.URL, err)
 				w.WriteHeader(http.StatusBadGateway)
 			},
 		}
