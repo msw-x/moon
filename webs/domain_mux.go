@@ -58,7 +58,7 @@ func (o *DomainMux) PureReverseProxyFilter(domain string, target string, f func(
 						var err error
 						body, err = io.ReadAll(r.Body)
 						if err == nil {
-							defer r.Body.Close()
+							r.Body.Close()
 							r.Body = io.NopCloser(bytes.NewReader(body))
 						}
 						log.Debug("response", r.RemoteAddr, r.Method, r.URL, v.StatusCode, len(body), "B", err)
