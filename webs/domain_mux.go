@@ -46,7 +46,7 @@ func (o *DomainMux) PureReverseProxyFilter(domain string, target string, f func(
 					r.In.Body.Close()
 					r.In.Body = io.NopCloser(bytes.NewReader(body))
 				}
-				log.Debug(r.In.RemoteAddr, r.In.Method, r.In.URL, len(body), "B", "=>", r.Out.URL, err)
+				log.Debug("request", r.In.RemoteAddr, r.In.Method, r.In.URL, len(body), "B", "=>", r.Out.URL, err)
 			},
 			ModifyResponse: func(v *http.Response) error {
 				r := v.Request
@@ -56,14 +56,14 @@ func (o *DomainMux) PureReverseProxyFilter(domain string, target string, f func(
 					if v.StatusCode == http.StatusOK {
 						var body []byte
 						var err error
-						//body, err = io.ReadAll(r.Body)
-						//if err == nil {
-						//	defer r.Body.Close()
-						//	r.Body = io.NopCloser(bytes.NewReader(body))
-						//}
-						log.Debug(r.RemoteAddr, r.Method, r.URL, v.StatusCode, len(body), "B", err)
+						body, err = io.ReadAll(r.Body)
+						if err == nil {
+							defer r.Body.Close()
+							r.Body = io.NopCloser(bytes.NewReader(body))
+						}
+						log.Debug("response", r.RemoteAddr, r.Method, r.URL, v.StatusCode, len(body), "B", err)
 					} else {
-						log.Error(r.RemoteAddr, r.Method, r.URL, v.StatusCode)
+						log.Error("response", r.RemoteAddr, r.Method, r.URL, v.StatusCode)
 					}
 				}
 				return nil
