@@ -82,6 +82,14 @@ func (o *AsyncPlain[Id, Item]) AddNamed(name string, e Item) (Id, error) {
 	return o.c.AddNamed(name, e)
 }
 
+func (o *AsyncPlain[Id, Item]) Attach(e Item) {
+	o.c.Attach(e)
+}
+
+func (o *AsyncPlain[Id, Item]) AttachNamed(name string, e Item) {
+	o.c.AttachNamed(name, e)
+}
+
 func (o *AsyncPlain[Id, Item]) Delete(id Id) error {
 	return o.c.Delete(id)
 }

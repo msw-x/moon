@@ -96,6 +96,14 @@ func (o *Async[Id, MapItem, DbItem]) AddNamed(name string, e DbItem) (Id, error)
 	return o.c.AddNamed(name, e)
 }
 
+func (o *Async[Id, MapItem, DbItem]) Attach(e DbItem) {
+	o.c.Attach(e)
+}
+
+func (o *Async[Id, MapItem, DbItem]) AttachNamed(name string, e DbItem) {
+	o.c.AttachNamed(name, e)
+}
+
 func (o *Async[Id, MapItem, DbItem]) Delete(id Id) error {
 	return o.c.Delete(id)
 }

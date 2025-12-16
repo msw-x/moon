@@ -126,6 +126,14 @@ func (o *Sync[Id, MapItem, DbItem]) AddNamed(name string, e DbItem) (Id, error) 
 	return o.add(fmt.Sprintf("add[%s]", name), e)
 }
 
+func (o *Sync[Id, MapItem, DbItem]) Attach(e DbItem) {
+	o.ins("attach", e)
+}
+
+func (o *Sync[Id, MapItem, DbItem]) AttachNamed(name string, e DbItem) {
+	o.ins(fmt.Sprintf("attach[%s]", name), e)
+}
+
 func (o *Sync[Id, MapItem, DbItem]) Delete(id Id) error {
 	o.log.Debugf("delete[%v]", id)
 	e, err := o.Get(id)
@@ -333,18 +341,23 @@ func (o *Sync[Id, MapItem, DbItem]) add(action string, e DbItem) (Id, error) {
 	}
 	var id Id
 	if err == nil {
-		id = o.fn.dbItemId(e)
-		o.log.Info(action, "id:", id)
-		if !o.excludeMutex {
-			o.mutex.Lock()
-			defer o.mutex.Unlock()
-		}
-		o.check()
-		o.put(e)
+		id = o.ins(action, e)
 	} else {
 		o.log.Error(action, err)
 	}
 	return id, err
+}
+
+func (o *Sync[Id, MapItem, DbItem]) ins(action string, e DbItem) (id Id) {
+	id = o.fn.dbItemId(e)
+	o.log.Info(action, "id:", id)
+	if !o.excludeMutex {
+		o.mutex.Lock()
+		defer o.mutex.Unlock()
+	}
+	o.check()
+	o.put(e)
+	return
 }
 
 func (o *Sync[Id, MapItem, DbItem]) put(e DbItem) {
