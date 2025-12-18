@@ -190,6 +190,11 @@ func (o *Client) SendJson(v any) (err error) {
 	return
 }
 
+func (o *Client) Reconnect() {
+	o.log.Info("force reconnect")
+	o.closeSocket()
+}
+
 func (o *Client) socket() (ws *websocket.Conn, err error) {
 	ws = o.ws
 	if ws == nil {
