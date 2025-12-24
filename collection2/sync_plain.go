@@ -32,6 +32,10 @@ func (o *SyncPlain[Id, Item]) ExcludeMutex() {
 	o.c.ExcludeMutex()
 }
 
+func (o *SyncPlain[Id, Item]) DbReadonly() {
+	o.c.DbReadonly()
+}
+
 func (o *SyncPlain[Id, Item]) Db() *db.Db {
 	return o.c.Db()
 }

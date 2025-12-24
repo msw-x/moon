@@ -27,6 +27,7 @@ type Sync[Id constraints.Ordered, MapItem any, DbItem any] struct {
 	excludeMutex bool
 	inited       bool
 	logUpdate    bool
+	dbro         bool
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Open(name string, log *ulog.Log, db *db.Db, dbItemId func(DbItem) Id) {
@@ -60,7 +61,13 @@ func (o *Sync[Id, MapItem, DbItem]) OnDelete(onDelete func(MapItem, *bun.DeleteQ
 }
 
 func (o *Sync[Id, MapItem, DbItem]) ExcludeMutex() {
+	o.log.Info("exclude mutex")
 	o.excludeMutex = true
+}
+
+func (o *Sync[Id, MapItem, DbItem]) DbReadonly() {
+	o.log.Info("db readonly")
+	o.dbro = true
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Db() *db.Db {
@@ -149,7 +156,9 @@ func (o *Sync[Id, MapItem, DbItem]) Delete(id Id) error {
 				o.onDelete(e, q)
 			}
 		}
-		_, err = o.db.Delete(&v, onDelete)
+		if !o.dbro {
+			_, err = o.db.Delete(&v, onDelete)
+		}
 		if err == nil {
 			delete(o.m, id)
 			o.log.Infof("delete[%v] completed", id)
@@ -165,7 +174,9 @@ func (o *Sync[Id, MapItem, DbItem]) DeleteAll() (err error) {
 			o.mutex.Lock()
 			defer o.mutex.Unlock()
 		}
-		_, err = db.DeleteAll[DbItem](o.db)
+		if !o.dbro {
+			_, err = db.DeleteAll[DbItem](o.db)
+		}
 		if err == nil {
 			o.m = make(map[Id]MapItem)
 		}
@@ -337,7 +348,9 @@ func (o *Sync[Id, MapItem, DbItem]) add(action string, e DbItem) (Id, error) {
 	o.log.Debug(action)
 	err := o.InitError()
 	if err == nil {
-		err = o.db.Insert(&e)
+		if !o.dbro {
+			err = o.db.Insert(&e)
+		}
 	}
 	var id Id
 	if err == nil {
@@ -390,8 +403,10 @@ func (o *Sync[Id, MapItem, DbItem]) update(mode updateMode, id Id, fn func(e Map
 			prev := o.fn.mapToDbItem(e)
 			e = fn(e)
 			if mode != updateSoft {
-				curr := o.fn.mapToDbItem(e)
-				_, err = db.UpdateDiff(o.db, prev, curr)
+				if !o.dbro {
+					curr := o.fn.mapToDbItem(e)
+					_, err = db.UpdateDiff(o.db, prev, curr)
+				}
 			}
 			if err == nil {
 				if !o.excludeMutex {
