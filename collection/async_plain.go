@@ -38,6 +38,10 @@ func (o *AsyncPlain[Id, Item]) ExcludeMutex() {
 	o.c.ExcludeMutex()
 }
 
+func (o *AsyncPlain[Id, Item]) DbReadonly() {
+	o.c.DbReadonly()
+}
+
 func (o *AsyncPlain[Id, Item]) HandleImmediate() {
 	o.c.HandleImmediate()
 }

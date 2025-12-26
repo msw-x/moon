@@ -52,6 +52,10 @@ func (o *Async[Id, MapItem, DbItem]) ExcludeMutex() {
 	o.c.ExcludeMutex()
 }
 
+func (o *Async[Id, MapItem, DbItem]) DbReadonly() {
+	o.c.DbReadonly()
+}
+
 func (o *Async[Id, MapItem, DbItem]) HandleImmediate() {
 	o.handleImmediate = true
 }

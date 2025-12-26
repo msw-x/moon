@@ -61,12 +61,10 @@ func (o *Sync[Id, MapItem, DbItem]) OnDelete(onDelete func(MapItem, *bun.DeleteQ
 }
 
 func (o *Sync[Id, MapItem, DbItem]) ExcludeMutex() {
-	o.log.Info("exclude mutex")
 	o.excludeMutex = true
 }
 
 func (o *Sync[Id, MapItem, DbItem]) DbReadonly() {
-	o.log.Info("db readonly")
 	o.dbro = true
 }
 
