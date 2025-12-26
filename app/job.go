@@ -1,8 +1,10 @@
 package app
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/msw-x/moon/rt"
 	"github.com/msw-x/moon/ulog"
 	"github.com/msw-x/moon/usync"
 )
@@ -129,10 +131,11 @@ func (o *Job) logPrint(v ...any) {
 
 func (o *Job) recover() {
 	if r := recover(); r != nil {
+		s := fmt.Sprint(r) + "\n" + rt.StackTrace(1)
 		if o.log.Enabled() {
-			o.log.Critical(r)
+			o.log.Critical(s)
 		} else {
-			ulog.Critical(r)
+			ulog.Critical(s)
 		}
 	}
 }

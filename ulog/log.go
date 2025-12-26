@@ -2,6 +2,8 @@ package ulog
 
 import (
 	"fmt"
+
+	"github.com/msw-x/moon/rt"
 )
 
 type Log struct {
@@ -172,7 +174,7 @@ func (o *Log) Stat() {
 
 func (o *Log) Recover() {
 	if r := recover(); r != nil {
-		o.Critical(r)
+		o.Critical(fmt.Sprint(r) + "\n" + rt.StackTrace(1))
 	}
 }
 

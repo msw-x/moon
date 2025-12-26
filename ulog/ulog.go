@@ -3,6 +3,8 @@ package ulog
 import (
 	"fmt"
 	"os"
+
+	"github.com/msw-x/moon/rt"
 )
 
 func Print(level Level, v ...any) {
@@ -67,7 +69,7 @@ func Stat() string {
 
 func Recover() {
 	if r := recover(); r != nil {
-		Critical(r)
+		Critical(fmt.Sprint(r) + "\n" + rt.StackTrace(1))
 	}
 }
 
