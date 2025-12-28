@@ -10,6 +10,7 @@ import (
 	"github.com/msw-x/moon/app"
 	"github.com/msw-x/moon/db"
 	"github.com/msw-x/moon/uerr"
+	"github.com/msw-x/moon/ufmt"
 	"github.com/msw-x/moon/ulog"
 	"github.com/uptrace/bun"
 	"golang.org/x/exp/constraints"
@@ -27,7 +28,8 @@ type Sync[Id constraints.Ordered, MapItem any, DbItem any] struct {
 	excludeMutex bool
 	inited       bool
 	logUpdate    bool
-	dbro         bool
+	dbRo         bool
+	dbNoSelect   bool
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Open(name string, log *ulog.Log, db *db.Db, dbItemId func(DbItem) Id) {
@@ -65,7 +67,11 @@ func (o *Sync[Id, MapItem, DbItem]) ExcludeMutex() {
 }
 
 func (o *Sync[Id, MapItem, DbItem]) DbReadonly() {
-	o.dbro = true
+	o.dbRo = true
+}
+
+func (o *Sync[Id, MapItem, DbItem]) DbNoSelect() {
+	o.dbNoSelect = true
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Db() *db.Db {
@@ -107,8 +113,10 @@ func (o *Sync[Id, MapItem, DbItem]) Init() bool {
 		return false
 	}
 	var list []DbItem
-	if o.db.Select(&list, o.onSelect) != nil {
-		return false
+	if !o.dbNoSelect {
+		if o.db.Select(&list, o.onSelect) != nil {
+			return false
+		}
 	}
 	if !o.excludeMutex {
 		o.mutex.Lock()
@@ -120,6 +128,9 @@ func (o *Sync[Id, MapItem, DbItem]) Init() bool {
 	}
 	o.inited = true
 	o.log.Info("inited. count:", o.Count())
+	o.log.Info("log update:", ufmt.YesNo(o.logUpdate))
+	o.log.Info("db readonly:", ufmt.YesNo(o.dbRo))
+	o.log.Info("db no select:", ufmt.YesNo(o.dbNoSelect))
 	return true
 }
 
@@ -154,7 +165,7 @@ func (o *Sync[Id, MapItem, DbItem]) Delete(id Id) error {
 				o.onDelete(e, q)
 			}
 		}
-		if !o.dbro {
+		if !o.dbRo {
 			_, err = o.db.Delete(&v, onDelete)
 		}
 		if err == nil {
@@ -172,7 +183,7 @@ func (o *Sync[Id, MapItem, DbItem]) DeleteAll() (err error) {
 			o.mutex.Lock()
 			defer o.mutex.Unlock()
 		}
-		if !o.dbro {
+		if !o.dbRo {
 			_, err = db.DeleteAll[DbItem](o.db)
 		}
 		if err == nil {
@@ -346,7 +357,7 @@ func (o *Sync[Id, MapItem, DbItem]) add(action string, e DbItem) (Id, error) {
 	o.log.Debug(action)
 	err := o.InitError()
 	if err == nil {
-		if !o.dbro {
+		if !o.dbRo {
 			err = o.db.Insert(&e)
 		}
 	}
@@ -401,7 +412,7 @@ func (o *Sync[Id, MapItem, DbItem]) update(mode updateMode, id Id, fn func(e Map
 			prev := o.fn.mapToDbItem(e)
 			e = fn(e)
 			if mode != updateSoft {
-				if !o.dbro {
+				if !o.dbRo {
 					curr := o.fn.mapToDbItem(e)
 					_, err = db.UpdateDiff(o.db, prev, curr)
 				}

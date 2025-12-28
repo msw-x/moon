@@ -56,6 +56,10 @@ func (o *Async[Id, MapItem, DbItem]) DbReadonly() {
 	o.c.DbReadonly()
 }
 
+func (o *Async[Id, MapItem, DbItem]) DbNoSelect() {
+	o.c.DbNoSelect()
+}
+
 func (o *Async[Id, MapItem, DbItem]) HandleImmediate() {
 	o.handleImmediate = true
 }

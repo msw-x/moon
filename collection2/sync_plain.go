@@ -36,6 +36,10 @@ func (o *SyncPlain[Id, Item]) DbReadonly() {
 	o.c.DbReadonly()
 }
 
+func (o *SyncPlain[Id, Item]) DbNoSelect() {
+	o.c.DbNoSelect()
+}
+
 func (o *SyncPlain[Id, Item]) Db() *db.Db {
 	return o.c.Db()
 }

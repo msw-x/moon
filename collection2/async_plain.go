@@ -42,6 +42,10 @@ func (o *AsyncPlain[Id, Item]) DbReadonly() {
 	o.c.DbReadonly()
 }
 
+func (o *AsyncPlain[Id, Item]) DbNoSelect() {
+	o.c.DbNoSelect()
+}
+
 func (o *AsyncPlain[Id, Item]) HandleImmediate() {
 	o.c.HandleImmediate()
 }
