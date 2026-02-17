@@ -15,14 +15,15 @@ import (
 )
 
 type Db struct {
-	log   *ulog.Log
-	sqldb *sql.DB
-	db    *bun.DB
-	job   *app.Job
-	opts  Options
-	hosts *Hosts
-	ro    bool
-	ok    bool
+	log      *ulog.Log
+	sqldb    *sql.DB
+	db       *bun.DB
+	job      *app.Job
+	opts     Options
+	hosts    *Hosts
+	ro       bool
+	ok       bool
+	onStatus func(bool)
 }
 
 func New(opts Options) *Db {
@@ -90,6 +91,10 @@ func (o *Db) OnReadyFor(f func(), timeout time.Duration) {
 			f()
 		}
 	})
+}
+
+func (o *Db) SetOnStatus(f func(bool)) {
+	o.onStatus = f
 }
 
 func (o *Db) Migrator() *Migrator {
@@ -283,6 +288,9 @@ func (o *Db) status(ok bool) {
 			o.log.Debug("connected")
 		} else {
 			o.log.Error("disconnected")
+		}
+		if o.onStatus != nil {
+			o.onStatus(ok)
 		}
 	}
 }
