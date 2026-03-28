@@ -54,6 +54,10 @@ func (o *Db) Ok() bool {
 	return o.ok
 }
 
+func (o *Db) Db() *bun.DB {
+	return o.db
+}
+
 func (o *Db) Ping() bool {
 	_, err := o.db.Exec("SELECT 1")
 	return err == nil
