@@ -27,6 +27,7 @@ type Server struct {
 	xRemoteAddress string
 	logRequests    bool
 	logErrors      *ulog.Level
+	logFilter      func(*http.Request) bool
 	onTlsConfig    func(*tls.Config) *tls.Config
 }
 
@@ -86,6 +87,11 @@ func (o *Server) WithLogErrors(use bool) *Server {
 
 func (o *Server) WithLogErrorsLevel(level ulog.Level) *Server {
 	o.logErrors = &level
+	return o
+}
+
+func (o *Server) WithLogFilter(f func(*http.Request) bool) *Server {
+	o.logFilter = f
 	return o
 }
 
@@ -192,6 +198,11 @@ func (o *Server) IsTls() bool {
 
 func (o *Server) LogRequest(mux http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if o.logFilter != nil {
+			if !o.logFilter(r) {
+				return
+			}
+		}
 		name := RequestNameX(r, o.xRemoteAddress)
 		o.log.Debug(name)
 		tm := time.Now()
