@@ -20,6 +20,7 @@ type Router struct {
 	router            *mux.Router
 	xRemoteAddress    string
 	logRequest        bool
+	logFilter         func(*http.Request) bool
 	upgradeErrorLevel ulog.Level
 }
 
@@ -45,6 +46,11 @@ func (o *Router) WithID(id any) *Router {
 
 func (o *Router) WithLogRequest(logRequest bool) *Router {
 	o.logRequest = logRequest
+	return o
+}
+
+func (o *Router) WithLogFilter(f func(*http.Request) bool) *Router {
+	o.logFilter = f
 	return o
 }
 
@@ -78,7 +84,13 @@ func (o *Router) Handle(method string, path string, onRequest OnRequest) {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err))
 		})
-		if o.logRequest {
+		logRequest := o.logRequest
+		if logRequest {
+			if o.logFilter != nil {
+				logRequest = o.logFilter(r)
+			}
+		}
+		if logRequest {
 			if r.ContentLength > 0 {
 				o.log.Debug(name, ufmt.ByteSize(r.ContentLength))
 			} else {
