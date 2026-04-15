@@ -2,6 +2,8 @@ package telegram
 
 import (
 	"fmt"
+	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -22,7 +24,7 @@ type AlertBot struct {
 	quietShutdown bool
 }
 
-func NewAlertBot(token string, chatId string) *AlertBot {
+func NewAlertBot(token string, chatId string, proxy string) *AlertBot {
 	o := &AlertBot{
 		log:         ulog.New("alert-bot"),
 		logMsgLimit: 1024,
@@ -31,7 +33,20 @@ func NewAlertBot(token string, chatId string) *AlertBot {
 		var err error
 		o.chatId, err = parse.Int64(chatId)
 		if err == nil && token != "" {
-			o.bot, err = botapi.NewBotAPI(token)
+			if proxy == "" {
+				o.bot, err = botapi.NewBotAPI(token)
+			} else {
+				o.log.Info("proxy:", proxy)
+				var u *url.URL
+				u, err = url.Parse(proxy)
+				if err == nil {
+					o.bot, err = botapi.NewBotAPIWithClient(token, botapi.APIEndpoint, &http.Client{
+						Transport: &http.Transport{
+							Proxy: http.ProxyURL(u),
+						},
+					})
+				}
+			}
 			if err == nil {
 				o.log.Info("authorized on account:", o.bot.Self.UserName)
 				o.limiter = NewLimiter[string](o.send)
