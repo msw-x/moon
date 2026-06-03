@@ -209,6 +209,15 @@ func (o *Db) Upsert(model any) error {
 	return err
 }
 
+func (o *Db) Upsert2(model any, pk string) error {
+	if o.ro {
+		return nil
+	}
+	on := fmt.Sprintf("CONFLICT (%s) DO UPDATE", pk)
+	_, err := o.db.NewInsert().Model(model).On(on).Exec(o.ctx())
+	return err
+}
+
 func (o *Db) Delete(model any, fn func(*bun.DeleteQuery)) (int64, error) {
 	if o.ro {
 		return 0, nil
