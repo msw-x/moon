@@ -13,6 +13,8 @@ type Options struct {
 	Console         bool
 	File            string
 	Dir             string
+	FileLink        bool
+	DayLink         string
 	Append          bool
 	AppName         string
 	GoID            bool

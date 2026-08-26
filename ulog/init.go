@@ -36,16 +36,21 @@ func Close() {
 	ctx.close()
 }
 
-func GenFilename(ts time.Time, dir, app string) string {
+func GenFilename(ts time.Time, dir, app string, fileLink bool, dayLink string) (fdir, filename, flink, dlink string) {
 	const ext = ".log"
-	subDir := ts.Format("2006-01-02")
-	logDir := path.Join(dir, subDir)
-	basename := ts.Format("2006-01-02--15-04-05") + "@" + app
-	filename := path.Join(logDir, basename+ext)
+	fdir = path.Join(dir, ts.Format("2006-01-02"))
+	base := ts.Format("2006-01-02--15-04-05") + "@" + app
+	filename = path.Join(fdir, base+ext)
 	if ufs.Exist(filename) {
-		filename = path.Join(logDir, fmt.Sprintf("%s.%d%s", basename, os.Getpid(), ext))
+		filename = path.Join(fdir, fmt.Sprintf("%s.%d%s", base, os.Getpid(), ext))
 	}
-	return filename
+	if fileLink {
+		flink = path.Join(dir, app+ext)
+	}
+	if dayLink != "" {
+		dlink = path.Join(dir, dayLink)
+	}
+	return
 }
 
 func OpenFile(filename string, append bool) *os.File {

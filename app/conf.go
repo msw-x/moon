@@ -52,6 +52,8 @@ type Conf struct {
 	LogTotalSize string
 	LogLockInit  bool
 	LogAsyncMode bool
+	LogFileLink  bool
+	LogDayLink   string
 }
 
 func (o *Conf) Log() ulog.Options {
@@ -60,6 +62,8 @@ func (o *Conf) Log() ulog.Options {
 		Console:         o.LogConsole,
 		File:            o.LogFile,
 		Dir:             o.LogDir,
+		FileLink:        o.LogFileLink,
+		DayLink:         o.LogDayLink,
 		GoID:            o.LogGoID,
 		Timezone:        o.LogTimezone,
 		DaysCountLimit:  o.LogDaysCount,
