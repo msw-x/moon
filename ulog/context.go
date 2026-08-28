@@ -175,10 +175,7 @@ func (o *context) openFile(prolongation bool) {
 		if appName == "" {
 			appName = AppName()
 		}
-		if prolongation {
-			appName += ".~"
-		}
-		fdir, o.fname, flink, dlink = GenFilename(o.now(), o.opts.Dir, appName, o.opts.FileLink, o.opts.DayLink)
+		fdir, o.fname, flink, dlink = GenFilename(o.now(), o.opts.Dir, appName, prolongation, o.opts.FileLink, o.opts.DayLink)
 		if !prolongation {
 			o.fnameInit = o.fname
 		}
