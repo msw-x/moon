@@ -13,6 +13,13 @@ func Go(fn func()) {
 	}()
 }
 
+func GoWithLog(fn func(), log *ulog.Log) {
+	go func() {
+		defer log.Recover()
+		fn()
+	}()
+}
+
 func GoGroup(n int, fn func()) {
 	var wg sync.WaitGroup
 	for i := 0; i != n; i++ {
