@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/msw-x/moon/app"
 	"github.com/msw-x/moon/db"
@@ -109,6 +110,7 @@ func (o *Sync[Id, MapItem, DbItem]) Empty() bool {
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Init() bool {
+	ts := time.Now()
 	if !o.db.Ok() {
 		return false
 	}
@@ -118,6 +120,7 @@ func (o *Sync[Id, MapItem, DbItem]) Init() bool {
 			return false
 		}
 	}
+	selected := time.Since(ts)
 	if !o.excludeMutex {
 		o.mutex.Lock()
 		defer o.mutex.Unlock()
@@ -127,7 +130,7 @@ func (o *Sync[Id, MapItem, DbItem]) Init() bool {
 		o.put(e)
 	}
 	o.inited = true
-	o.log.Info("inited. count:", o.Count())
+	o.log.Infof("inited[%v] selected[%v] count[%d]", time.Since(ts), selected, o.Count())
 	o.log.Info("log update:", ufmt.YesNo(o.logUpdate))
 	o.log.Info("db readonly:", ufmt.YesNo(o.dbRo))
 	o.log.Info("db no select:", ufmt.YesNo(o.dbNoSelect))
