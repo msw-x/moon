@@ -6,12 +6,12 @@ import (
 	"reflect"
 	"sort"
 	"sync"
-	"time"
 
 	"github.com/msw-x/moon/app"
 	"github.com/msw-x/moon/db"
 	"github.com/msw-x/moon/uerr"
 	"github.com/msw-x/moon/ulog"
+	"github.com/msw-x/moon/utime"
 	"github.com/uptrace/bun"
 	"golang.org/x/exp/constraints"
 )
@@ -104,7 +104,7 @@ func (o *Sync[Id, MapItem, DbItem]) Empty() bool {
 }
 
 func (o *Sync[Id, MapItem, DbItem]) Init() bool {
-	ts := time.Now()
+	sw := utime.NewStopwatch()
 	if !o.db.Ok() {
 		return false
 	}
@@ -112,7 +112,7 @@ func (o *Sync[Id, MapItem, DbItem]) Init() bool {
 	if o.db.Select(&list, o.onSelect) != nil {
 		return false
 	}
-	selected := time.Since(ts)
+	selected := sw.Time()
 	if !o.excludeMutex {
 		o.mutex.Lock()
 		defer o.mutex.Unlock()
@@ -122,7 +122,7 @@ func (o *Sync[Id, MapItem, DbItem]) Init() bool {
 		o.put(e)
 	}
 	o.inited = true
-	o.log.Infof("inited[%v] selected[%v] count[%d]", time.Since(ts), selected, o.Count())
+	o.log.Infof("inited[%v] selected[%v] count[%d]", sw, utime.Pretty(selected), o.Count())
 	return true
 }
 
