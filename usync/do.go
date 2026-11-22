@@ -38,7 +38,7 @@ func (o *Do) Stop() {
 
 func (o *Do) Sleep(timeout time.Duration) {
 	if o.Do() {
-		const maxSleepTime = time.Millisecond * 10
+		const maxSleepTime = time.Millisecond * 100
 		if timeout > maxSleepTime {
 			count := int(timeout / maxSleepTime)
 			for n := 0; n != count; n++ {
