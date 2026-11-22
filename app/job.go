@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"sync/atomic"
 	"time"
 
 	"github.com/msw-x/moon/rt"
@@ -13,7 +14,7 @@ type Job struct {
 	do       *usync.Do
 	log      *ulog.Log
 	level    ulog.Level
-	running  bool
+	running  atomic.Bool
 	onInit   func() error
 	onStart  func()
 	onFinish func()
@@ -33,13 +34,14 @@ func (o *Job) Do() bool {
 }
 
 func (o *Job) Running() bool {
-	return o.running
+	return o.running.Load()
 }
 
 func (o *Job) Wait() {
 	o.logPrint("wait")
 	for o.Do() {
-		o.Sleep(time.Millisecond)
+		// Sleep wakes up on cancellation, no polling.
+		o.Sleep(time.Hour)
 	}
 	o.logPrint("waited")
 }
@@ -93,7 +95,7 @@ func (o *Job) WithLogLevel(level ulog.Level) *Job {
 }
 
 func (o *Job) Run(fn func()) {
-	o.running = true
+	o.running.Store(true)
 	go func() {
 		defer o.recover()
 		defer o.do.Notify()
@@ -162,7 +164,7 @@ func (o *Job) start() {
 }
 
 func (o *Job) stop() {
-	o.running = false
+	o.running.Store(false)
 }
 
 func (o *Job) finish() {
