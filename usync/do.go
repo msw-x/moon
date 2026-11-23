@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+// timerPool holds stopped or expired timers with drained channels.
+var timerPool sync.Pool
+
+// Do is created with NewDo. The zero value is an already canceled Do:
+// its methods return immediately.
 type Do struct {
 	do         atomic.Bool
 	cancel     chan struct{} // closed on first cancellation, wakes all sleepers
@@ -29,7 +34,7 @@ func (o *Do) Do() bool {
 
 func (o *Do) Notify() {
 	o.Cancel()
-	o.doneOnce.Do(func() { close(o.done) })
+	o.closeDone()
 }
 
 func (o *Do) Cancel() {
@@ -52,15 +57,40 @@ func (o *Do) Sleep(timeout time.Duration) {
 	if timeout <= 0 || !o.Do() {
 		return
 	}
-	timer := time.NewTimer(timeout)
-	// Before Go 1.23 an unstopped timer lives until it fires.
-	defer timer.Stop()
+	// Timers are pooled: a timer and its channel per call would cost
+	// three allocations on every Sleep.
+	timer, _ := timerPool.Get().(*time.Timer)
+	if timer == nil {
+		timer = time.NewTimer(timeout)
+	} else {
+		timer.Reset(timeout)
+	}
 	select {
 	case <-timer.C:
+		// Expired and drained: safe to reuse.
 	case <-o.cancel:
+		if !timer.Stop() {
+			// Fired concurrently: before Go 1.23 its channel holds (or is
+			// about to get) a value, so the timer must not be reused.
+			return
+		}
 	}
+	timerPool.Put(timer)
 }
 
+// The channels are nil in the zero value of Do.
 func (o *Do) closeCancel() {
-	o.cancelOnce.Do(func() { close(o.cancel) })
+	o.cancelOnce.Do(func() {
+		if o.cancel != nil {
+			close(o.cancel)
+		}
+	})
+}
+
+func (o *Do) closeDone() {
+	o.doneOnce.Do(func() {
+		if o.done != nil {
+			close(o.done)
+		}
+	})
 }
