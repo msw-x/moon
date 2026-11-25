@@ -23,6 +23,7 @@ type Router struct {
 
 type OnRequest func(http.ResponseWriter, *http.Request)
 type OnWebsocket func(*websocket.Conn)
+type OnWebsocket2 func(*websocket.Conn, *http.Request)
 
 func NewRouter() *Router {
 	return &Router{
@@ -117,6 +118,29 @@ func (o *Router) WebSocket(path string, onWebsocket OnWebsocket) {
 		conn, err := up.Upgrade(w, r, nil)
 		if err == nil {
 			onWebsocket(conn)
+		} else {
+			o.log.Print(o.wsErrorLevel, WebSocketName(o.RequestName(r)), err)
+		}
+	})
+}
+
+func (o *Router) WebSocket2(path string, onWebsocket OnWebsocket2) {
+	up := websocket.Upgrader{
+		ReadBufferSize:  0,
+		WriteBufferSize: 0,
+		CheckOrigin: func(*http.Request) bool {
+			return true
+		},
+	}
+	method := http.MethodGet
+	o.log.Debug(WebSocketName(RouteName(method, o.nextPath(path))))
+	o.Handle(method, path, func(w http.ResponseWriter, r *http.Request) {
+		defer uerr.Recover(func(err string) {
+			o.log.Error(WebSocketName(o.RequestName(r)), err)
+		})
+		conn, err := up.Upgrade(w, r, nil)
+		if err == nil {
+			onWebsocket(conn, r)
 		} else {
 			o.log.Print(o.wsErrorLevel, WebSocketName(o.RequestName(r)), err)
 		}
